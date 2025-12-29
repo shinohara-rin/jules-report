@@ -75,7 +75,7 @@ Act as a strict reviewer. Look at the aggregate changes and answer:
 ---
 
 # Input Parameters
-* **Target Repositories:** [moeru-ai/airi]
+* **Target Repositories:** `main` in [moeru-ai/airi]
 * **Timeframe:** Past 24-hour window ending at execution time.
 
 **Begin by fetching the commits now.**
