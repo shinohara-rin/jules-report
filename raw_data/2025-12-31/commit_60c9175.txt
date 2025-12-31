@@ -1,0 +1,31 @@
+commit 60c9175539c0841b585534dbce2b953311e89534
+Author: Karintou <taxi13245@gmail.com>
+Date:   Wed Dec 31 18:11:15 2025 +0900
+
+    feat(stage-ui,i18n): added Japanese as language option (#856)
+
+diff --git a/packages/i18n/src/index.ts b/packages/i18n/src/index.ts
+index 83d43e08..1f3bb6b4 100644
+--- a/packages/i18n/src/index.ts
++++ b/packages/i18n/src/index.ts
+@@ -2,6 +2,7 @@ export const all = {
+   'en': 'English',
+   'es': 'Español',
+   'fr': 'Français',
++  'ja': '日本語',
+   'ru': 'Русский',
+   'vi': 'Tiếng Việt',
+   'zh-Hans': '简体中文',
+diff --git a/packages/stage-ui/src/stores/settings.ts b/packages/stage-ui/src/stores/settings.ts
+index 196dc0fa..b694d70b 100644
+--- a/packages/stage-ui/src/stores/settings.ts
++++ b/packages/stage-ui/src/stores/settings.ts
+@@ -28,6 +28,8 @@ const languageRemap: Record<string, string> = {
+   'ru-RU': 'ru',
+   'fr': 'fr',
+   'fr-FR': 'fr',
++  'ja': 'ja',
++  'ja-JP': 'ja',
+ }
+
+ export const DEFAULT_THEME_COLORS_HUE = 220.44

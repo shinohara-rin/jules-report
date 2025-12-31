@@ -1,0 +1,37 @@
+commit f3a2451e8258ce64b01e184d912e2c1f45bea13c
+Author: Neko Ayaka <neko@ayaka.moe>
+Date:   Wed Dec 31 13:48:35 2025 +0800
+
+    fix(stage-ui): should not reject due to server-sdk connection failed
+
+diff --git a/packages/stage-ui/src/stores/mods/api/channel-server.ts b/packages/stage-ui/src/stores/mods/api/channel-server.ts
+index 2a961766..a8c50dd0 100644
+--- a/packages/stage-ui/src/stores/mods/api/channel-server.ts
++++ b/packages/stage-ui/src/stores/mods/api/channel-server.ts
+@@ -29,7 +29,7 @@ export const useModsServerChannelStore = defineStore('mods:channels:proj-airi:se
+     'ui:configure',
+   ]
+
+-  function initialize(options?: { token?: string, possibleEvents?: Array<keyof WebSocketEvents> }) {
++  async function initialize(options?: { token?: string, possibleEvents?: Array<keyof WebSocketEvents> }) {
+     if (connected.value && client.value)
+       return Promise.resolve()
+     if (initializing.value)
+@@ -40,7 +40,7 @@ export const useModsServerChannelStore = defineStore('mods:channels:proj-airi:se
+       ...(options?.possibleEvents ?? []),
+     ]))
+
+-    initializing.value = new Promise<void>((resolve, reject) => {
++    initializing.value = new Promise<void>((resolve) => {
+       client.value = new Client({
+         name: isStageWeb() ? WebSocketEventSource.StageWeb : isStageTamagotchi() ? WebSocketEventSource.StageTamagotchi : WebSocketEventSource.StageWeb,
+         url: import.meta.env.VITE_AIRI_WS_URL || 'ws://localhost:6121/ws',
+@@ -50,7 +50,7 @@ export const useModsServerChannelStore = defineStore('mods:channels:proj-airi:se
+           client.value = undefined
+           connected.value = false
+           initializing.value = null
+-          reject(error)
++          console.error('WebSocket server connection error:', error)
+         },
+         onClose: () => {
+           connected.value = false
