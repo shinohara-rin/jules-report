@@ -1,0 +1,494 @@
+commit 7f3a90d46318db4239273f361624aea86c955c2b
+Author: LemonNeko <self@lemonneko.moe>
+Date:   Wed Dec 31 11:57:41 2025 +0800
+
+    fix(stage-ios): use https when live reload (#853)
+
+diff --git a/AGENTS.md b/AGENTS.md
+index 87658c13..d50ba8df 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -6,6 +6,7 @@ Concise but detailed reference for contributors working across the `moeru-ai/air
+
+ - **Desktop (stage-tamagotchi)**: Electron, Vue, Vite, TypeScript, Pinia, VueUse, Eventa (IPC/RPC), UnoCSS, Vitest, ESLint.
+ - **Web (stage-web)**: Vue 3 + Vue Router, Vite, TypeScript, Pinia, VueUse, UnoCSS, Vitest, ESLint. Backend: WIP.
++- **Mobile (stage-capacitor)**: Vue 3 + Vue Router, Vite, TypeScript, Pinia, VueUse, UnoCSS, Vitest, ESLint, Kotlin, Swift, Capacitor.
+ - **UI/Shared Packages**:
+   - `packages/stage-ui`: Core business components, composables, stores shared by stage-web & stage-tamagotchi (heart of stage work).
+   - `packages/stage-ui-three`: Three.js bindings + Vue components.
+diff --git a/README.md b/README.md
+index 73bd7d5b..d92a8605 100644
+--- a/README.md
++++ b/README.md
+@@ -166,6 +166,34 @@ A Nix package for Tamagotchi is included. To run airi with Nix, first make sure
+ nix run github:moeru-ai/airi
+ ```
+
++### Stage Capacitor (Mobile Version)
++
++Start the development server for the capacitor web version:
++
++```shell
++pnpm dev:capacitor
++```
++
++Check your IP address in the output of the command above:
++
++```shell
++  ROLLDOWN-VITE v7.3.0  ready in 1073 ms
++
++  ➜  Local:   https://localhost:5273/
++  ➜  Network: https://<ip-will-be-here>:5273/
++  ➜  Vue DevTools: Open https://localhost:5273/__devtools__/ as a separate window
++  ➜  Vue DevTools: Press Option(⌥)+Shift(⇧)+D in App to toggle the Vue DevTools
++  ➜  UnoCSS Inspector: https://localhost:5273/__unocss/
++```
++
++Open the Xcode project:
++
++```shell
++CAPACITOR_DEV_SERVER_URL=https://<your-ip-address>:5273 pnpm open:ios
++```
++
++Then Xcode will open and you can click the "Run" button to run the app on your iPhone.
++
+ ### Documentation Site
+
+ ```shell
+diff --git a/apps/stage-capacitor/capacitor.config.ts b/apps/stage-capacitor/capacitor.config.ts
+index 98e43474..0e42f801 100644
+--- a/apps/stage-capacitor/capacitor.config.ts
++++ b/apps/stage-capacitor/capacitor.config.ts
+@@ -1,9 +1,19 @@
+ import type { CapacitorConfig } from '@capacitor/cli'
+
++import { env } from 'node:process'
++
++const serverURL = env.CAPACITOR_DEV_SERVER_URL
++
+ const config: CapacitorConfig = {
+   appId: 'ai.moeru.airi',
+   appName: 'AIRI',
+   webDir: 'dist',
++  server: serverURL
++    ? {
++        url: serverURL,
++        cleartext: false,
++      }
++    : undefined,
+ }
+
+ export default config
+diff --git a/apps/stage-capacitor/ios/App/App.xcodeproj/project.pbxproj b/apps/stage-capacitor/ios/App/App.xcodeproj/project.pbxproj
+index a8efc0bf..1882bf6b 100644
+--- a/apps/stage-capacitor/ios/App/App.xcodeproj/project.pbxproj
++++ b/apps/stage-capacitor/ios/App/App.xcodeproj/project.pbxproj
+@@ -7,6 +7,7 @@
+	objects = {
+
+ /* Begin PBXBuildFile section */
++		29ABB4BA2F03F2B400285F7F /* DevBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29ABB4B92F03F2B400285F7F /* DevBridgeViewController.swift */; };
+		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
+		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
+		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
+@@ -18,6 +19,7 @@
+ /* End PBXBuildFile section */
+
+ /* Begin PBXFileReference section */
++		29ABB4B92F03F2B400285F7F /* DevBridgeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevBridgeViewController.swift; sourceTree = "<group>"; };
+		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
+		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
+		504EC3041FED79650016851F /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
+@@ -62,6 +64,7 @@
+		504EC3061FED79650016851F /* App */ = {
+			isa = PBXGroup;
+			children = (
++				29ABB4B92F03F2B400285F7F /* DevBridgeViewController.swift */,
+				50379B222058CBB4000EE86E /* capacitor.config.json */,
+				504EC3071FED79650016851F /* AppDelegate.swift */,
+				504EC30B1FED79650016851F /* Main.storyboard */,
+@@ -156,6 +159,7 @@
+			buildActionMask = 2147483647;
+			files = (
+				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
++				29ABB4BA2F03F2B400285F7F /* DevBridgeViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+diff --git a/apps/stage-capacitor/ios/App/App/Base.lproj/Main.storyboard b/apps/stage-capacitor/ios/App/App/Base.lproj/Main.storyboard
+index b44df7be..cdf6239a 100644
+--- a/apps/stage-capacitor/ios/App/App/Base.lproj/Main.storyboard
++++ b/apps/stage-capacitor/ios/App/App/Base.lproj/Main.storyboard
+@@ -11,7 +11,7 @@
+         <!--Bridge View Controller-->
+         <scene sceneID="tne-QT-ifu">
+             <objects>
+-                <viewController id="BYZ-38-t0r" customClass="CAPBridgeViewController" customModule="Capacitor" sceneMemberID="viewController"/>
++                <viewController id="BYZ-38-t0r" customClass="DevBridgeViewController" customModule="App" sceneMemberID="viewController"/>
+                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+             </objects>
+         </scene>
+diff --git a/apps/stage-capacitor/ios/App/App/DevBridgeViewController.swift b/apps/stage-capacitor/ios/App/App/DevBridgeViewController.swift
+new file mode 100644
+index 00000000..e01e43a3
+--- /dev/null
++++ b/apps/stage-capacitor/ios/App/App/DevBridgeViewController.swift
+@@ -0,0 +1,70 @@
++import UIKit
++import Capacitor
++import WebKit
++
++class DevBridgeViewController: CAPBridgeViewController {
++
++    #if DEBUG
++    override func viewDidLoad() {
++        super.viewDidLoad()
++        if let webView = bridge?.webView {
++            webView.navigationDelegate = self
++            print("[DevBridge] Navigation delegate set for WebView")
++        } else {
++            print("[DevBridge] Warning: WebView not available in viewDidLoad")
++        }
++    }
++    #endif
++}
++
++#if DEBUG
++extension DevBridgeViewController: WKNavigationDelegate {
++    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
++        if let url = navigationAction.request.url {
++            print("[DevBridge] Navigation request to: \(url.absoluteString)")
++        }
++        decisionHandler(.allow)
++    }
++
++    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
++        print("[DevBridge] Started provisional navigation")
++    }
++
++    func webView(
++        _ webView: WKWebView,
++        didReceive challenge: URLAuthenticationChallenge,
++        completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
++    ) {
++        let host = challenge.protectionSpace.host
++        let authMethod = challenge.protectionSpace.authenticationMethod
++        print("[DevBridge] Certificate challenge for host: \(host), method: \(authMethod)")
++
++        if authMethod == NSURLAuthenticationMethodServerTrust {
++            if let serverTrust = challenge.protectionSpace.serverTrust {
++                print("[DevBridge] Trusting certificate for development host: \(host)")
++                completionHandler(.useCredential, URLCredential(trust: serverTrust))
++                return
++            } else {
++                print("[DevBridge] Warning: No serverTrust available for host: \(host)")
++            }
++        }
++
++        print("[DevBridge] Using default certificate handling for host: \(host)")
++        completionHandler(.performDefaultHandling, nil)
++    }
++
++    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
++        print("[DevBridge] Navigation failed: \(error.localizedDescription)")
++        if let nsError = error as NSError? {
++            print("[DevBridge] Error domain: \(nsError.domain), code: \(nsError.code)")
++            if nsError.code == -1001 {
++                print("[DevBridge] Timeout error - check if Vite server is running and accessible.")
++            }
++        }
++    }
++
++    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
++        print("[DevBridge] Navigation didFail: \(error.localizedDescription)")
++    }
++}
++#endif
+diff --git a/apps/stage-capacitor/package.json b/apps/stage-capacitor/package.json
+index 9fc49037..a4142765 100644
+--- a/apps/stage-capacitor/package.json
++++ b/apps/stage-capacitor/package.json
+@@ -11,11 +11,11 @@
+   "license": "MIT",
+   "scripts": {
+     "build": "vite build",
+-    "dev": "vite --port 5273",
+     "lint": "eslint .",
+     "preview": "vite preview",
+     "typecheck": "vue-tsc --noEmit",
+-    "dev:ios": "cap run ios -l --port 5273"
++    "dev:web": "vite",
++    "open:ios": "vite build && cap sync ios && cap open ios"
+   },
+   "dependencies": {
+     "@capacitor/core": "catalog:",
+@@ -130,6 +130,7 @@
+     "unplugin-yaml": "^3.0.7",
+     "vite": "catalog:rolldown-vite",
+     "vite-bundle-visualizer": "^1.2.1",
++    "vite-plugin-mkcert": "catalog:",
+     "vite-plugin-pwa": "^1.2.0",
+     "vite-plugin-vue-devtools": "^8.0.5",
+     "vite-plugin-vue-layouts": "^0.11.0",
+diff --git a/apps/stage-capacitor/tsconfig.json b/apps/stage-capacitor/tsconfig.json
+index 476aab3b..9761d778 100644
+--- a/apps/stage-capacitor/tsconfig.json
++++ b/apps/stage-capacitor/tsconfig.json
+@@ -25,7 +25,8 @@
+       "vue-macros/macros-global",
+       "unplugin-vue-router/client",
+       "@types/audioworklet",
+-      "unplugin-info/client"
++      "unplugin-info/client",
++      "node"
+     ],
+     "allowJs": true,
+     "strict": true,
+diff --git a/apps/stage-capacitor/vite.config.ts b/apps/stage-capacitor/vite.config.ts
+index acf5a011..aab0cee0 100644
+--- a/apps/stage-capacitor/vite.config.ts
++++ b/apps/stage-capacitor/vite.config.ts
+@@ -6,6 +6,7 @@ import Unocss from 'unocss/vite'
+ import Info from 'unplugin-info/vite'
+ import VueRouter from 'unplugin-vue-router/vite'
+ import Yaml from 'unplugin-yaml/vite'
++import mkcert from 'vite-plugin-mkcert'
+ import VueDevTools from 'vite-plugin-vue-devtools'
+ import Layouts from 'vite-plugin-vue-layouts'
+ import VueMacros from 'vue-macros/vite'
+@@ -57,6 +58,8 @@ export default defineConfig({
+     },
+   },
+   server: {
++    host: '0.0.0.0',
++    port: 5273,
+     warmup: {
+       clientFiles: [
+         `${resolve(join(import.meta.dirname, '..', '..', 'packages', 'stage-ui', 'src'))}/*.vue`,
+@@ -70,6 +73,8 @@ export default defineConfig({
+   },
+
+   plugins: [
++    mkcert(),
++
+     Info(),
+
+     Yaml(),
+diff --git a/package.json b/package.json
+index ada1661f..03bdb30e 100644
+--- a/package.json
++++ b/package.json
+@@ -17,6 +17,7 @@
+     "dev:docs": "pnpm -rF @proj-airi/docs run dev",
+     "dev:ui": "pnpm -rF @proj-airi/stage-ui run story:dev",
+     "dev:web": "pnpm -rF @proj-airi/stage-web run dev",
++    "dev:capacitor": "pnpm -rF @proj-airi/stage-capacitor run dev:web",
+     "dev:server": "pnpm -rF @proj-airi/server-runtime run dev",
+     "dev:tamagotchi": "pnpm -rF @proj-airi/stage-tamagotchi run dev",
+     "dev:apps": "pnpm -rF=\"./apps/*\" run --parallel dev",
+@@ -35,7 +36,8 @@
+     "to-avif": "tsx docs/scripts/avif.ts",
+     "typecheck": "pnpm -rF=\"./packages/*\" -F=\"./apps/*\" -F=\"./docs\" --parallel typecheck",
+     "up": "taze -w -r -I && pnpm prune && pnpm dedupe",
+-    "nolyfill": "pnpm dlx nolyfill"
++    "nolyfill": "pnpm dlx nolyfill",
++    "open:ios": "pnpm -rF @proj-airi/stage-capacitor run open:ios"
+   },
+   "devDependencies": {
+     "@antfu/eslint-config": "^6.7.3",
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index 69c1d5ba..8fa8ac8d 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -96,6 +96,9 @@ catalogs:
+     unplugin-info:
+       specifier: 1.2.4
+       version: 1.2.4
++    vite-plugin-mkcert:
++      specifier: ^1.17.9
++      version: 1.17.9
+     xsschema:
+       specifier: ^0.4.0-beta.12
+       version: 0.4.0-beta.13
+@@ -640,6 +643,9 @@ importers:
+       vite-bundle-visualizer:
+         specifier: ^1.2.1
+         version: 1.2.1(rolldown@1.0.0-beta.53)(rollup@2.79.2)
++      vite-plugin-mkcert:
++        specifier: 'catalog:'
++        version: 1.17.9(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+       vite-plugin-pwa:
+         specifier: ^1.2.0
+         version: 1.2.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(workbox-build@7.4.0)(workbox-window@7.4.0)
+@@ -8568,6 +8574,9 @@ packages:
+   '@xsai/shared@0.3.5':
+     resolution: {integrity: sha512-gxWH+9UjhXgqqKeU/o9UteC/ih1FzxEEsmPojImd/jvq4j/wtIg4aP3dCFnu+EhCT/MRQ38dkBSra99iY9cC3w==}
+
++  '@xsai/shared@0.4.0':
++    resolution: {integrity: sha512-RUkHutaib4/LvwdFT59Vtbq9Nycjr273ehuSVVs8NXH5BmqRk4+QwC+Ioyw282cuQAUQd1ESVqMNxY4f4DtV/Q==}
++
+   '@xsai/shared@0.4.0-beta.12':
+     resolution: {integrity: sha512-45qSpEL1T0cH7X3No3u7gHIBle3anVvEMx1sWk20QSYaIKzv+sUcY+sFdVbmm2QKZbJvgD7S41RLJCay36fphQ==}
+
+@@ -14964,6 +14973,12 @@ packages:
+       '@nuxt/kit':
+         optional: true
+
++  vite-plugin-mkcert@1.17.9:
++    resolution: {integrity: sha512-SwI7yqp2Cq4r2XItarnHRCj2uzHPqevbxFNMLpyN+LDXd5w1vmZeM4l5X/wCZoP4mjPQYN+9+4kmE6e3nPO5fg==}
++    engines: {node: '>=v16.7.0'}
++    peerDependencies:
++      vite: '>=3'
++
+   vite-plugin-pwa@1.2.0:
+     resolution: {integrity: sha512-a2xld+SJshT9Lgcv8Ji4+srFJL4k/1bVbd1x06JIkvecpQkwkvCncD1+gSzcdm3s+owWLpMJerG3aN5jupJEVw==}
+     engines: {node: '>=16.0.0'}
+@@ -21924,15 +21939,15 @@ snapshots:
+
+   '@xsai-ext/providers@0.4.0-beta.13':
+     dependencies:
+-      '@xsai/shared': 0.4.0-beta.13
++      '@xsai/shared': 0.4.0
+
+   '@xsai-ext/shared-providers@0.2.2':
+     dependencies:
+-      '@xsai/shared': 0.4.0-beta.13
++      '@xsai/shared': 0.4.0
+
+   '@xsai-ext/shared-providers@0.4.0-beta.12':
+     dependencies:
+-      '@xsai/shared': 0.4.0-beta.13
++      '@xsai/shared': 0.4.0
+
+   '@xsai-transformers/embed@0.0.11(electron@39.2.7)(h3@2.0.1-rc.5(crossws@0.4.1(srvx@0.9.8)))':
+     dependencies:
+@@ -21942,7 +21957,7 @@ snapshots:
+       '@xsai-ext/shared-providers': 0.4.0-beta.12
+       '@xsai-transformers/shared': 0.0.11(electron@39.2.7)(h3@2.0.1-rc.5(crossws@0.4.1(srvx@0.9.8)))
+       '@xsai/embed': 0.4.0-beta.13
+-      '@xsai/shared': 0.4.0-beta.13
++      '@xsai/shared': 0.4.0
+       gpuu: 1.0.6
+     transitivePeerDependencies:
+       - electron
+@@ -21954,7 +21969,7 @@ snapshots:
+       '@moeru/eventa': 0.3.0(electron@39.2.7)(h3@2.0.1-rc.5(crossws@0.4.1(srvx@0.9.8)))
+       '@moeru/std': 0.1.0-beta.14
+       '@xsai-ext/shared-providers': 0.4.0-beta.12
+-      '@xsai/shared': 0.4.0-beta.13
++      '@xsai/shared': 0.4.0
+       onnxruntime-common: 1.23.2
+     transitivePeerDependencies:
+       - electron
+@@ -21970,7 +21985,7 @@ snapshots:
+       '@xsai-transformers/shared': 0.0.11(electron@39.2.7)(h3@2.0.1-rc.5(crossws@0.4.1(srvx@0.9.8)))
+       '@xsai/embed': 0.4.0-beta.13
+       '@xsai/generate-transcription': 0.4.0-beta.13
+-      '@xsai/shared': 0.4.0-beta.13
++      '@xsai/shared': 0.4.0
+       gpuu: 1.0.6
+     transitivePeerDependencies:
+       - electron
+@@ -21978,11 +21993,11 @@ snapshots:
+
+   '@xsai/embed@0.4.0-beta.13':
+     dependencies:
+-      '@xsai/shared': 0.4.0-beta.13
++      '@xsai/shared': 0.4.0
+
+   '@xsai/generate-speech@0.4.0-beta.13':
+     dependencies:
+-      '@xsai/shared': 0.4.0-beta.13
++      '@xsai/shared': 0.4.0
+
+   '@xsai/generate-text@0.3.5':
+     dependencies:
+@@ -21991,16 +22006,16 @@ snapshots:
+
+   '@xsai/generate-text@0.4.0-beta.13':
+     dependencies:
+-      '@xsai/shared': 0.4.0-beta.13
++      '@xsai/shared': 0.4.0
+       '@xsai/shared-chat': 0.4.0-beta.13
+
+   '@xsai/generate-transcription@0.4.0-beta.13':
+     dependencies:
+-      '@xsai/shared': 0.4.0-beta.13
++      '@xsai/shared': 0.4.0
+
+   '@xsai/model@0.4.0-beta.13':
+     dependencies:
+-      '@xsai/shared': 0.4.0-beta.13
++      '@xsai/shared': 0.4.0
+
+   '@xsai/shared-chat@0.3.5':
+     dependencies:
+@@ -22008,16 +22023,18 @@ snapshots:
+
+   '@xsai/shared-chat@0.4.0-beta.12':
+     dependencies:
+-      '@xsai/shared': 0.4.0-beta.13
++      '@xsai/shared': 0.4.0
+
+   '@xsai/shared-chat@0.4.0-beta.13':
+     dependencies:
+-      '@xsai/shared': 0.4.0-beta.13
++      '@xsai/shared': 0.4.0
+
+   '@xsai/shared@0.2.2': {}
+
+   '@xsai/shared@0.3.5': {}
+
++  '@xsai/shared@0.4.0': {}
++
+   '@xsai/shared@0.4.0-beta.12': {}
+
+   '@xsai/shared@0.4.0-beta.13': {}
+@@ -22028,16 +22045,16 @@ snapshots:
+
+   '@xsai/stream-text@0.4.0-beta.13':
+     dependencies:
+-      '@xsai/shared': 0.4.0-beta.13
++      '@xsai/shared': 0.4.0
+       '@xsai/shared-chat': 0.4.0-beta.13
+
+   '@xsai/stream-transcription@0.4.0-beta.8':
+     dependencies:
+-      '@xsai/shared': 0.4.0-beta.13
++      '@xsai/shared': 0.4.0
+
+   '@xsai/tool@0.4.0-beta.13(zod-to-json-schema@3.25.1(zod@4.2.1))(zod@4.2.1)':
+     dependencies:
+-      '@xsai/shared': 0.4.0-beta.13
++      '@xsai/shared': 0.4.0
+       '@xsai/shared-chat': 0.4.0-beta.13
+       xsschema: 0.4.0-beta.13(@valibot/to-json-schema@1.0.0-rc.0(valibot@1.2.0(typescript@5.9.3)))(zod-to-json-schema@3.25.1(zod@4.2.1))(zod@4.2.1)
+     transitivePeerDependencies:
+@@ -29903,6 +29920,15 @@ snapshots:
+     transitivePeerDependencies:
+       - supports-color
+
++  vite-plugin-mkcert@1.17.9(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
++    dependencies:
++      axios: feaxios@0.0.23
++      debug: 4.4.3
++      picocolors: 1.1.1
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++    transitivePeerDependencies:
++      - supports-color
++
+   vite-plugin-pwa@1.2.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(workbox-build@7.4.0)(workbox-window@7.4.0):
+     dependencies:
+       debug: 4.4.3
+diff --git a/pnpm-workspace.yaml b/pnpm-workspace.yaml
+index 1bef746d..a84fd516 100644
+--- a/pnpm-workspace.yaml
++++ b/pnpm-workspace.yaml
+@@ -50,6 +50,7 @@ catalog:
+   tsx: ^4.21.0
+   uncrypto: ^0.1.3
+   unplugin-info: 1.2.4
++  vite-plugin-mkcert: ^1.17.9
+   xsschema: ^0.4.0-beta.12
+
+ catalogs:

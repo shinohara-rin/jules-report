@@ -1,0 +1,242 @@
+commit 3936c0ea3a4f8ba014cdb098932b31b789681650
+Author: LemonNeko <self@lemonneko.moe>
+Date:   Wed Dec 31 15:53:15 2025 +0800
+
+    feat(stage-capacitor): add notification capability, and a devtool (#855)
+
+diff --git a/Cargo.toml b/Cargo.toml
+index a3d9dd26..d18ac018 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -1,5 +1,12 @@
+ [workspace]
+-members = [ "crates/tauri-plugin-ipc-audio-transcription-ort", "crates/tauri-plugin-ipc-audio-vad-ort", "crates/tauri-plugin-mcp", "crates/tauri-plugin-rdev", "crates/tauri-plugin-window-pass-through-on-hover", "crates/tauri-plugin-window-router-link" ]
++members = [
++  "crates/tauri-plugin-ipc-audio-transcription-ort",
++  "crates/tauri-plugin-ipc-audio-vad-ort",
++  "crates/tauri-plugin-mcp",
++  "crates/tauri-plugin-rdev",
++  "crates/tauri-plugin-window-pass-through-on-hover",
++  "crates/tauri-plugin-window-router-link"
++]
+ resolver = "2"
+
+ [workspace.package]
+diff --git a/apps/stage-capacitor/ios/App/CapApp-SPM/Package.swift b/apps/stage-capacitor/ios/App/CapApp-SPM/Package.swift
+index 48e63d82..79763c06 100644
+--- a/apps/stage-capacitor/ios/App/CapApp-SPM/Package.swift
++++ b/apps/stage-capacitor/ios/App/CapApp-SPM/Package.swift
+@@ -11,14 +11,16 @@ let package = Package(
+             targets: ["CapApp-SPM"])
+     ],
+     dependencies: [
+-        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.0.0")
++        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.0.0"),
++        .package(name: "CapacitorLocalNotifications", path: "../../../../../node_modules/.pnpm/@capacitor+local-notifications@8.0.0_@capacitor+core@8.0.0/node_modules/@capacitor/local-notifications")
+     ],
+     targets: [
+         .target(
+             name: "CapApp-SPM",
+             dependencies: [
+                 .product(name: "Capacitor", package: "capacitor-swift-pm"),
+-                .product(name: "Cordova", package: "capacitor-swift-pm")
++                .product(name: "Cordova", package: "capacitor-swift-pm"),
++                .product(name: "CapacitorLocalNotifications", package: "CapacitorLocalNotifications")
+             ]
+         )
+     ]
+diff --git a/apps/stage-capacitor/package.json b/apps/stage-capacitor/package.json
+index a4142765..50450ea8 100644
+--- a/apps/stage-capacitor/package.json
++++ b/apps/stage-capacitor/package.json
+@@ -20,6 +20,7 @@
+   "dependencies": {
+     "@capacitor/core": "catalog:",
+     "@capacitor/ios": "catalog:",
++    "@capacitor/local-notifications": "catalog:",
+     "@date-fns/utc": "^2.1.1",
+     "@formkit/auto-animate": "^0.9.0",
+     "@huggingface/transformers": "^3.8.1",
+diff --git a/apps/stage-capacitor/src/pages/devtools/notifications.vue b/apps/stage-capacitor/src/pages/devtools/notifications.vue
+new file mode 100644
+index 00000000..bd4965fd
+--- /dev/null
++++ b/apps/stage-capacitor/src/pages/devtools/notifications.vue
+@@ -0,0 +1,54 @@
++<script setup lang="ts">
++import { LocalNotifications } from '@capacitor/local-notifications'
++import { Button, FieldInput } from '@proj-airi/ui'
++import { useLocalStorage } from '@vueuse/core'
++import { toast } from 'vue-sonner'
++
++const title = useLocalStorage('devtools/notifications/title', '')
++const content = useLocalStorage('devtools/notifications/content', '')
++
++async function sendNotification() {
++  const permission = await LocalNotifications.checkPermissions()
++  if (permission.display === 'denied') {
++    return toast.error('Notification permission denied, please enable it in settings')
++  }
++  if (permission.display !== 'granted') {
++    await LocalNotifications.requestPermissions()
++  }
++  await LocalNotifications.schedule({
++    notifications: [
++      {
++        id: Math.floor(Math.random() * 1000000),
++        title: title.value,
++        body: content.value,
++        schedule: {
++          at: new Date(Date.now() + 5000),
++        },
++      },
++    ],
++  })
++}
++</script>
++
++<template>
++  <div h="[calc(100dvh-40px)]">
++    <div relative h-full>
++      <div flex="~ col gap-4">
++        <div class="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
++          <FieldInput v-model="title" label="Title" description="The title of the notification" />
++        </div>
++        <div class="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-900">
++          <FieldInput v-model="content" label="Content" description="The content of the notification" />
++        </div>
++        <Button @click="sendNotification">
++          Send Notification
++        </Button>
++      </div>
++    </div>
++  </div>
++</template>
++
++<route lang="yaml">
++meta:
++  layout: plain
++</route>
+diff --git a/apps/stage-capacitor/src/pages/settings/system/developer.vue b/apps/stage-capacitor/src/pages/settings/system/developer.vue
+index a104e473..44e76f0a 100644
+--- a/apps/stage-capacitor/src/pages/settings/system/developer.vue
++++ b/apps/stage-capacitor/src/pages/settings/system/developer.vue
+@@ -74,6 +74,12 @@ const menu = computed(() => [
+     icon: 'i-solar:sledgehammer-bold-duotone',
+     to: '/devtools/performance-playground',
+   },
++  {
++    title: 'Notification',
++    description: 'Test notification',
++    icon: 'i-solar:sledgehammer-bold-duotone',
++    to: '/devtools/notifications',
++  },
+ ])
+ </script>
+
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index efee6530..f4fab901 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -15,6 +15,9 @@ catalogs:
+     '@capacitor/ios':
+       specifier: ^8.0.0
+       version: 8.0.0
++    '@capacitor/local-notifications':
++      specifier: ^8.0.0
++      version: 8.0.0
+     '@guiiai/logg':
+       specifier: ^1.2.11
+       version: 1.2.11
+@@ -323,6 +326,9 @@ importers:
+       '@capacitor/ios':
+         specifier: 'catalog:'
+         version: 8.0.0(@capacitor/core@8.0.0)
++      '@capacitor/local-notifications':
++        specifier: 'catalog:'
++        version: 8.0.0(@capacitor/core@8.0.0)
+       '@date-fns/utc':
+         specifier: ^2.1.1
+         version: 2.1.1
+@@ -2629,7 +2635,7 @@ importers:
+         version: 66.5.11
+       '@wxt-dev/module-vue':
+         specifier: ^1.0.3
+-        version: 1.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
++        version: 1.0.3(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+       vue-tsc:
+         specifier: ^3.1.8
+         version: 3.2.1(typescript@5.9.3)
+@@ -3781,6 +3787,11 @@ packages:
+     peerDependencies:
+       '@capacitor/core': ^8.0.0
+
++  '@capacitor/local-notifications@8.0.0':
++    resolution: {integrity: sha512-Jn2IJs13vhRyOUtYni7PIPdMDYMILb4uI/rRAi7PmGg2lnaKbM5aWBmHZWt0laTYyVApYIbCWmdgBqWx/IH4dQ==}
++    peerDependencies:
++      '@capacitor/core': '>=8.0.0'
++
+   '@cfworker/json-schema@4.1.1':
+     resolution: {integrity: sha512-gAmrUZSGtKc3AiBL71iNWxDsyUC5uMaKKGdvzYsBoTW/xi42JQHl7eKV2OYzCUqvc+D2RCcf7EXY2iCyFIk6og==}
+
+@@ -16865,6 +16876,10 @@ snapshots:
+     dependencies:
+       '@capacitor/core': 8.0.0
+
++  '@capacitor/local-notifications@8.0.0(@capacitor/core@8.0.0)':
++    dependencies:
++      '@capacitor/core': 8.0.0
++
+   '@cfworker/json-schema@4.1.1': {}
+
+   '@clack/core@0.5.0':
+@@ -21161,12 +21176,6 @@ snapshots:
+       vite: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+       vue: 3.5.25(typescript@5.9.3)
+
+-  '@vitejs/plugin-vue@6.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))':
+-    dependencies:
+-      '@rolldown/pluginutils': 1.0.0-beta.53
+-      vite: 8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-      vue: 3.5.25(typescript@5.9.3)
+-
+   '@vitest/browser-playwright@4.0.16(bufferutil@4.1.0)(playwright@1.57.0)(utf-8-validate@5.0.10)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)':
+     dependencies:
+       '@vitest/browser': 4.0.16(bufferutil@4.1.0)(utf-8-validate@5.0.10)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)
+@@ -21925,9 +21934,9 @@ snapshots:
+       '@types/filesystem': 0.0.36
+       '@types/har-format': 1.2.16
+
+-  '@wxt-dev/module-vue@1.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
++  '@wxt-dev/module-vue@1.0.3(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
+     dependencies:
+-      '@vitejs/plugin-vue': 6.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
++      '@vitejs/plugin-vue': 6.0.3(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
+       wxt: 0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+     transitivePeerDependencies:
+       - vite
+diff --git a/pnpm-workspace.yaml b/pnpm-workspace.yaml
+index c1ec64b6..34be3c4d 100644
+--- a/pnpm-workspace.yaml
++++ b/pnpm-workspace.yaml
+@@ -1,7 +1,6 @@
+ catalogMode: prefer
+
+ shellEmulator: true
+-
+ packages:
+   - packages/**
+   - plugins/**
+@@ -23,11 +22,11 @@ overrides:
+
+ patchedDependencies:
+   srvx@0.9.8: patches/srvx@0.9.8.patch
+-
+ catalog:
+   '@capacitor/cli': ^8.0.0
+   '@capacitor/core': ^8.0.0
+   '@capacitor/ios': ^8.0.0
++  '@capacitor/local-notifications': ^8.0.0
+   '@guiiai/logg': ^1.2.11
+   '@moeru/eslint-config': 0.1.0-beta.14
+   '@moeru/std': 0.1.0-beta.14
