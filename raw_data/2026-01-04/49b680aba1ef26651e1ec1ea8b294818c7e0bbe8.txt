@@ -1,0 +1,167 @@
+commit 49b680aba1ef26651e1ec1ea8b294818c7e0bbe8
+Author: Neko Ayaka <neko@ayaka.moe>
+Date:   Sun Jan 4 15:13:19 2026 +0800
+
+    fix(stage-ui): handle error for live2d
+
+diff --git a/packages/stage-ui/src/components/scenes/live2d/Canvas.vue b/packages/stage-ui/src/components/scenes/live2d/Canvas.vue
+index 921dc7ae..3770315f 100644
+--- a/packages/stage-ui/src/components/scenes/live2d/Canvas.vue
++++ b/packages/stage-ui/src/components/scenes/live2d/Canvas.vue
+@@ -20,6 +20,21 @@ const isPixiCanvasReady = ref(false)
+ const pixiApp = ref<Application>()
+ const pixiAppCanvas = ref<HTMLCanvasElement>()
+
++function installRenderGuard(app: Application) {
++  const guardedRender = () => {
++    try {
++      app.render()
++    }
++    catch (error) {
++      console.error('[Live2D] Pixi render error.', error)
++      app.ticker.stop()
++    }
++  }
++
++  app.ticker.remove(app.render, app)
++  app.ticker.add(guardedRender)
++}
++
+ async function initLive2DPixiStage(parent: HTMLDivElement) {
+   componentState.value = 'loading'
+   isPixiCanvasReady.value = false
+@@ -39,6 +54,7 @@ async function initLive2DPixiStage(parent: HTMLDivElement) {
+     resolution: 1,
+   })
+
++  installRenderGuard(pixiApp.value)
+   pixiApp.value.stage.scale.set(props.resolution)
+
+   pixiAppCanvas.value = pixiApp.value.view
+@@ -75,7 +91,14 @@ async function captureFrame() {
+     if (!pixiAppCanvas.value || !pixiApp.value)
+       return resolve(null)
+
+-    pixiApp.value.render()
++    try {
++      pixiApp.value.render()
++    }
++    catch (error) {
++      console.error('[Live2D] Pixi render error during capture.', error)
++      return resolve(null)
++    }
++
+     pixiAppCanvas.value.toBlob(resolve)
+   })
+
+diff --git a/packages/stage-ui/src/stores/display-models.ts b/packages/stage-ui/src/stores/display-models.ts
+index 1f6eb29e..bd8a33fd 100644
+--- a/packages/stage-ui/src/stores/display-models.ts
++++ b/packages/stage-ui/src/stores/display-models.ts
+@@ -132,56 +132,59 @@ export const useDisplayModelsStore = defineStore('display-models', () => {
+       backgroundAlpha: 0,
+       autoDensity: false,
+       resolution: 1,
++      autoStart: false,
+     })
+     app.stage.scale.set(previewResolution)
++    app.ticker.stop()
+
+     const modelInstance = new Live2DModel()
+     const objUrl = URL.createObjectURL(file)
+     const res = await fetch(objUrl)
+     const blob = await res.blob()
+
+-    try {
+-      await Live2DFactory.setupLive2DModel(modelInstance, [new File([blob], file.name)], { autoInteract: false })
+-    }
+-    catch (error) {
++    const cleanup = () => {
+       app.destroy()
+-      document.body.removeChild(offscreenCanvas)
++      if (offscreenCanvas.isConnected)
++        document.body.removeChild(offscreenCanvas)
+       URL.revokeObjectURL(objUrl)
+-      console.error(error)
+-      return
+     }
+
+-    app.stage.addChild(modelInstance)
++    try {
++      await Live2DFactory.setupLive2DModel(modelInstance, [new File([blob], file.name)], { autoInteract: false })
++      app.stage.addChild(modelInstance)
+
+-    // transforms
+-    modelInstance.x = 275
+-    modelInstance.y = 450
+-    modelInstance.width = previewWidth
+-    modelInstance.height = previewHeight
+-    modelInstance.scale.set(0.1, 0.1)
+-    modelInstance.anchor.set(0.5, 0.5)
++      // transforms
++      modelInstance.x = 275
++      modelInstance.y = 450
++      modelInstance.width = previewWidth
++      modelInstance.height = previewHeight
++      modelInstance.scale.set(0.1, 0.1)
++      modelInstance.anchor.set(0.5, 0.5)
+
+-    await new Promise(resolve => setTimeout(resolve, 500))
+-    // Force a render to ensure the latest frame is in the drawing buffer
+-    app.renderer.render(app.stage)
++      await new Promise(resolve => setTimeout(resolve, 500))
++      // Force a render to ensure the latest frame is in the drawing buffer
++      app.renderer.render(app.stage)
+
+-    const croppedCanvas = cropImg(offscreenCanvas)
++      const croppedCanvas = cropImg(offscreenCanvas)
+
+-    // padding to 12:16
+-    const paddingCanvas = document.createElement('canvas')
+-    paddingCanvas.width = croppedCanvas.width > croppedCanvas.height / 16 * 12 ? croppedCanvas.width : croppedCanvas.height / 16 * 12
+-    paddingCanvas.height = paddingCanvas.width / 12 * 16
+-    const paddingCanvasCtx = paddingCanvas.getContext('2d')!
++      // padding to 12:16
++      const paddingCanvas = document.createElement('canvas')
++      paddingCanvas.width = croppedCanvas.width > croppedCanvas.height / 16 * 12 ? croppedCanvas.width : croppedCanvas.height / 16 * 12
++      paddingCanvas.height = paddingCanvas.width / 12 * 16
++      const paddingCanvasCtx = paddingCanvas.getContext('2d')!
+
+-    paddingCanvasCtx.drawImage(croppedCanvas, (paddingCanvas.width - croppedCanvas.width) / 2, (paddingCanvas.height - croppedCanvas.height) / 2, croppedCanvas.width, croppedCanvas.height)
+-    const paddingDataUrl = paddingCanvas.toDataURL()
++      paddingCanvasCtx.drawImage(croppedCanvas, (paddingCanvas.width - croppedCanvas.width) / 2, (paddingCanvas.height - croppedCanvas.height) / 2, croppedCanvas.width, croppedCanvas.height)
++      const paddingDataUrl = paddingCanvas.toDataURL()
+
+-    app.destroy()
+-    document.body.removeChild(offscreenCanvas)
+-    URL.revokeObjectURL(objUrl)
++      cleanup()
+
+-    // return dataUrl
+-    return paddingDataUrl
++      // return dataUrl
++      return paddingDataUrl
++    }
++    catch (error) {
++      console.error(error)
++      cleanup()
++    }
+   }
+
+   async function loadVrmModelPreview(file: File) {
+@@ -288,16 +291,10 @@ export const useDisplayModelsStore = defineStore('display-models', () => {
+
+     if (format === DisplayModelFormat.Live2dZip) {
+       const previewImage = await loadLive2DModelPreview(file)
+-      if (!previewImage)
+-        return
+-
+       newDisplayModel.previewImage = previewImage
+     }
+     else if (format === DisplayModelFormat.VRM) {
+       const previewImage = await loadVrmModelPreview(file)
+-      if (!previewImage)
+-        return
+-
+       newDisplayModel.previewImage = previewImage
+     }

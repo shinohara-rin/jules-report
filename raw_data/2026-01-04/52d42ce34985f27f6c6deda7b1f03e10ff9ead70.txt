@@ -1,0 +1,124 @@
+commit 52d42ce34985f27f6c6deda7b1f03e10ff9ead70
+Author: Neko Ayaka <neko@ayaka.moe>
+Date:   Sun Jan 4 01:07:05 2026 +0800
+
+    feat(stage-ui): with sorted for providers
+
+diff --git a/packages/stage-ui/src/libs/providers/providers/302-ai/index.ts b/packages/stage-ui/src/libs/providers/providers/302-ai/index.ts
+index cd0ddd90..6fcf9af6 100644
+--- a/packages/stage-ui/src/libs/providers/providers/302-ai/index.ts
++++ b/packages/stage-ui/src/libs/providers/providers/302-ai/index.ts
+@@ -17,6 +17,7 @@ type AI302Config = z.input<typeof ai302ConfigSchema>
+
+ export const provider302AI = defineProvider<AI302Config>({
+   id: '302-ai',
++  order: 7,
+   name: '302.AI',
+   nameLocalize: ({ t }) => t('settings.pages.providers.provider.302-ai.title'),
+   description: '302.ai',
+diff --git a/packages/stage-ui/src/libs/providers/providers/anthropic/index.ts b/packages/stage-ui/src/libs/providers/providers/anthropic/index.ts
+index 612b6fe3..d0dca18e 100644
+--- a/packages/stage-ui/src/libs/providers/providers/anthropic/index.ts
++++ b/packages/stage-ui/src/libs/providers/providers/anthropic/index.ts
+@@ -38,6 +38,7 @@ function createAnthropic(apiKey: string, baseURL: string = 'https://api.anthropi
+
+ export const providerAnthropic = defineProvider<AnthropicConfig>({
+   id: 'anthropic',
++  order: 5,
+   name: 'Anthropic',
+   nameLocalize: ({ t }) => t('settings.pages.providers.provider.anthropic.title'),
+   description: 'anthropic.com',
+diff --git a/packages/stage-ui/src/libs/providers/providers/deepseek/index.ts b/packages/stage-ui/src/libs/providers/providers/deepseek/index.ts
+index 125c6d78..f15076ef 100644
+--- a/packages/stage-ui/src/libs/providers/providers/deepseek/index.ts
++++ b/packages/stage-ui/src/libs/providers/providers/deepseek/index.ts
+@@ -17,6 +17,7 @@ type DeepSeekConfig = z.input<typeof deepSeekConfigSchema>
+
+ export const providerDeepSeek = defineProvider<DeepSeekConfig>({
+   id: 'deepseek',
++  order: 4,
+   name: 'DeepSeek',
+   nameLocalize: ({ t }) => t('settings.pages.providers.provider.deepseek.title'),
+   description: 'deepseek.com',
+diff --git a/packages/stage-ui/src/libs/providers/providers/google-generative-ai/index.ts b/packages/stage-ui/src/libs/providers/providers/google-generative-ai/index.ts
+index 0019be4c..7792751f 100644
+--- a/packages/stage-ui/src/libs/providers/providers/google-generative-ai/index.ts
++++ b/packages/stage-ui/src/libs/providers/providers/google-generative-ai/index.ts
+@@ -17,6 +17,7 @@ type GoogleGenerativeConfig = z.input<typeof googleGenerativeConfigSchema>
+
+ export const providerGoogleGenerativeAI = defineProvider<GoogleGenerativeConfig>({
+   id: 'google-generative-ai',
++  order: 6,
+   name: 'Google Gemini',
+   nameLocalize: ({ t }) => t('settings.pages.providers.provider.google-generative-ai.title'),
+   description: 'ai.google.dev',
+diff --git a/packages/stage-ui/src/libs/providers/providers/ollama/index.ts b/packages/stage-ui/src/libs/providers/providers/ollama/index.ts
+index 4035f671..2d16b9f9 100644
+--- a/packages/stage-ui/src/libs/providers/providers/ollama/index.ts
++++ b/packages/stage-ui/src/libs/providers/providers/ollama/index.ts
+@@ -6,6 +6,7 @@ import { defineProvider } from '../registry'
+
+ export const providerOllama = defineProvider({
+   id: 'ollama',
++  order: 2,
+   name: 'Ollama',
+   nameLocalize: ({ t }) => t('settings.pages.providers.provider.ollama.title'),
+   description: 'Local Ollama server for fast model iteration.',
+diff --git a/packages/stage-ui/src/libs/providers/providers/openai-compatible/index.ts b/packages/stage-ui/src/libs/providers/providers/openai-compatible/index.ts
+index 6da9a436..5332d413 100644
+--- a/packages/stage-ui/src/libs/providers/providers/openai-compatible/index.ts
++++ b/packages/stage-ui/src/libs/providers/providers/openai-compatible/index.ts
+@@ -18,6 +18,7 @@ type OpenAICompatibleConfig = z.input<typeof openAICompatibleConfigSchema>
+
+ export const providerOpenAICompatible = defineProvider<OpenAICompatibleConfig>({
+   id: 'openai-compatible',
++  order: 3,
+   name: 'OpenAI Compatible',
+   nameLocalize: ({ t }) => t('settings.pages.providers.provider.openai-compatible.title'),
+   description: 'OpenAI-compatible chat APIs with API key authentication.',
+diff --git a/packages/stage-ui/src/libs/providers/providers/openai/index.ts b/packages/stage-ui/src/libs/providers/providers/openai/index.ts
+index 6d6eeef9..b61f509e 100644
+--- a/packages/stage-ui/src/libs/providers/providers/openai/index.ts
++++ b/packages/stage-ui/src/libs/providers/providers/openai/index.ts
+@@ -17,6 +17,7 @@ type OpenAICompatibleConfig = z.input<typeof openAICompatibleConfigSchema>
+
+ export const providerOpenAI = defineProvider<OpenAICompatibleConfig>({
+   id: 'openai',
++  order: 1,
+   name: 'OpenAI',
+   nameLocalize: ({ t }) => t('settings.pages.providers.provider.openai.title'),
+   description: 'OpenAI',
+diff --git a/packages/stage-ui/src/libs/providers/providers/openrouter-ai/index.ts b/packages/stage-ui/src/libs/providers/providers/openrouter-ai/index.ts
+index f40c0492..f365318d 100644
+--- a/packages/stage-ui/src/libs/providers/providers/openrouter-ai/index.ts
++++ b/packages/stage-ui/src/libs/providers/providers/openrouter-ai/index.ts
+@@ -17,6 +17,7 @@ type OpenRouterConfig = z.input<typeof openRouterConfigSchema>
+
+ export const providerOpenRouterAI = defineProvider<OpenRouterConfig>({
+   id: 'openrouter-ai',
++  order: 0,
+   name: 'OpenRouter',
+   nameLocalize: ({ t }) => t('settings.pages.providers.provider.openrouter.title'),
+   description: 'openrouter.ai',
+diff --git a/packages/stage-ui/src/libs/providers/providers/registry.ts b/packages/stage-ui/src/libs/providers/providers/registry.ts
+index 8d138fd4..fb003abf 100644
+--- a/packages/stage-ui/src/libs/providers/providers/registry.ts
++++ b/packages/stage-ui/src/libs/providers/providers/registry.ts
+@@ -3,13 +3,14 @@ import type { $ZodType } from 'zod/v4/core'
+
+ import type { ProviderDefinition } from '../types'
+
+-import { sortBy } from 'es-toolkit'
++import { orderBy } from 'es-toolkit'
+
+ const providerRegistry = new Map<string, ProviderDefinition>()
+
+ export function listProviders(): ProviderDefinition[] {
+-  const providerDefs = Array.from(providerRegistry.values())
+-  return sortBy(providerDefs, [p => p.order, p => p.name.toLowerCase()])
++  const providerDefs = Array.from(providerRegistry.values()).map(def => ({ order: 99999, ...def }))
++  const sorted = orderBy(providerDefs, [p => p.order, 'name'], ['asc', 'asc'])
++  return sorted
+ }
+
+ export function getDefinedProvider(id: string): ProviderDefinition | undefined {

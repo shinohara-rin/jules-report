@@ -1,0 +1,774 @@
+commit 71dc08fa00da36ee264df52a0efba420d9883b15
+Author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+Date:   Sun Jan 4 11:43:24 2026 +0800
+
+    chore(i18n): update translations (#872)
+
+diff --git a/packages/i18n/src/locales/es/settings.yaml b/packages/i18n/src/locales/es/settings.yaml
+index 0389ef9e..41a06963 100644
+--- a/packages/i18n/src/locales/es/settings.yaml
++++ b/packages/i18n/src/locales/es/settings.yaml
+@@ -183,7 +183,7 @@ pages:
+         reset: Reset desktop data
+     confirmations:
+       tooltip: Are you sure?
+-      yes: Yes
++      'yes': 'Yes'
+     status:
+       exported: Chat sessions exported.
+       imported: Chat sessions imported.
+@@ -407,6 +407,65 @@ pages:
+       title: '¿Primera vez aquí?'
+       description: >
+         AIRI requiere que al menos un proveedor de {chat} esté configurado para pensar y comportarse correctamente. Podrías pensarlo como el cerebro de los personajes que viven en el sistema AIRI.
++    catalog:
++      edit:
++        config-id-not-found: Provider configuration not found.
++        definition-id-not-found: Provider definition not found.
++        actions:
++          more-options: More options
++          delete: Delete
++        validation:
++          failed:
++            title: Please check your provider settings, validation failed.
++            description: You can still save the current configuration if you want to proceed.
++            action: Save anyway
++        config:
++          common:
++            fields:
++              field:
++                api-key:
++                  label: API Key
++                  description: API Key used to authorize requests to this provider
++                  placeholder: sk-...
++                base-url:
++                  label: Base URL
++                  description: >-
++                    The base url used to connect to remote service. Often looks like http://localhost:11434/v1 or https://example.com/v1.
++                  placeholder: Base url...
++                headers:
++                  label: Custom HTTP Headers
++                  description: Add custom HTTP headers
++                  key:
++                    placeholder: Key
++                  value:
++                    placeholder: Value
++        validators:
++          actions:
++            validate: Validate
++          empty: No validation steps available.
++          openai-compatible:
++            check-config:
++              title: Configuration
++            check-connectivity:
++              title: Connectivity
++            check-supports-model-listing:
++              title: List Models
++            check-supports-chat-completion:
++              title: Chat Completion
++          status:
++            validating: Validating...
++            valid: Passed
++            invalid: Errored
++          title: Checks
++        providers:
++          provider:
++            ollama:
++              troubleshooting:
++                validators:
++                  openai-compatible-check-connectivity:
++                    label: Extra configuration needed for Ollama
++                    content: >-
++                      Sorry to hear that Connectivity check failed for Ollama. Don't worry, for Ollama instances, extra configuration is needed for making it pass for Ollama. You need to set <code>OLLAMA_HOST</code> explicitly when start the Ollama application or Ollama CLI server, for detailed information, check <a href="https://airi.moeru.ai/docs/en/docs/manual/integrations/providers/chat/ollama">Ollama integration guide</a>.
+     common:
+       continueAnyway: Continuar de todos modos
+       fields:
+@@ -488,6 +547,9 @@ pages:
+             volume:
+               description: Ajustar el volumen del habla
+               label: Volumen
++      deepgram-tts:
++        description: deepgram.com
++        title: Deepgram
+       deepseek:
+         description: deepseek.com
+         title: DeepSeek
+@@ -780,4 +842,5 @@ vrm:
+     skybox-specular-mix: Specular Mix
+ wip:
+   title: Work in Progress
+-  description: This feature is currently under development and not yet publicly available. Check back in future updates for this functionality.
++  description: >-
++    This feature is currently under development and not yet publicly available. Check back in future updates for this functionality.
+diff --git a/packages/i18n/src/locales/fr/settings.yaml b/packages/i18n/src/locales/fr/settings.yaml
+index c7d32250..7a3068ab 100644
+--- a/packages/i18n/src/locales/fr/settings.yaml
++++ b/packages/i18n/src/locales/fr/settings.yaml
+@@ -183,7 +183,7 @@ pages:
+         reset: Reset desktop data
+     confirmations:
+       tooltip: Are you sure?
+-      yes: Yes
++      'yes': 'Yes'
+     status:
+       exported: Chat sessions exported.
+       imported: Chat sessions imported.
+@@ -407,6 +407,65 @@ pages:
+       title: Première fois ici ?
+       description: >
+         AIRI nécessite qu’au moins un fournisseur {chat} soit configuré pour penser et se comporter correctement. On peut le considérer comme le cerveau des personnages vivant dans le système AIRI.
++    catalog:
++      edit:
++        config-id-not-found: Provider configuration not found.
++        definition-id-not-found: Provider definition not found.
++        actions:
++          more-options: More options
++          delete: Delete
++        validation:
++          failed:
++            title: Please check your provider settings, validation failed.
++            description: You can still save the current configuration if you want to proceed.
++            action: Save anyway
++        config:
++          common:
++            fields:
++              field:
++                api-key:
++                  label: API Key
++                  description: API Key used to authorize requests to this provider
++                  placeholder: sk-...
++                base-url:
++                  label: Base URL
++                  description: >-
++                    The base url used to connect to remote service. Often looks like http://localhost:11434/v1 or https://example.com/v1.
++                  placeholder: Base url...
++                headers:
++                  label: Custom HTTP Headers
++                  description: Add custom HTTP headers
++                  key:
++                    placeholder: Key
++                  value:
++                    placeholder: Value
++        validators:
++          actions:
++            validate: Validate
++          empty: No validation steps available.
++          openai-compatible:
++            check-config:
++              title: Configuration
++            check-connectivity:
++              title: Connectivity
++            check-supports-model-listing:
++              title: List Models
++            check-supports-chat-completion:
++              title: Chat Completion
++          status:
++            validating: Validating...
++            valid: Passed
++            invalid: Errored
++          title: Checks
++        providers:
++          provider:
++            ollama:
++              troubleshooting:
++                validators:
++                  openai-compatible-check-connectivity:
++                    label: Extra configuration needed for Ollama
++                    content: >-
++                      Sorry to hear that Connectivity check failed for Ollama. Don't worry, for Ollama instances, extra configuration is needed for making it pass for Ollama. You need to set <code>OLLAMA_HOST</code> explicitly when start the Ollama application or Ollama CLI server, for detailed information, check <a href="https://airi.moeru.ai/docs/en/docs/manual/integrations/providers/chat/ollama">Ollama integration guide</a>.
+     common:
+       continueAnyway: Continuer quand même
+       fields:
+@@ -488,6 +547,9 @@ pages:
+             volume:
+               description: Ajuster le volume de la parole
+               label: Volume
++      deepgram-tts:
++        description: deepgram.com
++        title: Deepgram
+       deepseek:
+         description: deepseek.com
+         title: DeepSeek
+@@ -780,4 +842,5 @@ vrm:
+     skybox-specular-mix: Mélange spéculaire
+ wip:
+   title: Work in Progress
+-  description: This feature is currently under development and not yet publicly available. Check back in future updates for this functionality.
++  description: >-
++    This feature is currently under development and not yet publicly available. Check back in future updates for this functionality.
+diff --git a/packages/i18n/src/locales/ja/settings.yaml b/packages/i18n/src/locales/ja/settings.yaml
+index 82e28586..537d4479 100644
+--- a/packages/i18n/src/locales/ja/settings.yaml
++++ b/packages/i18n/src/locales/ja/settings.yaml
+@@ -183,7 +183,7 @@ pages:
+         reset: デスクトップのデータをリセット
+     confirmations:
+       tooltip: 本当によろしいですか？
+-      yes: Yes
++      'yes': 'Yes'
+     status:
+       exported: チャットセッションをエクスポートしました。
+       imported: チャットセッションをインポートしました。
+@@ -407,6 +407,65 @@ pages:
+       title: ここを初めて利用しますか？
+       description: >
+         AIRIが正常に思考し動作するためには、少なくとも1つの{chat}プロバイダーの設定が必要です。 これはAIRIシステム内に存在するキャラクターの脳と考えることができます。
++    catalog:
++      edit:
++        config-id-not-found: Provider configuration not found.
++        definition-id-not-found: Provider definition not found.
++        actions:
++          more-options: More options
++          delete: Delete
++        validation:
++          failed:
++            title: Please check your provider settings, validation failed.
++            description: You can still save the current configuration if you want to proceed.
++            action: Save anyway
++        config:
++          common:
++            fields:
++              field:
++                api-key:
++                  label: API Key
++                  description: API Key used to authorize requests to this provider
++                  placeholder: sk-...
++                base-url:
++                  label: Base URL
++                  description: >-
++                    The base url used to connect to remote service. Often looks like http://localhost:11434/v1 or https://example.com/v1.
++                  placeholder: Base url...
++                headers:
++                  label: Custom HTTP Headers
++                  description: Add custom HTTP headers
++                  key:
++                    placeholder: Key
++                  value:
++                    placeholder: Value
++        validators:
++          actions:
++            validate: Validate
++          empty: No validation steps available.
++          openai-compatible:
++            check-config:
++              title: Configuration
++            check-connectivity:
++              title: Connectivity
++            check-supports-model-listing:
++              title: List Models
++            check-supports-chat-completion:
++              title: Chat Completion
++          status:
++            validating: Validating...
++            valid: Passed
++            invalid: Errored
++          title: Checks
++        providers:
++          provider:
++            ollama:
++              troubleshooting:
++                validators:
++                  openai-compatible-check-connectivity:
++                    label: Extra configuration needed for Ollama
++                    content: >-
++                      Sorry to hear that Connectivity check failed for Ollama. Don't worry, for Ollama instances, extra configuration is needed for making it pass for Ollama. You need to set <code>OLLAMA_HOST</code> explicitly when start the Ollama application or Ollama CLI server, for detailed information, check <a href="https://airi.moeru.ai/docs/en/docs/manual/integrations/providers/chat/ollama">Ollama integration guide</a>.
+     common:
+       continueAnyway: 続行する
+       fields:
+@@ -488,6 +547,9 @@ pages:
+             volume:
+               description: 音声の音量を調整
+               label: 音量
++      deepgram-tts:
++        description: deepgram.com
++        title: Deepgram
+       deepseek:
+         description: deepseek.com
+         title: DeepSeek
+@@ -780,4 +842,5 @@ vrm:
+     skybox-specular-mix: 鏡面反射の混合
+ wip:
+   title: 開発中
+-  description: この機能は現在開発中で、まだ一般には公開されていません。今後のアップデートで利用可能になる予定ですので、しばらくお待ちください。
++  description: >-
++    この機能は現在開発中で、まだ一般には公開されていません。今後のアップデートで利用可能になる予定ですので、しばらくお待ちください。
+diff --git a/packages/i18n/src/locales/ko/settings.yaml b/packages/i18n/src/locales/ko/settings.yaml
+index 4164a720..f3cf9c64 100644
+--- a/packages/i18n/src/locales/ko/settings.yaml
++++ b/packages/i18n/src/locales/ko/settings.yaml
+@@ -183,7 +183,7 @@ pages:
+         reset: Reset desktop data
+     confirmations:
+       tooltip: Are you sure?
+-      yes: Yes
++      'yes': 'Yes'
+     status:
+       exported: Chat sessions exported.
+       imported: Chat sessions imported.
+@@ -407,6 +407,65 @@ pages:
+       title: First time here?
+       description: >
+         AIRI requires at least one {chat} provider to be configured to think, and behave properly. You could think of it as the brain of the characters living in AIRI system.
++    catalog:
++      edit:
++        config-id-not-found: Provider configuration not found.
++        definition-id-not-found: Provider definition not found.
++        actions:
++          more-options: More options
++          delete: Delete
++        validation:
++          failed:
++            title: Please check your provider settings, validation failed.
++            description: You can still save the current configuration if you want to proceed.
++            action: Save anyway
++        config:
++          common:
++            fields:
++              field:
++                api-key:
++                  label: API Key
++                  description: API Key used to authorize requests to this provider
++                  placeholder: sk-...
++                base-url:
++                  label: Base URL
++                  description: >-
++                    The base url used to connect to remote service. Often looks like http://localhost:11434/v1 or https://example.com/v1.
++                  placeholder: Base url...
++                headers:
++                  label: Custom HTTP Headers
++                  description: Add custom HTTP headers
++                  key:
++                    placeholder: Key
++                  value:
++                    placeholder: Value
++        validators:
++          actions:
++            validate: Validate
++          empty: No validation steps available.
++          openai-compatible:
++            check-config:
++              title: Configuration
++            check-connectivity:
++              title: Connectivity
++            check-supports-model-listing:
++              title: List Models
++            check-supports-chat-completion:
++              title: Chat Completion
++          status:
++            validating: Validating...
++            valid: Passed
++            invalid: Errored
++          title: Checks
++        providers:
++          provider:
++            ollama:
++              troubleshooting:
++                validators:
++                  openai-compatible-check-connectivity:
++                    label: Extra configuration needed for Ollama
++                    content: >-
++                      Sorry to hear that Connectivity check failed for Ollama. Don't worry, for Ollama instances, extra configuration is needed for making it pass for Ollama. You need to set <code>OLLAMA_HOST</code> explicitly when start the Ollama application or Ollama CLI server, for detailed information, check <a href="https://airi.moeru.ai/docs/en/docs/manual/integrations/providers/chat/ollama">Ollama integration guide</a>.
+     common:
+       continueAnyway: 계속 진행
+       fields:
+@@ -488,6 +547,9 @@ pages:
+             volume:
+               description: Adjust the volume of speech
+               label: Volume
++      deepgram-tts:
++        description: deepgram.com
++        title: Deepgram
+       deepseek:
+         description: deepseek.com
+         title: DeepSeek
+@@ -780,4 +842,5 @@ vrm:
+     skybox-specular-mix: Specular Mix
+ wip:
+   title: Work in Progress
+-  description: This feature is currently under development and not yet publicly available. Check back in future updates for this functionality.
++  description: >-
++    This feature is currently under development and not yet publicly available. Check back in future updates for this functionality.
+diff --git a/packages/i18n/src/locales/ru/settings.yaml b/packages/i18n/src/locales/ru/settings.yaml
+index 567922e3..524999da 100644
+--- a/packages/i18n/src/locales/ru/settings.yaml
++++ b/packages/i18n/src/locales/ru/settings.yaml
+@@ -183,7 +183,7 @@ pages:
+         reset: Reset desktop data
+     confirmations:
+       tooltip: Are you sure?
+-      yes: Yes
++      'yes': 'Yes'
+     status:
+       exported: Chat sessions exported.
+       imported: Chat sessions imported.
+@@ -407,6 +407,65 @@ pages:
+       title: Впервые здесь?
+       description: >
+         AIRI требует как минимум одного {chat}-провайдера для корректной работы. Можно считать его "мозгом" персонажей в системе AIRI.
++    catalog:
++      edit:
++        config-id-not-found: Provider configuration not found.
++        definition-id-not-found: Provider definition not found.
++        actions:
++          more-options: More options
++          delete: Delete
++        validation:
++          failed:
++            title: Please check your provider settings, validation failed.
++            description: You can still save the current configuration if you want to proceed.
++            action: Save anyway
++        config:
++          common:
++            fields:
++              field:
++                api-key:
++                  label: API Key
++                  description: API Key used to authorize requests to this provider
++                  placeholder: sk-...
++                base-url:
++                  label: Base URL
++                  description: >-
++                    The base url used to connect to remote service. Often looks like http://localhost:11434/v1 or https://example.com/v1.
++                  placeholder: Base url...
++                headers:
++                  label: Custom HTTP Headers
++                  description: Add custom HTTP headers
++                  key:
++                    placeholder: Key
++                  value:
++                    placeholder: Value
++        validators:
++          actions:
++            validate: Validate
++          empty: No validation steps available.
++          openai-compatible:
++            check-config:
++              title: Configuration
++            check-connectivity:
++              title: Connectivity
++            check-supports-model-listing:
++              title: List Models
++            check-supports-chat-completion:
++              title: Chat Completion
++          status:
++            validating: Validating...
++            valid: Passed
++            invalid: Errored
++          title: Checks
++        providers:
++          provider:
++            ollama:
++              troubleshooting:
++                validators:
++                  openai-compatible-check-connectivity:
++                    label: Extra configuration needed for Ollama
++                    content: >-
++                      Sorry to hear that Connectivity check failed for Ollama. Don't worry, for Ollama instances, extra configuration is needed for making it pass for Ollama. You need to set <code>OLLAMA_HOST</code> explicitly when start the Ollama application or Ollama CLI server, for detailed information, check <a href="https://airi.moeru.ai/docs/en/docs/manual/integrations/providers/chat/ollama">Ollama integration guide</a>.
+     common:
+       continueAnyway: Продолжить всё равно
+       fields:
+@@ -488,6 +547,9 @@ pages:
+             volume:
+               description: Регулировка громкости речи
+               label: Громкость
++      deepgram-tts:
++        description: deepgram.com
++        title: Deepgram
+       deepseek:
+         description: deepseek.com
+         title: DeepSeek
+@@ -780,4 +842,5 @@ vrm:
+     skybox-specular-mix: Specular Mix
+ wip:
+   title: Work in Progress
+-  description: This feature is currently under development and not yet publicly available. Check back in future updates for this functionality.
++  description: >-
++    This feature is currently under development and not yet publicly available. Check back in future updates for this functionality.
+diff --git a/packages/i18n/src/locales/vi/settings.yaml b/packages/i18n/src/locales/vi/settings.yaml
+index b5499940..f0c4d27e 100644
+--- a/packages/i18n/src/locales/vi/settings.yaml
++++ b/packages/i18n/src/locales/vi/settings.yaml
+@@ -183,7 +183,7 @@ pages:
+         reset: Reset desktop data
+     confirmations:
+       tooltip: Are you sure?
+-      yes: Yes
++      'yes': 'Yes'
+     status:
+       exported: Chat sessions exported.
+       imported: Chat sessions imported.
+@@ -407,6 +407,65 @@ pages:
+       title: Lần đầu tới đây?
+       description: >
+         {chat} AIRI cần ít nhất một nhà cung cấp để suy nghĩ và hoạt động đúng cách. Có thể coi nó như bộ não của nhân vật AIRI trong hệ thống.
++    catalog:
++      edit:
++        config-id-not-found: Provider configuration not found.
++        definition-id-not-found: Provider definition not found.
++        actions:
++          more-options: More options
++          delete: Delete
++        validation:
++          failed:
++            title: Please check your provider settings, validation failed.
++            description: You can still save the current configuration if you want to proceed.
++            action: Save anyway
++        config:
++          common:
++            fields:
++              field:
++                api-key:
++                  label: API Key
++                  description: API Key used to authorize requests to this provider
++                  placeholder: sk-...
++                base-url:
++                  label: Base URL
++                  description: >-
++                    The base url used to connect to remote service. Often looks like http://localhost:11434/v1 or https://example.com/v1.
++                  placeholder: Base url...
++                headers:
++                  label: Custom HTTP Headers
++                  description: Add custom HTTP headers
++                  key:
++                    placeholder: Key
++                  value:
++                    placeholder: Value
++        validators:
++          actions:
++            validate: Validate
++          empty: No validation steps available.
++          openai-compatible:
++            check-config:
++              title: Configuration
++            check-connectivity:
++              title: Connectivity
++            check-supports-model-listing:
++              title: List Models
++            check-supports-chat-completion:
++              title: Chat Completion
++          status:
++            validating: Validating...
++            valid: Passed
++            invalid: Errored
++          title: Checks
++        providers:
++          provider:
++            ollama:
++              troubleshooting:
++                validators:
++                  openai-compatible-check-connectivity:
++                    label: Extra configuration needed for Ollama
++                    content: >-
++                      Sorry to hear that Connectivity check failed for Ollama. Don't worry, for Ollama instances, extra configuration is needed for making it pass for Ollama. You need to set <code>OLLAMA_HOST</code> explicitly when start the Ollama application or Ollama CLI server, for detailed information, check <a href="https://airi.moeru.ai/docs/en/docs/manual/integrations/providers/chat/ollama">Ollama integration guide</a>.
+     common:
+       continueAnyway: Tiếp tục bất chấp
+       fields:
+@@ -488,6 +547,9 @@ pages:
+             volume:
+               description: Điều chỉnh âm lượng
+               label: Âm lượng
++      deepgram-tts:
++        description: deepgram.com
++        title: Deepgram
+       deepseek:
+         description: deepseek.com
+         title: DeepSeek
+@@ -780,4 +842,5 @@ vrm:
+     skybox-specular-mix: Độ Trộn Phản Chiếu
+ wip:
+   title: Work in Progress
+-  description: This feature is currently under development and not yet publicly available. Check back in future updates for this functionality.
++  description: >-
++    This feature is currently under development and not yet publicly available. Check back in future updates for this functionality.
+diff --git a/packages/i18n/src/locales/zh-Hans/settings.yaml b/packages/i18n/src/locales/zh-Hans/settings.yaml
+index 9b0b1e31..c175ec2d 100644
+--- a/packages/i18n/src/locales/zh-Hans/settings.yaml
++++ b/packages/i18n/src/locales/zh-Hans/settings.yaml
+@@ -183,7 +183,7 @@ pages:
+         reset: Reset desktop data
+     confirmations:
+       tooltip: Are you sure?
+-      yes: Yes
++      'yes': 'Yes'
+     status:
+       exported: Chat sessions exported.
+       imported: Chat sessions imported.
+@@ -407,6 +407,65 @@ pages:
+       title: 第一次使用？
+       description: >
+         AIRI 需要配置至少一个 {chat} 服务来源，才能正常思考和运作。你可以把它看作是 AIRI 系统中角色的大脑。
++    catalog:
++      edit:
++        config-id-not-found: Provider configuration not found.
++        definition-id-not-found: Provider definition not found.
++        actions:
++          more-options: More options
++          delete: Delete
++        validation:
++          failed:
++            title: Please check your provider settings, validation failed.
++            description: You can still save the current configuration if you want to proceed.
++            action: Save anyway
++        config:
++          common:
++            fields:
++              field:
++                api-key:
++                  label: API Key
++                  description: API Key used to authorize requests to this provider
++                  placeholder: sk-...
++                base-url:
++                  label: Base URL
++                  description: >-
++                    The base url used to connect to remote service. Often looks like http://localhost:11434/v1 or https://example.com/v1.
++                  placeholder: Base url...
++                headers:
++                  label: Custom HTTP Headers
++                  description: Add custom HTTP headers
++                  key:
++                    placeholder: Key
++                  value:
++                    placeholder: Value
++        validators:
++          actions:
++            validate: Validate
++          empty: No validation steps available.
++          openai-compatible:
++            check-config:
++              title: Configuration
++            check-connectivity:
++              title: Connectivity
++            check-supports-model-listing:
++              title: List Models
++            check-supports-chat-completion:
++              title: Chat Completion
++          status:
++            validating: Validating...
++            valid: Passed
++            invalid: Errored
++          title: Checks
++        providers:
++          provider:
++            ollama:
++              troubleshooting:
++                validators:
++                  openai-compatible-check-connectivity:
++                    label: Extra configuration needed for Ollama
++                    content: >-
++                      Sorry to hear that Connectivity check failed for Ollama. Don't worry, for Ollama instances, extra configuration is needed for making it pass for Ollama. You need to set <code>OLLAMA_HOST</code> explicitly when start the Ollama application or Ollama CLI server, for detailed information, check <a href="https://airi.moeru.ai/docs/en/docs/manual/integrations/providers/chat/ollama">Ollama integration guide</a>.
+     common:
+       continueAnyway: 仍然继续
+       fields:
+@@ -488,6 +547,9 @@ pages:
+             volume:
+               description: 调节语音的响度
+               label: 响度
++      deepgram-tts:
++        description: deepgram.com
++        title: Deepgram
+       deepseek:
+         description: DeepSeek.com
+         title: 深度求索 DeepSeek
+@@ -780,4 +842,5 @@ vrm:
+     skybox-specular-mix: 漫反射/镜面反射混合系数
+ wip:
+   title: 正在开发中
+-  description: 此功能正在开发中，尚未公开发布。请在未来的更新中再次查看此功能。
++  description: >-
++    此功能正在开发中，尚未公开发布。请在未来的更新中再次查看此功能。
+diff --git a/packages/i18n/src/locales/zh-Hant/settings.yaml b/packages/i18n/src/locales/zh-Hant/settings.yaml
+index 3ef4ab7e..01020d7a 100644
+--- a/packages/i18n/src/locales/zh-Hant/settings.yaml
++++ b/packages/i18n/src/locales/zh-Hant/settings.yaml
+@@ -183,7 +183,7 @@ pages:
+         reset: Reset desktop data
+     confirmations:
+       tooltip: Are you sure?
+-      yes: Yes
++      'yes': 'Yes'
+     status:
+       exported: Chat sessions exported.
+       imported: Chat sessions imported.
+@@ -407,6 +407,65 @@ pages:
+       title: 第一次使用？
+       description: >
+         AIRI 需要設定至少一個 {chat} 服務來源，才能正常思考與運作。你可以把它看作是 AIRI 系統中角色的大腦。
++    catalog:
++      edit:
++        config-id-not-found: Provider configuration not found.
++        definition-id-not-found: Provider definition not found.
++        actions:
++          more-options: More options
++          delete: Delete
++        validation:
++          failed:
++            title: Please check your provider settings, validation failed.
++            description: You can still save the current configuration if you want to proceed.
++            action: Save anyway
++        config:
++          common:
++            fields:
++              field:
++                api-key:
++                  label: API Key
++                  description: API Key used to authorize requests to this provider
++                  placeholder: sk-...
++                base-url:
++                  label: Base URL
++                  description: >-
++                    The base url used to connect to remote service. Often looks like http://localhost:11434/v1 or https://example.com/v1.
++                  placeholder: Base url...
++                headers:
++                  label: Custom HTTP Headers
++                  description: Add custom HTTP headers
++                  key:
++                    placeholder: Key
++                  value:
++                    placeholder: Value
++        validators:
++          actions:
++            validate: Validate
++          empty: No validation steps available.
++          openai-compatible:
++            check-config:
++              title: Configuration
++            check-connectivity:
++              title: Connectivity
++            check-supports-model-listing:
++              title: List Models
++            check-supports-chat-completion:
++              title: Chat Completion
++          status:
++            validating: Validating...
++            valid: Passed
++            invalid: Errored
++          title: Checks
++        providers:
++          provider:
++            ollama:
++              troubleshooting:
++                validators:
++                  openai-compatible-check-connectivity:
++                    label: Extra configuration needed for Ollama
++                    content: >-
++                      Sorry to hear that Connectivity check failed for Ollama. Don't worry, for Ollama instances, extra configuration is needed for making it pass for Ollama. You need to set <code>OLLAMA_HOST</code> explicitly when start the Ollama application or Ollama CLI server, for detailed information, check <a href="https://airi.moeru.ai/docs/en/docs/manual/integrations/providers/chat/ollama">Ollama integration guide</a>.
+     common:
+       continueAnyway: 仍然繼續
+       fields:
+@@ -488,6 +547,9 @@ pages:
+             volume:
+               description: 調整語音的響度
+               label: 響度
++      deepgram-tts:
++        description: deepgram.com
++        title: Deepgram
+       deepseek:
+         description: DeepSeek.com
+         title: 深度求索 DeepSeek
+@@ -780,4 +842,5 @@ vrm:
+     skybox-specular-mix: 漫反射／鏡面反射混合係數
+ wip:
+   title: Work in Progress
+-  description: This feature is currently under development and not yet publicly available. Check back in future updates for this functionality.
++  description: >-
++    This feature is currently under development and not yet publicly available. Check back in future updates for this functionality.

@@ -1,0 +1,1115 @@
+commit d1a1ef73c69e47a7b5a6c3f616ce24136350be62
+Author: Neko Ayaka <neko@ayaka.moe>
+Date:   Sun Jan 4 00:58:01 2026 +0800
+
+    feat(stage-*): migrated all openai compatible api providers
+
+diff --git a/packages/stage-pages/src/pages/v2/settings/providers.vue b/packages/stage-pages/src/pages/v2/settings/providers.vue
+index c3fcf85a..22dae22d 100644
+--- a/packages/stage-pages/src/pages/v2/settings/providers.vue
++++ b/packages/stage-pages/src/pages/v2/settings/providers.vue
+@@ -82,15 +82,14 @@ function handleClick(providerId: string) {
+                         'bg-white', 'dark:bg-neutral-800/90',
+                         'shadow-md', 'dark:shadow-lg',
+                         'backdrop-blur-md',
+-                        'will-change-[opacity,transform] min-w-[400px] rounded-xl p-2 outline-none',
++                        'will-change-[opacity,transform] min-w-[300px] rounded-xl p-2 outline-none',
+                         'data-[side=bottom]:animate-slideUpAndFade data-[side=left]:animate-slideRightAndFade data-[side=right]:animate-slideLeftAndFade data-[side=top]:animate-slideDownAndFade',
+                       ]"
+                       :side-offset="8"
+                       align="start"
+                     >
+                       <Input v-model="availableProviderSearchQuery" placeholder="Search supported providers..." class="mb-2" variant="primary-dimmed" />
+-
+-                      <div flex flex-col gap-1>
++                      <div class="max-h-50dvh flex flex-col gap-1 overflow-y-auto">
+                         <div v-for="(provider) in availableProvidersFiltered" :key="provider.id" @click="() => handleAdd(provider.id)">
+                           <div
+                             bg="hover:neutral-200/80 dark:hover:neutral-700/80"
+@@ -100,7 +99,7 @@ function handleClick(providerId: string) {
+                             <div class="relative w-4">
+                               <div :class="[provider.iconColor || provider.icon, 'absolute left-50% top-50% -translate-x-1/2 -translate-y-1/2']" />
+                             </div>
+-                            <div>{{ provider?.name }}</div>
++                            <div>{{ provider?.nameLocalized || provider.name }}</div>
+                           </div>
+                         </div>
+                       </div>
+diff --git a/packages/stage-ui/src/libs/providers/providers/302-ai/index.ts b/packages/stage-ui/src/libs/providers/providers/302-ai/index.ts
+new file mode 100644
+index 00000000..cd0ddd90
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/302-ai/index.ts
+@@ -0,0 +1,57 @@
++import { createChatProvider, createEmbedProvider, createModelProvider, merge } from '@xsai-ext/providers/utils'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators/openai-compatible'
++import { defineProvider } from '../registry'
++
++const ai302ConfigSchema = z.object({
++  apiKey: z
++    .string('API Key'),
++  baseUrl: z
++    .string('Base URL')
++    .optional()
++    .default('https://api.302.ai/v1/'),
++})
++
++type AI302Config = z.input<typeof ai302ConfigSchema>
++
++export const provider302AI = defineProvider<AI302Config>({
++  id: '302-ai',
++  name: '302.AI',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.302-ai.title'),
++  description: '302.ai',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.302-ai.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:ai302',
++  iconColor: 'i-lobe-icons:ai302-color',
++
++  createProviderConfig: ({ t }) => ai302ConfigSchema.extend({
++    apiKey: ai302ConfigSchema.shape.apiKey.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    baseUrl: ai302ConfigSchema.shape.baseUrl.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return merge(
++      createChatProvider({ apiKey: config.apiKey, baseURL: config.baseUrl! }),
++      createEmbedProvider({ apiKey: config.apiKey, baseURL: config.baseUrl! }),
++      createModelProvider({ apiKey: config.apiKey, baseURL: config.baseUrl! }),
++    )
++  },
++
++  validationRequiredWhen(config) {
++    return !!config.apiKey?.trim()
++  },
++  validators: {
++    ...createOpenAICompatibleValidators({
++      checks: ['model_list'],
++    }),
++  },
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/anthropic/index.ts b/packages/stage-ui/src/libs/providers/providers/anthropic/index.ts
+new file mode 100644
+index 00000000..612b6fe3
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/anthropic/index.ts
+@@ -0,0 +1,99 @@
++import type { ModelInfo } from '../../types'
++
++import { createChatProvider, createModelProvider, merge } from '@xsai-ext/providers/utils'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators/openai-compatible'
++import { defineProvider } from '../registry'
++
++const anthropicConfigSchema = z.object({
++  apiKey: z
++    .string('API Key'),
++  baseUrl: z
++    .string('Base URL')
++    .optional()
++    .default('https://api.anthropic.com/v1/'),
++})
++
++type AnthropicConfig = z.input<typeof anthropicConfigSchema>
++
++function createAnthropic(apiKey: string, baseURL: string = 'https://api.anthropic.com/v1/') {
++  const anthropicFetch = async (input: any, init: any) => {
++    init.headers ??= {}
++    if (Array.isArray(init.headers))
++      init.headers.push(['anthropic-dangerous-direct-browser-access', 'true'])
++    else if (init.headers instanceof Headers)
++      init.headers.append('anthropic-dangerous-direct-browser-access', 'true')
++    else
++      init.headers['anthropic-dangerous-direct-browser-access'] = 'true'
++
++    return fetch(input, init)
++  }
++
++  return merge(
++    createChatProvider({ apiKey, fetch: anthropicFetch, baseURL }),
++    createModelProvider({ apiKey, fetch: anthropicFetch, baseURL }),
++  )
++}
++
++export const providerAnthropic = defineProvider<AnthropicConfig>({
++  id: 'anthropic',
++  name: 'Anthropic',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.anthropic.title'),
++  description: 'anthropic.com',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.anthropic.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:claude',
++  iconColor: 'i-lobe-icons:claude-color',
++
++  createProviderConfig: ({ t }) => anthropicConfigSchema.extend({
++    apiKey: anthropicConfigSchema.shape.apiKey.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    baseUrl: anthropicConfigSchema.shape.baseUrl.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return createAnthropic(config.apiKey, config.baseUrl)
++  },
++
++  extraMethods: {
++    listModels: async () => ([
++      {
++        id: 'claude-haiku-4-5-20251001',
++        name: 'Claude Haiku 4.5',
++        provider: 'anthropic',
++        description: 'Anthropic fastest model with near-frontier intelligence',
++      },
++      {
++        id: 'claude-sonnet-4-5-20250929',
++        name: 'Claude Sonnet 4.5',
++        provider: 'anthropic',
++        description: 'Anthropic smartest model for complex agents and coding',
++      },
++      {
++        id: 'claude-opus-4-1-20250805',
++        name: 'Claude Opus 4.1',
++        provider: 'anthropic',
++        description: 'Exceptional model for specialized reasoning tasks',
++      },
++    ] satisfies ModelInfo[]),
++  },
++  validationRequiredWhen(config) {
++    return !!config.apiKey?.trim()
++  },
++  validators: {
++    ...createOpenAICompatibleValidators({
++      checks: ['connectivity'],
++      additionalHeaders: {
++        'anthropic-dangerous-direct-browser-access': 'true',
++      },
++    }),
++  },
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/cerebras-ai/index.ts b/packages/stage-ui/src/libs/providers/providers/cerebras-ai/index.ts
+new file mode 100644
+index 00000000..aa0dd970
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/cerebras-ai/index.ts
+@@ -0,0 +1,53 @@
++import { createCerebras } from '@xsai-ext/providers/create'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators/openai-compatible'
++import { defineProvider } from '../registry'
++
++const cerebrasConfigSchema = z.object({
++  apiKey: z
++    .string('API Key'),
++  baseUrl: z
++    .string('Base URL')
++    .optional()
++    .default('https://api.cerebras.ai/v1/'),
++})
++
++type CerebrasConfig = z.input<typeof cerebrasConfigSchema>
++
++export const providerCerebrasAI = defineProvider<CerebrasConfig>({
++  id: 'cerebras-ai',
++  name: 'Cerebras',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.cerebras.title'),
++  description: 'cerebras.ai',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.cerebras.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:cerebras',
++  iconColor: 'i-lobe-icons:cerebras-color',
++
++  createProviderConfig: ({ t }) => cerebrasConfigSchema.extend({
++    apiKey: cerebrasConfigSchema.shape.apiKey.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    baseUrl: cerebrasConfigSchema.shape.baseUrl.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return createCerebras(config.apiKey, config.baseUrl)
++  },
++
++  validationRequiredWhen(config) {
++    return !!config.apiKey?.trim()
++  },
++  validators: {
++    ...createOpenAICompatibleValidators({
++      checks: ['connectivity', 'model_list'],
++    }),
++  },
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/comet-api/index.ts b/packages/stage-ui/src/libs/providers/providers/comet-api/index.ts
+new file mode 100644
+index 00000000..795c708c
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/comet-api/index.ts
+@@ -0,0 +1,56 @@
++import { createChatProvider, createModelProvider, merge } from '@xsai-ext/providers/utils'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators/openai-compatible'
++import { defineProvider } from '../registry'
++
++const cometApiConfigSchema = z.object({
++  apiKey: z
++    .string('API Key'),
++  baseUrl: z
++    .string('Base URL')
++    .optional()
++    .default('https://api.cometapi.com/v1/'),
++})
++
++type CometApiConfig = z.input<typeof cometApiConfigSchema>
++
++export const providerCometAPI = defineProvider<CometApiConfig>({
++  id: 'comet-api',
++  name: 'CometAPI',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.comet-api.title'),
++  description: 'cometapi.com',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.comet-api.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:cometapi',
++  iconColor: 'i-lobe-icons:cometapi-color',
++
++  createProviderConfig: ({ t }) => cometApiConfigSchema.extend({
++    apiKey: cometApiConfigSchema.shape.apiKey.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    baseUrl: cometApiConfigSchema.shape.baseUrl.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return merge(
++      createChatProvider({ apiKey: config.apiKey, baseURL: config.baseUrl! }),
++      createModelProvider({ apiKey: config.apiKey, baseURL: config.baseUrl! }),
++    )
++  },
++
++  validationRequiredWhen(config) {
++    return !!config.apiKey?.trim()
++  },
++  validators: {
++    ...createOpenAICompatibleValidators({
++      checks: ['model_list'],
++    }),
++  },
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/deepseek/index.ts b/packages/stage-ui/src/libs/providers/providers/deepseek/index.ts
+new file mode 100644
+index 00000000..125c6d78
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/deepseek/index.ts
+@@ -0,0 +1,53 @@
++import { createDeepSeek } from '@xsai-ext/providers/create'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators/openai-compatible'
++import { defineProvider } from '../registry'
++
++const deepSeekConfigSchema = z.object({
++  apiKey: z
++    .string('API Key'),
++  baseUrl: z
++    .string('Base URL')
++    .optional()
++    .default('https://api.deepseek.com/'),
++})
++
++type DeepSeekConfig = z.input<typeof deepSeekConfigSchema>
++
++export const providerDeepSeek = defineProvider<DeepSeekConfig>({
++  id: 'deepseek',
++  name: 'DeepSeek',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.deepseek.title'),
++  description: 'deepseek.com',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.deepseek.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:deepseek',
++  iconColor: 'i-lobe-icons:deepseek-color',
++
++  createProviderConfig: ({ t }) => deepSeekConfigSchema.extend({
++    apiKey: deepSeekConfigSchema.shape.apiKey.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    baseUrl: deepSeekConfigSchema.shape.baseUrl.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return createDeepSeek(config.apiKey, config.baseUrl)
++  },
++
++  validationRequiredWhen(config) {
++    return !!config.apiKey?.trim()
++  },
++  validators: {
++    ...createOpenAICompatibleValidators({
++      checks: ['connectivity', 'model_list'],
++    }),
++  },
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/featherless-ai/index.ts b/packages/stage-ui/src/libs/providers/providers/featherless-ai/index.ts
+new file mode 100644
+index 00000000..8841d702
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/featherless-ai/index.ts
+@@ -0,0 +1,52 @@
++import { createOpenAI } from '@xsai-ext/providers/create'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators/openai-compatible'
++import { defineProvider } from '../registry'
++
++const featherlessConfigSchema = z.object({
++  apiKey: z
++    .string('API Key'),
++  baseUrl: z
++    .string('Base URL')
++    .optional()
++    .default('https://api.featherless.ai/v1/'),
++})
++
++type FeatherlessConfig = z.input<typeof featherlessConfigSchema>
++
++export const providerFeatherlessAI = defineProvider<FeatherlessConfig>({
++  id: 'featherless-ai',
++  name: 'Featherless.ai',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.featherless.title'),
++  description: 'featherless.ai',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.featherless.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:featherless-color',
++
++  createProviderConfig: ({ t }) => featherlessConfigSchema.extend({
++    apiKey: featherlessConfigSchema.shape.apiKey.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    baseUrl: featherlessConfigSchema.shape.baseUrl.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return createOpenAI(config.apiKey, config.baseUrl)
++  },
++
++  validationRequiredWhen(config) {
++    return !!config.apiKey?.trim()
++  },
++  validators: {
++    ...createOpenAICompatibleValidators({
++      checks: ['connectivity', 'model_list'],
++    }),
++  },
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/fireworks-ai/index.ts b/packages/stage-ui/src/libs/providers/providers/fireworks-ai/index.ts
+new file mode 100644
+index 00000000..08131392
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/fireworks-ai/index.ts
+@@ -0,0 +1,53 @@
++import { createFireworks } from '@xsai-ext/providers/create'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators/openai-compatible'
++import { defineProvider } from '../registry'
++
++const fireworksConfigSchema = z.object({
++  apiKey: z
++    .string('API Key'),
++  baseUrl: z
++    .string('Base URL')
++    .optional()
++    .default('https://api.fireworks.ai/inference/v1/'),
++})
++
++type FireworksConfig = z.input<typeof fireworksConfigSchema>
++
++export const providerFireworksAI = defineProvider<FireworksConfig>({
++  id: 'fireworks-ai',
++  name: 'Fireworks.ai',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.fireworks.title'),
++  description: 'fireworks.ai',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.fireworks.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:fireworks',
++  iconColor: 'i-lobe-icons:fireworks-color',
++
++  createProviderConfig: ({ t }) => fireworksConfigSchema.extend({
++    apiKey: fireworksConfigSchema.shape.apiKey.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    baseUrl: fireworksConfigSchema.shape.baseUrl.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return createFireworks(config.apiKey, config.baseUrl)
++  },
++
++  validationRequiredWhen(config) {
++    return !!config.apiKey?.trim()
++  },
++  validators: {
++    ...createOpenAICompatibleValidators({
++      checks: ['connectivity', 'model_list'],
++    }),
++  },
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/google-generative-ai/index.ts b/packages/stage-ui/src/libs/providers/providers/google-generative-ai/index.ts
+new file mode 100644
+index 00000000..0019be4c
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/google-generative-ai/index.ts
+@@ -0,0 +1,53 @@
++import { createGoogleGenerativeAI } from '@xsai-ext/providers/create'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators/openai-compatible'
++import { defineProvider } from '../registry'
++
++const googleGenerativeConfigSchema = z.object({
++  apiKey: z
++    .string('API Key'),
++  baseUrl: z
++    .string('Base URL')
++    .optional()
++    .default('https://generativelanguage.googleapis.com/v1beta/openai/'),
++})
++
++type GoogleGenerativeConfig = z.input<typeof googleGenerativeConfigSchema>
++
++export const providerGoogleGenerativeAI = defineProvider<GoogleGenerativeConfig>({
++  id: 'google-generative-ai',
++  name: 'Google Gemini',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.google-generative-ai.title'),
++  description: 'ai.google.dev',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.google-generative-ai.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:gemini',
++  iconColor: 'i-lobe-icons:gemini-color',
++
++  createProviderConfig: ({ t }) => googleGenerativeConfigSchema.extend({
++    apiKey: googleGenerativeConfigSchema.shape.apiKey.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    baseUrl: googleGenerativeConfigSchema.shape.baseUrl.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return createGoogleGenerativeAI(config.apiKey, config.baseUrl)
++  },
++
++  validationRequiredWhen(config) {
++    return !!config.apiKey?.trim()
++  },
++  validators: {
++    ...createOpenAICompatibleValidators({
++      checks: ['connectivity', 'model_list'],
++    }),
++  },
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/groq/index.ts b/packages/stage-ui/src/libs/providers/providers/groq/index.ts
+new file mode 100644
+index 00000000..692d55b1
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/groq/index.ts
+@@ -0,0 +1,52 @@
++import { createOpenAI } from '@xsai-ext/providers/create'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators/openai-compatible'
++import { defineProvider } from '../registry'
++
++const groqConfigSchema = z.object({
++  apiKey: z
++    .string('API Key'),
++  baseUrl: z
++    .string('Base URL')
++    .optional()
++    .default('https://api.groq.com/openai/v1/'),
++})
++
++type GroqConfig = z.input<typeof groqConfigSchema>
++
++export const providerGroq = defineProvider<GroqConfig>({
++  id: 'groq',
++  name: 'Groq',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.groq.title'),
++  description: 'groq.com',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.groq.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:groq',
++
++  createProviderConfig: ({ t }) => groqConfigSchema.extend({
++    apiKey: groqConfigSchema.shape.apiKey.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    baseUrl: groqConfigSchema.shape.baseUrl.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return createOpenAI(config.apiKey, config.baseUrl)
++  },
++
++  validationRequiredWhen(config) {
++    return !!config.apiKey?.trim()
++  },
++  validators: {
++    ...createOpenAICompatibleValidators({
++      checks: ['model_list'],
++    }),
++  },
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/index.ts b/packages/stage-ui/src/libs/providers/providers/index.ts
+index 5bda7e92..62f5790f 100644
+--- a/packages/stage-ui/src/libs/providers/providers/index.ts
++++ b/packages/stage-ui/src/libs/providers/providers/index.ts
+@@ -1,5 +1,22 @@
+ import './openai'
+ import './openai-compatible'
++import './openrouter-ai'
++import './groq'
++import './anthropic'
++import './google-generative-ai'
++import './deepseek'
++import './302-ai'
++import './cerebras-ai'
++import './together-ai'
++import './xai'
++import './novita-ai'
++import './fireworks-ai'
++import './featherless-ai'
++import './comet-api'
++import './perplexity-ai'
++import './mistral-ai'
++import './moonshot-ai'
++import './modelscope'
+ import './ollama'
+ import './cloudflare-workers-ai'
+
+diff --git a/packages/stage-ui/src/libs/providers/providers/mistral-ai/index.ts b/packages/stage-ui/src/libs/providers/providers/mistral-ai/index.ts
+new file mode 100644
+index 00000000..947e4460
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/mistral-ai/index.ts
+@@ -0,0 +1,53 @@
++import { createMistral } from '@xsai-ext/providers/create'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators/openai-compatible'
++import { defineProvider } from '../registry'
++
++const mistralConfigSchema = z.object({
++  apiKey: z
++    .string('API Key'),
++  baseUrl: z
++    .string('Base URL')
++    .optional()
++    .default('https://api.mistral.ai/v1/'),
++})
++
++type MistralConfig = z.input<typeof mistralConfigSchema>
++
++export const providerMistralAI = defineProvider<MistralConfig>({
++  id: 'mistral-ai',
++  name: 'Mistral',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.mistral.title'),
++  description: 'mistral.ai',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.mistral.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:mistral',
++  iconColor: 'i-lobe-icons:mistral-color',
++
++  createProviderConfig: ({ t }) => mistralConfigSchema.extend({
++    apiKey: mistralConfigSchema.shape.apiKey.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    baseUrl: mistralConfigSchema.shape.baseUrl.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return createMistral(config.apiKey, config.baseUrl)
++  },
++
++  validationRequiredWhen(config) {
++    return !!config.apiKey?.trim()
++  },
++  validators: {
++    ...createOpenAICompatibleValidators({
++      checks: ['connectivity', 'model_list'],
++    }),
++  },
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/modelscope/index.ts b/packages/stage-ui/src/libs/providers/providers/modelscope/index.ts
+new file mode 100644
+index 00000000..138de26c
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/modelscope/index.ts
+@@ -0,0 +1,53 @@
++import { createOpenAI } from '@xsai-ext/providers/create'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators/openai-compatible'
++import { defineProvider } from '../registry'
++
++const modelscopeConfigSchema = z.object({
++  apiKey: z
++    .string('API Key'),
++  baseUrl: z
++    .string('Base URL')
++    .optional()
++    .default('https://api-inference.modelscope.cn/v1/'),
++})
++
++type ModelscopeConfig = z.input<typeof modelscopeConfigSchema>
++
++export const providerModelScope = defineProvider<ModelscopeConfig>({
++  id: 'modelscope',
++  name: 'ModelScope',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.modelscope.title'),
++  description: 'modelscope',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.modelscope.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:modelscope',
++  iconColor: 'i-lobe-icons:modelscope-color',
++
++  createProviderConfig: ({ t }) => modelscopeConfigSchema.extend({
++    apiKey: modelscopeConfigSchema.shape.apiKey.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    baseUrl: modelscopeConfigSchema.shape.baseUrl.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return createOpenAI(config.apiKey, config.baseUrl)
++  },
++
++  validationRequiredWhen(config) {
++    return !!config.apiKey?.trim()
++  },
++  validators: {
++    ...createOpenAICompatibleValidators({
++      checks: ['connectivity', 'model_list'],
++    }),
++  },
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/moonshot-ai/index.ts b/packages/stage-ui/src/libs/providers/providers/moonshot-ai/index.ts
+new file mode 100644
+index 00000000..a2e5903f
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/moonshot-ai/index.ts
+@@ -0,0 +1,52 @@
++import { createMoonshotai } from '@xsai-ext/providers/create'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators/openai-compatible'
++import { defineProvider } from '../registry'
++
++const moonshotConfigSchema = z.object({
++  apiKey: z
++    .string('API Key'),
++  baseUrl: z
++    .string('Base URL')
++    .optional()
++    .default('https://api.moonshot.ai/v1/'),
++})
++
++type MoonshotConfig = z.input<typeof moonshotConfigSchema>
++
++export const providerMoonshotAI = defineProvider<MoonshotConfig>({
++  id: 'moonshot-ai',
++  name: 'Moonshot AI',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.moonshot.title'),
++  description: 'moonshot.ai',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.moonshot.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:moonshot',
++
++  createProviderConfig: ({ t }) => moonshotConfigSchema.extend({
++    apiKey: moonshotConfigSchema.shape.apiKey.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    baseUrl: moonshotConfigSchema.shape.baseUrl.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return createMoonshotai(config.apiKey, config.baseUrl)
++  },
++
++  validationRequiredWhen(config) {
++    return !!config.apiKey?.trim()
++  },
++  validators: {
++    ...createOpenAICompatibleValidators({
++      checks: ['connectivity', 'model_list'],
++    }),
++  },
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/novita-ai/index.ts b/packages/stage-ui/src/libs/providers/providers/novita-ai/index.ts
+new file mode 100644
+index 00000000..c04bf530
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/novita-ai/index.ts
+@@ -0,0 +1,53 @@
++import { createNovita } from '@xsai-ext/providers/create'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators/openai-compatible'
++import { defineProvider } from '../registry'
++
++const novitaConfigSchema = z.object({
++  apiKey: z
++    .string('API Key'),
++  baseUrl: z
++    .string('Base URL')
++    .optional()
++    .default('https://api.novita.ai/openai/'),
++})
++
++type NovitaConfig = z.input<typeof novitaConfigSchema>
++
++export const providerNovitaAI = defineProvider<NovitaConfig>({
++  id: 'novita-ai',
++  name: 'Novita',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.novita.title'),
++  description: 'novita.ai',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.novita.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:novita',
++  iconColor: 'i-lobe-icons:novita-color',
++
++  createProviderConfig: ({ t }) => novitaConfigSchema.extend({
++    apiKey: novitaConfigSchema.shape.apiKey.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    baseUrl: novitaConfigSchema.shape.baseUrl.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return createNovita(config.apiKey, config.baseUrl)
++  },
++
++  validationRequiredWhen(config) {
++    return !!config.apiKey?.trim()
++  },
++  validators: {
++    ...createOpenAICompatibleValidators({
++      checks: ['connectivity', 'model_list'],
++    }),
++  },
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/openrouter-ai/index.ts b/packages/stage-ui/src/libs/providers/providers/openrouter-ai/index.ts
+new file mode 100644
+index 00000000..f40c0492
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/openrouter-ai/index.ts
+@@ -0,0 +1,52 @@
++import { createOpenRouter } from '@xsai-ext/providers/create'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators/openai-compatible'
++import { defineProvider } from '../registry'
++
++const openRouterConfigSchema = z.object({
++  apiKey: z
++    .string('API Key'),
++  baseUrl: z
++    .string('Base URL')
++    .optional()
++    .default('https://openrouter.ai/api/v1/'),
++})
++
++type OpenRouterConfig = z.input<typeof openRouterConfigSchema>
++
++export const providerOpenRouterAI = defineProvider<OpenRouterConfig>({
++  id: 'openrouter-ai',
++  name: 'OpenRouter',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.openrouter.title'),
++  description: 'openrouter.ai',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.openrouter.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:openrouter',
++
++  createProviderConfig: ({ t }) => openRouterConfigSchema.extend({
++    apiKey: openRouterConfigSchema.shape.apiKey.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    baseUrl: openRouterConfigSchema.shape.baseUrl.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return createOpenRouter(config.apiKey, config.baseUrl)
++  },
++
++  validationRequiredWhen(config) {
++    return !!config.apiKey?.trim()
++  },
++  validators: {
++    ...createOpenAICompatibleValidators({
++      checks: ['connectivity', 'model_list'],
++    }),
++  },
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/perplexity-ai/index.ts b/packages/stage-ui/src/libs/providers/providers/perplexity-ai/index.ts
+new file mode 100644
+index 00000000..6181e0b7
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/perplexity-ai/index.ts
+@@ -0,0 +1,53 @@
++import { createPerplexity } from '@xsai-ext/providers/create'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators/openai-compatible'
++import { defineProvider } from '../registry'
++
++const perplexityConfigSchema = z.object({
++  apiKey: z
++    .string('API Key'),
++  baseUrl: z
++    .string('Base URL')
++    .optional()
++    .default('https://api.perplexity.ai/'),
++})
++
++type PerplexityConfig = z.input<typeof perplexityConfigSchema>
++
++export const providerPerplexityAI = defineProvider<PerplexityConfig>({
++  id: 'perplexity-ai',
++  name: 'Perplexity',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.perplexity.title'),
++  description: 'perplexity.ai',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.perplexity.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:perplexity',
++  iconColor: 'i-lobe-icons:perplexity-color',
++
++  createProviderConfig: ({ t }) => perplexityConfigSchema.extend({
++    apiKey: perplexityConfigSchema.shape.apiKey.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    baseUrl: perplexityConfigSchema.shape.baseUrl.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return createPerplexity(config.apiKey, config.baseUrl)
++  },
++
++  validationRequiredWhen(config) {
++    return !!config.apiKey?.trim()
++  },
++  validators: {
++    ...createOpenAICompatibleValidators({
++      checks: ['connectivity', 'model_list'],
++    }),
++  },
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/together-ai/index.ts b/packages/stage-ui/src/libs/providers/providers/together-ai/index.ts
+new file mode 100644
+index 00000000..a28992c2
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/together-ai/index.ts
+@@ -0,0 +1,53 @@
++import { createTogetherAI } from '@xsai-ext/providers/create'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators/openai-compatible'
++import { defineProvider } from '../registry'
++
++const togetherConfigSchema = z.object({
++  apiKey: z
++    .string('API Key'),
++  baseUrl: z
++    .string('Base URL')
++    .optional()
++    .default('https://api.together.xyz/v1/'),
++})
++
++type TogetherConfig = z.input<typeof togetherConfigSchema>
++
++export const providerTogetherAI = defineProvider<TogetherConfig>({
++  id: 'together-ai',
++  name: 'Together.ai',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.together.title'),
++  description: 'together.ai',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.together.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:together',
++  iconColor: 'i-lobe-icons:together-color',
++
++  createProviderConfig: ({ t }) => togetherConfigSchema.extend({
++    apiKey: togetherConfigSchema.shape.apiKey.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    baseUrl: togetherConfigSchema.shape.baseUrl.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return createTogetherAI(config.apiKey, config.baseUrl)
++  },
++
++  validationRequiredWhen(config) {
++    return !!config.apiKey?.trim()
++  },
++  validators: {
++    ...createOpenAICompatibleValidators({
++      checks: ['connectivity', 'model_list'],
++    }),
++  },
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/xai/index.ts b/packages/stage-ui/src/libs/providers/providers/xai/index.ts
+new file mode 100644
+index 00000000..42c3f69a
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/xai/index.ts
+@@ -0,0 +1,52 @@
++import { createXai } from '@xsai-ext/providers/create'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators/openai-compatible'
++import { defineProvider } from '../registry'
++
++const xaiConfigSchema = z.object({
++  apiKey: z
++    .string('API Key'),
++  baseUrl: z
++    .string('Base URL')
++    .optional()
++    .default('https://api.x.ai/v1/'),
++})
++
++type XAIConfig = z.input<typeof xaiConfigSchema>
++
++export const providerXAI = defineProvider<XAIConfig>({
++  id: 'xai',
++  name: 'xAI',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.xai.title'),
++  description: 'x.ai',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.xai.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:xai',
++
++  createProviderConfig: ({ t }) => xaiConfigSchema.extend({
++    apiKey: xaiConfigSchema.shape.apiKey.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    baseUrl: xaiConfigSchema.shape.baseUrl.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return createXai(config.apiKey, config.baseUrl)
++  },
++
++  validationRequiredWhen(config) {
++    return !!config.apiKey?.trim()
++  },
++  validators: {
++    ...createOpenAICompatibleValidators({
++      checks: ['connectivity', 'model_list'],
++    }),
++  },
++})
