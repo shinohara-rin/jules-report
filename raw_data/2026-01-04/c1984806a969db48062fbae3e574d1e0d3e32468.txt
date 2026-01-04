@@ -1,0 +1,3384 @@
+commit c1984806a969db48062fbae3e574d1e0d3e32468
+Author: Neko Ayaka <neko@ayaka.moe>
+Date:   Sat Jan 3 22:08:31 2026 +0800
+
+    feat(stage-*): v2 provider catalog for managing providers
+
+diff --git a/apps/stage-pocket/package.json b/apps/stage-pocket/package.json
+index 8e63762f..e38242fe 100644
+--- a/apps/stage-pocket/package.json
++++ b/apps/stage-pocket/package.json
+@@ -82,6 +82,7 @@
+     "remark-parse": "^11.0.0",
+     "remark-rehype": "^11.1.2",
+     "shiki": "^3.20.0",
++    "splitpanes": "catalog:",
+     "three": "^0.182.0",
+     "unified": "^11.0.5",
+     "unspeech": "^0.1.7",
+@@ -118,6 +119,7 @@
+     "@types/audioworklet": "catalog:",
+     "@types/culori": "^4.0.1",
+     "@types/nprogress": "^0.2.3",
++    "@types/splitpanes": "catalog:",
+     "@types/three": "^0.182.0",
+     "@types/yauzl": "^2.10.3",
+     "@unocss/reset": "^66.5.11",
+diff --git a/apps/stage-pocket/src/main.ts b/apps/stage-pocket/src/main.ts
+index 4cdd0ee6..357f39b2 100644
+--- a/apps/stage-pocket/src/main.ts
++++ b/apps/stage-pocket/src/main.ts
+@@ -22,6 +22,7 @@ import './modules/posthog'
+ import '@proj-airi/font-cjkfonts-allseto/index.css'
+ import '@proj-airi/font-xiaolai/index.css'
+ import '@unocss/reset/tailwind.css'
++import 'splitpanes/dist/splitpanes.css'
+ import './styles/main.css'
+ import 'uno.css'
+
+diff --git a/apps/stage-tamagotchi/package.json b/apps/stage-tamagotchi/package.json
+index 7ffb1807..ef7a7e8f 100644
+--- a/apps/stage-tamagotchi/package.json
++++ b/apps/stage-tamagotchi/package.json
+@@ -107,6 +107,7 @@
+     "remark-parse": "^11.0.0",
+     "remark-rehype": "^11.1.2",
+     "shiki": "^3.20.0",
++    "splitpanes": "catalog:",
+     "std-env": "^3.10.0",
+     "three": "^0.182.0",
+     "unified": "^11.0.5",
+@@ -144,6 +145,7 @@
+     "@types/audioworklet": "catalog:",
+     "@types/culori": "^4.0.1",
+     "@types/nprogress": "^0.2.3",
++    "@types/splitpanes": "catalog:",
+     "@types/three": "^0.182.0",
+     "@types/yauzl": "^2.10.3",
+     "@unocss/reset": "^66.5.11",
+diff --git a/apps/stage-tamagotchi/src/renderer/main.ts b/apps/stage-tamagotchi/src/renderer/main.ts
+index 197b56ca..5d4a1cc7 100644
+--- a/apps/stage-tamagotchi/src/renderer/main.ts
++++ b/apps/stage-tamagotchi/src/renderer/main.ts
+@@ -19,8 +19,9 @@ import './modules/posthog'
+
+ // eslint-disable-next-line perfectionist/sort-imports
+ import '@unocss/reset/tailwind.css'
+-import 'uno.css'
++import 'splitpanes/dist/splitpanes.css'
+ import './styles/main.css'
++import 'uno.css'
+ // Fonts
+ import '@proj-airi/font-cjkfonts-allseto/index.css'
+ import '@proj-airi/font-xiaolai/index.css'
+diff --git a/apps/stage-web/package.json b/apps/stage-web/package.json
+index cc1c5869..ca61ea54 100644
+--- a/apps/stage-web/package.json
++++ b/apps/stage-web/package.json
+@@ -78,6 +78,7 @@
+     "remark-parse": "^11.0.0",
+     "remark-rehype": "^11.1.2",
+     "shiki": "^3.20.0",
++    "splitpanes": "catalog:",
+     "three": "^0.182.0",
+     "unified": "^11.0.5",
+     "unspeech": "^0.1.7",
+@@ -113,6 +114,7 @@
+     "@types/audioworklet": "catalog:",
+     "@types/culori": "^4.0.1",
+     "@types/nprogress": "^0.2.3",
++    "@types/splitpanes": "catalog:",
+     "@types/three": "^0.182.0",
+     "@types/yauzl": "^2.10.3",
+     "@unocss/reset": "^66.5.11",
+diff --git a/apps/stage-web/src/main.ts b/apps/stage-web/src/main.ts
+index ed5c4994..d1d34665 100644
+--- a/apps/stage-web/src/main.ts
++++ b/apps/stage-web/src/main.ts
+@@ -22,6 +22,7 @@ import './modules/posthog'
+ import '@proj-airi/font-cjkfonts-allseto/index.css'
+ import '@proj-airi/font-xiaolai/index.css'
+ import '@unocss/reset/tailwind.css'
++import 'splitpanes/dist/splitpanes.css'
+ import './styles/main.css'
+ import 'uno.css'
+
+diff --git a/cspell.config.yaml b/cspell.config.yaml
+index 3c7b86a5..a5d541d0 100644
+--- a/cspell.config.yaml
++++ b/cspell.config.yaml
+@@ -259,6 +259,7 @@ words:
+   - sonarjs
+   - sonner
+   - specta
++  - splitpanes
+   - splt
+   - srgb
+   - ssml
+diff --git a/packages/i18n/src/locales/en/settings.yaml b/packages/i18n/src/locales/en/settings.yaml
+index c3991eba..e7fc4a07 100644
+--- a/packages/i18n/src/locales/en/settings.yaml
++++ b/packages/i18n/src/locales/en/settings.yaml
+@@ -190,7 +190,7 @@ pages:
+         reset: Reset desktop data
+     confirmations:
+       tooltip: Are you sure?
+-      yes: Yes
++      'yes': 'Yes'
+     status:
+       exported: Chat sessions exported.
+       imported: Chat sessions imported.
+@@ -424,6 +424,71 @@ pages:
+         AIRI requires at least one {chat} provider to be configured to think,
+         and behave properly. You could think of it as the brain of the
+         characters living in AIRI system.
++    catalog:
++      edit:
++        config-id-not-found: Provider configuration not found.
++        definition-id-not-found: Provider definition not found.
++        actions:
++          more-options: More options
++          delete: Delete
++        validation:
++          failed:
++            title: Please check your provider settings, validation failed.
++            description: You can still save the current configuration if you want to proceed.
++            action: Save anyway
++        config:
++          common:
++            fields:
++              field:
++                api-key:
++                  label: API Key
++                  description: API Key used to authorize requests to this provider
++                  placeholder: sk-...
++                base-url:
++                  label: Base URL
++                  description: >-
++                    The base url used to connect to remote service. Often looks
++                    like http://localhost:11434/v1 or https://example.com/v1.
++                  placeholder: Base url...
++                headers:
++                  label: Custom HTTP Headers
++                  description: Add custom HTTP headers
++                  key:
++                    placeholder: Key
++                  value:
++                    placeholder: Value
++        validators:
++          actions:
++            validate: Validate
++          empty: No validation steps available.
++          openai-compatible:
++            check-config:
++              title: Configuration
++            check-connectivity:
++              title: Connectivity
++            check-supports-model-listing:
++              title: List Models
++            check-supports-chat-completion:
++              title: Chat Completion
++          status:
++            validating: Validating...
++            valid: Passed
++            invalid: Errored
++          title: Checks
++        providers:
++          provider:
++            ollama:
++              troubleshooting:
++                validators:
++                  openai-compatible-check-connectivity:
++                    label: Extra configuration needed for Ollama
++                    content: >-
++                      Sorry to hear that Connectivity check failed for Ollama.
++                      Don't worry, for Ollama instances, extra configuration is
++                      needed for making it pass for Ollama. You need to set
++                      <code>OLLAMA_HOST</code> explicitly when start the Ollama
++                      application or Ollama CLI server, for detailed
++                      information, check <a href="https://airi.moeru.ai/docs/en/docs/manual/integrations/providers/chat/ollama">Ollama integration guide</a>.
+     common:
+       continueAnyway: Continue Anyway
+       fields:
+@@ -801,4 +866,6 @@ vrm:
+     skybox-specular-mix: Specular Mix
+ wip:
+   title: Work in Progress
+-  description: This feature is currently under development and not yet publicly available. Check back in future updates for this functionality.
++  description: >-
++    This feature is currently under development and not yet publicly available.
++    Check back in future updates for this functionality.
+diff --git a/packages/stage-pages/package.json b/packages/stage-pages/package.json
+index 0830be25..832a49cf 100644
+--- a/packages/stage-pages/package.json
++++ b/packages/stage-pages/package.json
+@@ -22,6 +22,7 @@
+   },
+   "dependencies": {
+     "@moeru/eventa": "^1.0.0-alpha.10",
++    "@moeru/std": "catalog:",
+     "@proj-airi/ccc": "workspace:*",
+     "@proj-airi/i18n": "workspace:*",
+     "@proj-airi/server-sdk": "workspace:*",
+@@ -40,15 +41,18 @@
+     "pinia": "^3.0.4",
+     "posthog-js": "catalog:",
+     "reka-ui": "^2.7.0",
++    "splitpanes": "catalog:",
+     "unspeech": "^0.1.7",
+     "vue": "^3.5.25",
+     "vue-i18n": "^11.2.2",
+-    "vue-router": "^4.6.4"
++    "vue-router": "^4.6.4",
++    "zod": "catalog:"
+   },
+   "devDependencies": {
+     "@nekopaw/tempora": "catalog:",
+     "@proj-airi/stage-shared": "workspace:^",
+     "@types/audioworklet": "catalog:",
++    "@types/splitpanes": "catalog:",
+     "@types/three": "^0.182.0",
+     "unplugin-info": "catalog:",
+     "vue-tsc": "^3.1.8"
+diff --git a/packages/stage-pages/src/pages/v2/settings/index.vue b/packages/stage-pages/src/pages/v2/settings/index.vue
+new file mode 100644
+index 00000000..53cf091d
+--- /dev/null
++++ b/packages/stage-pages/src/pages/v2/settings/index.vue
+@@ -0,0 +1,5 @@
++<template>
++  <div>
++    Settings
++  </div>
++</template>
+diff --git a/packages/stage-pages/src/pages/v2/settings/providers.vue b/packages/stage-pages/src/pages/v2/settings/providers.vue
+new file mode 100644
+index 00000000..c3fcf85a
+--- /dev/null
++++ b/packages/stage-pages/src/pages/v2/settings/providers.vue
+@@ -0,0 +1,148 @@
++<script setup lang="ts">
++import { PaneArea } from '@proj-airi/stage-ui/components'
++import { getDefinedProvider, listProviders } from '@proj-airi/stage-ui/libs'
++import { useProviderCatalogStore } from '@proj-airi/stage-ui/stores/provider-catalog'
++import { Button, Input } from '@proj-airi/ui'
++import { breakpointsTailwind, refDebounced, useBreakpoints } from '@vueuse/core'
++import { storeToRefs } from 'pinia'
++import { DropdownMenuContent, DropdownMenuPortal, DropdownMenuRoot, DropdownMenuTrigger } from 'reka-ui'
++import { Pane, Splitpanes } from 'splitpanes'
++import { computed, ref } from 'vue'
++import { useI18n } from 'vue-i18n'
++import { RouterView, useRouter } from 'vue-router'
++
++const { t } = useI18n()
++const router = useRouter()
++const providerCatalogStore = useProviderCatalogStore()
++const { configs } = storeToRefs(providerCatalogStore)
++
++const availableProviderSearchQuery = ref('')
++const availableProviderSearchQueryDebounced = refDebounced(availableProviderSearchQuery, 250)
++
++const availableProviders = computed(() => {
++  return listProviders().map(provider => ({
++    ...provider,
++    nameLocalized: provider.nameLocalize({ t }),
++  }))
++})
++
++const availableProvidersFiltered = computed(() => {
++  if (!availableProviderSearchQueryDebounced.value) {
++    return availableProviders.value
++  }
++
++  return availableProviders.value.filter(provider =>
++    provider.name.toLowerCase().includes(availableProviderSearchQueryDebounced.value.toLowerCase()),
++  )
++})
++
++const breakpoints = useBreakpoints(breakpointsTailwind)
++const isSmallerThan2XL = breakpoints.smaller('2xl')
++
++const paneDatasourceListSize = computed(() => isSmallerThan2XL.value ? 30 : 20)
++const paneDatasourceEditSize = computed(() => isSmallerThan2XL.value ? 80 : 70)
++
++function handleAdd(providerId: string) {
++  providerCatalogStore.addProvider(providerId)
++}
++
++function handleClick(providerId: string) {
++  router.push(`/v2/settings/providers/edit/${providerId}`)
++}
++</script>
++
++<template>
++  <div h-full w-full flex flex-col gap-2>
++    <h2 text="neutral-900 dark:neutral-100" mb-1 flex justify-between>
++      Provider Catalog
++    </h2>
++    <Splitpanes class="flex gap-0.8 bg-transparent">
++      <Pane :min-size="10" :size="paneDatasourceListSize">
++        <PaneArea
++          :class="[
++            'flex flex-col gap-2',
++            'bg-neutral-50/90 dark:bg-neutral-900/90',
++          ]"
++        >
++          <div relative h-full w-full flex flex-col gap-2>
++            <div relative flex flex-1 flex-col gap-2>
++              <div :class="['flex flex-row items-center gap-2']">
++                <Input placeholder="Search configured..." variant="primary-dimmed" />
++
++                <DropdownMenuRoot>
++                  <DropdownMenuTrigger as-child aria-label="Customize options">
++                    <Button size="sm">
++                      <div i-ph:plus-light />
++                    </Button>
++                  </DropdownMenuTrigger>
++
++                  <DropdownMenuPortal>
++                    <DropdownMenuContent
++                      :class="[
++                        'bg-white', 'dark:bg-neutral-800/90',
++                        'shadow-md', 'dark:shadow-lg',
++                        'backdrop-blur-md',
++                        'will-change-[opacity,transform] min-w-[400px] rounded-xl p-2 outline-none',
++                        'data-[side=bottom]:animate-slideUpAndFade data-[side=left]:animate-slideRightAndFade data-[side=right]:animate-slideLeftAndFade data-[side=top]:animate-slideDownAndFade',
++                      ]"
++                      :side-offset="8"
++                      align="start"
++                    >
++                      <Input v-model="availableProviderSearchQuery" placeholder="Search supported providers..." class="mb-2" variant="primary-dimmed" />
++
++                      <div flex flex-col gap-1>
++                        <div v-for="(provider) in availableProvidersFiltered" :key="provider.id" @click="() => handleAdd(provider.id)">
++                          <div
++                            bg="hover:neutral-200/80 dark:hover:neutral-700/80"
++                            transition="all duration-100 ease-out"
++                            flex cursor-pointer select-none items-center gap-2 rounded-md px-2 py-1 text-sm
++                          >
++                            <div class="relative w-4">
++                              <div :class="[provider.iconColor || provider.icon, 'absolute left-50% top-50% -translate-x-1/2 -translate-y-1/2']" />
++                            </div>
++                            <div>{{ provider?.name }}</div>
++                          </div>
++                        </div>
++                      </div>
++                    </DropdownMenuContent>
++                  </DropdownMenuPortal>
++                </DropdownMenuRoot>
++              </div>
++
++              <div v-if="Object.keys(configs).length === 0" class="text-neutral-500 <lg:px-4" flex flex-1 flex-col items-center justify-center gap-2>
++                <div i-ph:rectangle-dashed-light text-4xl />
++                <div flex items-center justify-center gap-2>
++                  <span>No providers</span>
++                </div>
++              </div>
++
++              <div v-auto-animate gap="0.5" h-fit max-h="[calc(100dvh-12.5rem)]" flex flex-col overflow-y-scroll>
++                <div
++                  v-for="(providerEntry, index) in Object.entries(configs)"
++                  :key="index"
++                  @click="() => handleClick(providerEntry[0])"
++                >
++                  <div
++                    bg="hover:neutral-200/80 dark:hover:neutral-700/80"
++                    transition="all duration-100 ease-out"
++                    flex cursor-pointer select-none items-center gap-2 rounded-md px-2 py-1 text-sm
++                  >
++                    <div class="relative w-4">
++                      <div :class="[getDefinedProvider(providerEntry[1].definitionId)?.iconColor || getDefinedProvider(providerEntry[1].definitionId)?.icon, 'absolute left-50% top-50% -translate-x-1/2 -translate-y-1/2']" />
++                    </div>
++                    <div>{{ providerEntry[1].name }}</div>
++                  </div>
++                </div>
++              </div>
++            </div>
++          </div>
++        </PaneArea>
++      </Pane>
++      <Pane :min-size="20" :size="paneDatasourceEditSize">
++        <PaneArea flex flex-col gap-2>
++          <RouterView />
++        </PaneArea>
++      </Pane>
++    </Splitpanes>
++  </div>
++</template>
+diff --git a/packages/stage-pages/src/pages/v2/settings/providers/edit.vue b/packages/stage-pages/src/pages/v2/settings/providers/edit.vue
+new file mode 100644
+index 00000000..a78fb6fd
+--- /dev/null
++++ b/packages/stage-pages/src/pages/v2/settings/providers/edit.vue
+@@ -0,0 +1,7 @@
++<script setup lang="ts">
++import { RouterView } from 'vue-router'
++</script>
++
++<template>
++  <RouterView />
++</template>
+diff --git a/packages/stage-pages/src/pages/v2/settings/providers/edit/[providerId]/index.vue b/packages/stage-pages/src/pages/v2/settings/providers/edit/[providerId]/index.vue
+new file mode 100644
+index 00000000..19093663
+--- /dev/null
++++ b/packages/stage-pages/src/pages/v2/settings/providers/edit/[providerId]/index.vue
+@@ -0,0 +1,523 @@
++<script setup lang="ts">
++import type { ProviderValidationStep } from '@proj-airi/stage-ui/libs'
++import type { ZodType } from 'zod'
++import type { $ZodType } from 'zod/v4/core'
++
++import { merge } from '@moeru/std'
++import {
++  Alert,
++  Callout,
++  ProviderAccountIdInput,
++  ProviderAdvancedSettings,
++  ProviderApiKeyInput,
++  ProviderBaseUrlInput,
++  ProviderBasicSettings,
++  ProviderSettingsContainer,
++  ProviderSettingsLayout,
++  ProviderValidationDetailsDialog,
++} from '@proj-airi/stage-ui/components'
++import { getDefinedProvider, getSchemaDefault, getValidatorsOfProvider, validateProvider } from '@proj-airi/stage-ui/libs'
++import { useProviderCatalogStore } from '@proj-airi/stage-ui/stores/provider-catalog'
++import { Button, FieldInput, FieldKeyValues } from '@proj-airi/ui'
++import { refManualReset, useDebounceFn } from '@vueuse/core'
++import { DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal, DropdownMenuRoot, DropdownMenuTrigger } from 'reka-ui'
++import { computed, onMounted, ref, watch } from 'vue'
++import { useI18n } from 'vue-i18n'
++import { useRoute, useRouter } from 'vue-router'
++
++const { t } = useI18n()
++const router = useRouter()
++const route = useRoute('v2/settings/providers/edit/[providerId]')
++
++const providerCatalogStore = useProviderCatalogStore()
++
++const providerId = computed(() => route.params.providerId as string)
++const providerConfig = computed(() => providerCatalogStore.configs[providerId.value] || {})
++const providerDefinition = computed(() => getDefinedProvider(providerConfig.value.definitionId))
++const providerSchema = computed(() => providerDefinition.value?.createProviderConfig({ t }) as $ZodType | undefined)
++const providerSchemaDefault = computed(() => getSchemaDefault(providerSchema.value))
++
++const providerConfigEdit = refManualReset(providerConfig)
++const isEdited = computed(() => {
++  const currentConfig = providerConfigEdit.value?.config || {}
++  const savedConfig = providerConfig.value?.config || {}
++  return JSON.stringify(currentConfig) !== JSON.stringify(savedConfig)
++})
++const isValidating = ref(false)
++const showValidationDetails = ref(false)
++const activeValidationStepId = ref<string | undefined>(undefined)
++const validationSteps = ref<ProviderValidationStep[]>([])
++const hasValidationFailures = computed(() => validationSteps.value.some(step => step.status === 'invalid'))
++
++const isOllamaProvider = computed(() => providerDefinition.value?.id === 'ollama')
++const shouldShowTroubleshootingOllamaConnectivity = computed(() => {
++  return isOllamaProvider.value && validationSteps.value.some(step => step.id === 'openai-compatible:check-connectivity' && step.status === 'invalid')
++})
++
++function getSchemaShape(schema: $ZodType): Record<string, ZodType> {
++  const anySchema = schema as unknown as { shape?: Record<string, ZodType> | (() => Record<string, ZodType>), _def?: { shape?: Record<string, ZodType> | (() => Record<string, ZodType>) } }
++  if (anySchema.shape) {
++    return typeof anySchema.shape === 'function' ? anySchema.shape() : anySchema.shape
++  }
++  if (anySchema._def?.shape) {
++    return typeof anySchema._def.shape === 'function' ? anySchema._def.shape() : anySchema._def.shape
++  }
++
++  return {}
++}
++
++function getSchemaMeta(schema: ZodType): Record<string, unknown> {
++  return schema.meta() || {}
++}
++
++function isOptionalSchema(schema: ZodType) {
++  return schema.safeParse(undefined).success
++}
++
++const validatorEventStates = ref<Record<string, 'running' | 'success' | 'error'>>({})
++
++const schemaFields = computed(() => {
++  if (!providerSchema.value)
++    return []
++
++  const shape = getSchemaShape(providerSchema.value)
++  return Object.entries(shape).map(([key, schema]) => {
++    const meta = getSchemaMeta(schema)
++
++    const section = meta.section === 'advanced' ? 'advanced' : 'basic'
++
++    const type = typeof meta.type === 'string' ? meta.type : undefined
++    const label = typeof meta.labelLocalized === 'string' ? meta.labelLocalized : ''
++    const description = typeof meta.descriptionLocalized === 'string' ? meta.descriptionLocalized : schema.description
++    const placeholder = typeof meta.placeholderLocalized === 'string' ? meta.placeholderLocalized : ''
++
++    return {
++      key,
++      schema,
++      section,
++      type,
++      label,
++      description,
++      placeholder,
++      required: !isOptionalSchema(schema),
++    }
++  })
++})
++
++const basicFields = computed(() => schemaFields.value.filter(field => field.section === 'basic'))
++const advancedFields = computed(() => schemaFields.value.filter(field => field.section === 'advanced'))
++
++function setFieldValue(key: string, value: unknown) {
++  providerCatalogStore.configs[providerId.value] = {
++    ...providerCatalogStore.configs[providerId.value],
++    config: {
++      ...providerCatalogStore.configs[providerId.value]?.config,
++      [key]: value,
++    },
++    id: providerId.value,
++    definitionId: providerId.value,
++  }
++}
++
++const headerRows = ref<Array<{ key: string, value: string }>>([{ key: '', value: '' }])
++const isSyncingHeaders = ref(false)
++
++function normalizeHeaderRows(headers: Record<string, string>) {
++  const rows = Object.entries(headers || {}).map(([key, value]) => ({ key, value }))
++  if (rows.length === 0) {
++    rows.push({ key: '', value: '' })
++  }
++  else if (rows[rows.length - 1].key !== '' || rows[rows.length - 1].value !== '') {
++    rows.push({ key: '', value: '' })
++  }
++  return rows
++}
++
++watch(providerConfigEdit, (config) => {
++  if (!('headers' in config))
++    return
++
++  isSyncingHeaders.value = true
++  headerRows.value = normalizeHeaderRows((config.headers as Record<string, string>) || {})
++  isSyncingHeaders.value = false
++}, { deep: true, immediate: true })
++
++watch(headerRows, (rows) => {
++  if (isSyncingHeaders.value)
++    return
++  const lastRow = rows[rows.length - 1]
++  if (!lastRow || lastRow.key.trim().length > 0 || lastRow.value.trim().length > 0) {
++    headerRows.value = [...rows, { key: '', value: '' }]
++    return
++  }
++  const headers = rows
++    .filter(entry => entry.key.trim().length > 0)
++    .reduce((acc, entry) => {
++      acc[entry.key] = entry.value
++      return acc
++    }, {} as Record<string, string>)
++  setFieldValue('headers', headers)
++}, { deep: true })
++
++function removeHeaderRow(index: number) {
++  const rows = [...headerRows.value]
++  if (rows.length === 1) {
++    headerRows.value = [{ key: '', value: '' }]
++    return
++  }
++  rows.splice(index, 1)
++  headerRows.value = rows.length > 0 ? rows : [{ key: '', value: '' }]
++}
++
++async function runValidation() {
++  if (!providerDefinition.value)
++    return
++
++  const validationPlan = getValidationPlan()
++  if (!validationPlan)
++    return
++  if (providerConfig.value?.validated || providerConfig.value?.validationBypassed)
++    return
++  if (!validationPlan.shouldValidate)
++    return
++
++  isValidating.value = true
++  validatorEventStates.value = {}
++  const results = await validateProvider(validationPlan, { t }, {
++    onValidatorStart: ({ step }) => {
++      validatorEventStates.value = { ...validatorEventStates.value, [step.id]: 'running' }
++      syncValidationSteps()
++    },
++    onValidatorSuccess: ({ step }) => {
++      validatorEventStates.value = { ...validatorEventStates.value, [step.id]: 'success' }
++      syncValidationSteps()
++    },
++    onValidatorError: ({ step }) => {
++      validatorEventStates.value = { ...validatorEventStates.value, [step.id]: 'error' }
++      syncValidationSteps()
++    },
++  })
++  if (isEdited.value && results.every(step => step.status !== 'invalid')) {
++    commitEditedConfig({ validated: true, validationBypassed: false })
++  }
++  isValidating.value = false
++}
++
++const debouncedValidation = useDebounceFn(runValidation, 1500)
++let didInitValidation = false
++
++watch([providerConfigEdit, providerDefinition], () => {
++  if (!providerConfig.value || !providerConfigEdit.value) {
++    return
++  }
++
++  getValidationPlan()
++
++  if (providerConfig.value?.validated || providerConfig.value?.validationBypassed)
++    return
++
++  if (!didInitValidation) {
++    didInitValidation = true
++    return
++  }
++  debouncedValidation()
++}, { deep: true, immediate: true })
++
++onMounted(() => {
++  if (!providerConfig.value.validated) {
++    providerConfigEdit.value.config = merge(providerSchemaDefault.value, providerConfigEdit.value?.config || {})
++  }
++})
++
++function getValidationPlan() {
++  if (!providerDefinition.value)
++    return undefined
++
++  const validationPlan = getValidatorsOfProvider({
++    definition: providerDefinition.value,
++    config: (providerConfigEdit.value?.config || {}) as Record<string, unknown>,
++    schemaDefaults: providerSchemaDefault.value as Record<string, unknown>,
++    contextOptions: { t },
++  })
++  if (!validationPlan)
++    return undefined
++
++  validationSteps.value = validationPlan.steps
++  return validationPlan
++}
++
++function syncValidationSteps() {
++  validationSteps.value = [...validationSteps.value]
++}
++
++function commitEditedConfig(options: { validated: boolean, validationBypassed: boolean }) {
++  if (!providerConfigEdit.value)
++    return
++
++  providerCatalogStore.commitProviderConfig(providerId.value, { ...providerConfigEdit.value.config }, options)
++}
++
++function handleSaveAnyway() {
++  if (!isEdited.value)
++    return
++
++  commitEditedConfig({ validated: false, validationBypassed: true })
++}
++
++function handleDeleteProvider() {
++  const id = providerId.value
++  router.push('/v2/settings/providers')
++  setTimeout(() => providerCatalogStore.removeProvider(id), 100)
++}
++</script>
++
++<template>
++  <div v-if="!providerConfigEdit" class="h-full w-full">
++    <div :class="['flex', 'flex-col', 'items-center', 'gap-2', 'py-10', 'text-neutral-500', 'h-full', 'w-full']">
++      <div :class="['i-ph:warning-circle-light', 'text-3xl']" />
++      <div>{{ t('settings.pages.providers.catalog.edit.config-id-not-found') }}</div>
++    </div>
++  </div>
++  <div v-else-if="!providerDefinition" class="h-full w-full">
++    <div :class="['flex', 'flex-col', 'items-center', 'gap-2', 'py-10', 'text-neutral-500', 'h-full', 'w-full']">
++      <div :class="['i-ph:warning-circle-light', 'text-3xl']" />
++      <div>{{ t('settings.pages.providers.catalog.edit.definition-id-not-found') }}</div>
++    </div>
++  </div>
++  <ProviderSettingsLayout
++    v-else
++    :provider-name="providerDefinition?.nameLocalize({ t }) || providerDefinition?.name || ''"
++    :provider-icon="providerDefinition?.icon"
++    :provider-icon-color="providerDefinition?.iconColor"
++    :on-back="() => router.back()"
++  >
++    <div :class="['flex', 'flex-col', 'gap-4']">
++      <div :class="['flex', 'flex-wrap', 'items-center', 'justify-between', 'gap-3']">
++        <div :class="['flex', 'flex-col', 'gap-1']">
++          <div :class="['flex', 'items-center', 'gap-2']">
++            <div v-if="providerDefinition?.icon || providerDefinition?.iconColor" :class="['relative', 'h-8', 'w-8']">
++              <div :class="[providerDefinition?.iconColor || providerDefinition?.icon, 'absolute', 'left-50%', 'top-50%', '-translate-x-1/2', '-translate-y-1/2', 'text-2xl']" />
++            </div>
++            <h2 :class="['text-lg', 'text-neutral-900', 'font-semibold', 'dark:text-neutral-100']">
++              {{ providerDefinition?.nameLocalize({ t }) || providerDefinition?.name || providerId }}
++            </h2>
++          </div>
++          <div :class="['text-sm', 'text-neutral-500', 'dark:text-neutral-400']">
++            {{ providerDefinition?.descriptionLocalize({ t }) || providerDefinition?.description }}
++          </div>
++        </div>
++        <div :class="['flex', 'items-center', 'gap-2']">
++          <DropdownMenuRoot>
++            <DropdownMenuTrigger as-child :aria-label="t('settings.pages.providers.catalog.edit.actions.more-options')">
++              <Button size="sm" variant="secondary">
++                <div :class="['i-solar:menu-dots-bold']" />
++              </Button>
++            </DropdownMenuTrigger>
++            <DropdownMenuPortal>
++              <DropdownMenuContent
++                :class="[
++                  'bg-white', 'dark:bg-neutral-800/90',
++                  'shadow-md', 'dark:shadow-lg',
++                  'will-change-[opacity,transform] min-w-40 rounded-xl p-1 outline-none',
++                  'data-[side=bottom]:animate-slideUpAndFade data-[side=left]:animate-slideRightAndFade data-[side=right]:animate-slideLeftAndFade data-[side=top]:animate-slideDownAndFade',
++                ]"
++                :side-offset="8"
++                align="end"
++              >
++                <DropdownMenuItem
++                  :class="[
++                    'relative', 'flex', 'cursor-pointer', 'select-none', 'items-center',
++                    'rounded-lg', 'px-3', 'py-2', 'text-sm', 'leading-none', 'outline-none',
++                    'data-[disabled]:pointer-events-none',
++                    'data-[highlighted]:bg-red-100/30', 'data-[highlighted]:text-red-700',
++                    'dark:data-[highlighted]:bg-red-500/20', 'dark:data-[highlighted]:text-red-200',
++                    'transition-colors', 'duration-250', 'ease-in-out',
++                  ]"
++                  @click="handleDeleteProvider"
++                >
++                  <div :class="['i-solar:trash-bin-minimalistic-bold-duotone']" />
++                  <div>{{ t('settings.pages.providers.catalog.edit.actions.delete') }}</div>
++                </DropdownMenuItem>
++              </DropdownMenuContent>
++            </DropdownMenuPortal>
++          </DropdownMenuRoot>
++        </div>
++      </div>
++
++      <ProviderSettingsContainer>
++        <div v-if="!providerDefinition" :class="['flex', 'flex-col', 'items-center', 'gap-2', 'py-10', 'text-neutral-500']">
++          <div :class="['i-ph:warning-circle-light', 'text-3xl']" />
++          <div>{{ t('settings.pages.providers.catalog.edit.definition-id-not-found') }}</div>
++        </div>
++
++        <template v-else>
++          <ProviderBasicSettings
++            :title="t('settings.pages.providers.common.section.basic.title')"
++            :description="t('settings.pages.providers.common.section.basic.description')"
++          >
++            <div :class="['flex', 'flex-col', 'gap-4']">
++              <div v-for="field in basicFields" :key="field.key">
++                <ProviderApiKeyInput
++                  v-if="field.key === 'apiKey'"
++                  v-model="providerConfigEdit.config[field.key]"
++                  :provider-name="providerDefinition?.nameLocalize({ t }) || providerDefinition?.name || ''"
++                  :label="field.label"
++                  :description="field.description"
++                  :placeholder="field.placeholder"
++                  :required="field.required"
++                />
++                <ProviderBaseUrlInput
++                  v-else-if="field.key === 'baseUrl'"
++                  v-model="providerConfigEdit.config[field.key]"
++                  :label="field.label"
++                  :description="field.description"
++                  :placeholder="field.placeholder"
++                  :required="field.required"
++                />
++                <ProviderAccountIdInput
++                  v-else-if="field.key === 'accountId'"
++                  v-model="providerConfigEdit.config[field.key]"
++                  :label="field.label"
++                  :description="field.description"
++                  :placeholder="field.placeholder"
++                  :required="field.required"
++                />
++                <FieldInput
++                  v-else
++                  v-model="providerConfigEdit.config[field.key]"
++                  :label="field.label"
++                  :description="field.description"
++                  :placeholder="field.placeholder"
++                  :required="field.required"
++                  :type="field.type || 'text'"
++                />
++              </div>
++            </div>
++          </ProviderBasicSettings>
++
++          <ProviderAdvancedSettings
++            v-if="advancedFields.length > 0"
++            :title="t('settings.pages.providers.common.section.advanced.title')"
++          >
++            <div :class="['flex', 'flex-col', 'gap-4']">
++              <div v-for="field in advancedFields" :key="field.key">
++                <FieldKeyValues
++                  v-if="field.type === 'key-values'"
++                  v-model="headerRows"
++                  :label="field.label"
++                  :description="field.description"
++                  :placeholder="field.placeholder"
++                  :required="field.required"
++                  :key-placeholder="t('settings.pages.providers.catalog.edit.config.common.fields.field.headers.key.placeholder')"
++                  :value-placeholder="t('settings.pages.providers.catalog.edit.config.common.fields.field.headers.value.placeholder')"
++                  @remove="removeHeaderRow"
++                />
++                <ProviderBaseUrlInput
++                  v-else-if="field.key === 'baseUrl'"
++                  v-model="providerConfigEdit.config[field.key]"
++                  :label="field.label"
++                  :description="field.description"
++                  :placeholder="field.placeholder"
++                  :required="field.required"
++                />
++                <FieldInput
++                  v-else
++                  v-model="providerConfigEdit.config[field.key]"
++                  :label="field.label"
++                  :description="field.description"
++                  :placeholder="field.placeholder"
++                  :required="field.required"
++                  :type="field.type || 'text'"
++                />
++              </div>
++            </div>
++          </ProviderAdvancedSettings>
++
++          <div :class="['flex', 'flex-col', 'gap-3']">
++            <Callout
++              v-if="shouldShowTroubleshootingOllamaConnectivity && providerDefinition.business?.({ t }).troubleshooting?.validators?.openaiCompatibleCheckConnectivity"
++              :label="providerDefinition.business?.({ t }).troubleshooting?.validators?.openaiCompatibleCheckConnectivity?.label"
++            >
++              <div v-html="providerDefinition.business?.({ t }).troubleshooting?.validators?.openaiCompatibleCheckConnectivity?.content" />
++            </Callout>
++
++            <div :class="['flex', 'items-center', 'justify-between']">
++              <div :class="['text-xs', 'text-neutral-400']">
++                {{ t('settings.pages.providers.catalog.edit.validators.title') }}
++              </div>
++              <Button size="sm" variant="secondary" :loading="isValidating" :disabled="isValidating" @click="runValidation">
++                {{ t('settings.pages.providers.catalog.edit.validators.actions.validate') }}
++              </Button>
++            </div>
++
++            <ProviderValidationDetailsDialog v-model="showValidationDetails" :steps="validationSteps" :step-id="activeValidationStepId" />
++
++            <div v-if="validationSteps.length > 0" :class="['grid', 'gap-3', 'grid-cols-1', 'sm:grid-cols-2', 'xl:grid-cols-3']">
++              <div v-for="step in validationSteps" :key="step.id" class="h-full">
++                <div
++                  :class="[
++                    'p-3', 'h-full',
++                    'flex', 'flex-col', 'gap-2',
++                    'bg-white', 'dark:bg-neutral-900',
++                    'rounded-lg',
++                  ]"
++                >
++                  <div :class="['flex', 'items-start', 'justify-between', 'gap-2']">
++                    <div :class="['text-sm', 'text-neutral-700', 'dark:text-neutral-200']">
++                      {{ step.label }}
++                    </div>
++                    <div :class="['flex', 'flex-col', 'items-end', 'gap-2']">
++                      <Button
++                        size="sm"
++                        variant="ghost"
++                        :title="
++                          step.status === 'valid' ? t('settings.pages.providers.catalog.edit.validators.status.valid')
++                          : step.status === 'invalid' ? t('settings.pages.providers.catalog.edit.validators.status.invalid')
++                            : step.status === 'validating' ? t('settings.pages.providers.catalog.edit.validators.status.validating')
++                              : ''
++                        "
++                        @click="() => { activeValidationStepId = step.id; showValidationDetails = true }"
++                      >
++                        <div
++                          :class="[
++                            'text-lg', 'min-w-8',
++                            step.status === 'valid' ? 'i-solar:check-circle-line-duotone text-emerald-600 dark:text-emerald-500' : '',
++                            step.status === 'invalid' ? 'i-solar:close-circle-line-duotone text-red-600 dark:text-red-500' : '',
++                            step.status === 'validating' ? 'i-solar:clock-circle-line-duotone text-amber-600 dark:text-amber-400' : '',
++                            step.status === 'idle' ? 'i-solar:minus-circle-line-duotone text-neutral-300 dark:text-neutral-600' : '',
++                          ]"
++                        />
++                      </Button>
++                    </div>
++                  </div>
++                </div>
++              </div>
++            </div>
++
++            <div v-else :class="['text-sm', 'text-neutral-500']">
++              {{ t('settings.pages.providers.catalog.edit.validators.empty') }}
++            </div>
++
++            <div :class="['flex', 'flex-col', 'gap-3']">
++              <Alert v-if="hasValidationFailures" type="warning">
++                <template #title>
++                  {{ t('settings.pages.providers.catalog.edit.validation.failed.title') }}
++                </template>
++                <template #content>
++                  <div :class="['flex', 'flex-col', 'gap-2', 'sm:flex-row', 'sm:items-center', 'sm:justify-between']">
++                    <span :class="['text-xs', 'text-neutral-600', 'dark:text-neutral-300']">
++                      {{ t('settings.pages.providers.catalog.edit.validation.failed.description') }}
++                    </span>
++                    <Button size="sm" variant="caution" @click="handleSaveAnyway">
++                      {{ t('settings.pages.providers.catalog.edit.validation.failed.action') }}
++                    </Button>
++                  </div>
++                </template>
++              </Alert>
++            </div>
++          </div>
++        </template>
++      </ProviderSettingsContainer>
++    </div>
++  </ProviderSettingsLayout>
++</template>
+diff --git a/packages/stage-pages/src/pages/v2/settings/providers/index.vue b/packages/stage-pages/src/pages/v2/settings/providers/index.vue
+new file mode 100644
+index 00000000..a78fb6fd
+--- /dev/null
++++ b/packages/stage-pages/src/pages/v2/settings/providers/index.vue
+@@ -0,0 +1,7 @@
++<script setup lang="ts">
++import { RouterView } from 'vue-router'
++</script>
++
++<template>
++  <RouterView />
++</template>
+diff --git a/packages/stage-ui/package.json b/packages/stage-ui/package.json
+index 31fa7712..b3b8cf0b 100644
+--- a/packages/stage-ui/package.json
++++ b/packages/stage-ui/package.json
+@@ -126,6 +126,7 @@
+     "remark-parse": "^11.0.0",
+     "remark-rehype": "^11.1.2",
+     "shiki": "^3.20.0",
++    "splitpanes": "catalog:",
+     "three": "^0.182.0",
+     "unified": "^11.0.5",
+     "unist-builder": "^4.0.0",
+@@ -164,12 +165,14 @@
+     "@proj-airi/vite-plugin-warpdrive": "workspace:*",
+     "@types/audioworklet": "catalog:",
+     "@types/culori": "^4.0.1",
++    "@types/splitpanes": "catalog:",
+     "@types/three": "^0.182.0",
+     "@unocss/reset": "^66.5.11",
+     "@vitejs/plugin-vue": "^6.0.3",
+     "clustr": "^1.0.2",
+     "csstype": "^3.2.3",
+     "histoire": "1.0.0-alpha.2",
++    "is-network-error": "catalog:",
+     "unocss": "^66.5.11",
+     "unplugin-info": "catalog:",
+     "unplugin-yaml": "^3.0.7",
+diff --git a/packages/stage-ui/src/components/layouts/index.ts b/packages/stage-ui/src/components/layouts/index.ts
+index 170e7cbe..42d9d22b 100644
+--- a/packages/stage-ui/src/components/layouts/index.ts
++++ b/packages/stage-ui/src/components/layouts/index.ts
+@@ -2,4 +2,5 @@ export * from './backgrounds'
+ export { default as Callout } from './Callout.vue'
+ export { default as PageHeader } from './PageHeader.vue'
+ export { default as Section } from './Section.vue'
++export * from './splitpanes'
+ export { default as Tabs } from './Tabs.vue'
+diff --git a/packages/stage-ui/src/components/layouts/splitpanes/index.ts b/packages/stage-ui/src/components/layouts/splitpanes/index.ts
+new file mode 100644
+index 00000000..9a96b64f
+--- /dev/null
++++ b/packages/stage-ui/src/components/layouts/splitpanes/index.ts
+@@ -0,0 +1 @@
++export { default as PaneArea } from './pane-area.vue'
+diff --git a/packages/stage-ui/src/components/layouts/splitpanes/pane-area.vue b/packages/stage-ui/src/components/layouts/splitpanes/pane-area.vue
+new file mode 100644
+index 00000000..8a59e911
+--- /dev/null
++++ b/packages/stage-ui/src/components/layouts/splitpanes/pane-area.vue
+@@ -0,0 +1,19 @@
++<script setup lang="ts">
++defineProps<{
++  enterDelay?: number
++}>()
++</script>
++
++<template>
++  <div
++    v-motion
++    :initial="{ opacity: 0, y: 16 }"
++    :enter="{ opacity: 1, y: 0, transition: { delay: enterDelay } }"
++    :class="[
++      'h-full w-full of-auto rounded-2xl px-3 py-3 backdrop-blur-lg',
++      'transition-all duration-300 ease-in-out',
++    ]"
++  >
++    <slot />
++  </div>
++</template>
+diff --git a/packages/stage-ui/src/components/misc/Alert.vue b/packages/stage-ui/src/components/misc/Alert.vue
+index 0e06f1f2..40407d0a 100644
+--- a/packages/stage-ui/src/components/misc/Alert.vue
++++ b/packages/stage-ui/src/components/misc/Alert.vue
+@@ -15,15 +15,15 @@ const slots = useSlots()
+ const containerClass = computed(() => {
+   switch (props.type) {
+     case 'error':
+-      return 'border-red-200 bg-red-50 dark:border-red-800/30 dark:bg-red-900/20'
++      return ' bg-red-50/50 dark:bg-red-900/20'
+     case 'warning':
+-      return 'border-amber-200 bg-amber-50 dark:border-amber-800/30 dark:bg-amber-900/20'
++      return ' bg-amber-50/50 dark:bg-amber-900/20'
+     case 'success':
+-      return 'border-green-200 bg-green-50 dark:border-green-800/30 text-green-700 dark:bg-green-900/30 dark:text-green-300'
++      return ' bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+     case 'info':
+-      return 'border-blue-200 bg-blue-50 dark:border-blue-800/30 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
++      return ' bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+     case 'loading':
+-      return 'border-blue-200 bg-blue-50 dark:border-blue-800/30 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
++      return ' bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+   }
+   return ''
+ })
+@@ -31,15 +31,15 @@ const containerClass = computed(() => {
+ const iconClass = computed(() => {
+   switch (props.type) {
+     case 'error':
+-      return 'i-solar:close-circle-bold-duotone text-red-500 dark:text-red-400'
++      return 'i-solar:close-circle-bold-duotone text-red-400 dark:text-red-400'
+     case 'warning':
+-      return 'i-solar:danger-circle-bold-duotone text-amber-500 dark:text-amber-400'
++      return 'i-solar:danger-circle-bold-duotone text-amber-400 dark:text-amber-400'
+     case 'success':
+-      return 'i-solar:check-circle-bold-duotone text-green-500 dark:text-green-400'
++      return 'i-solar:check-circle-bold-duotone text-green-400 dark:text-green-400'
+     case 'info':
+-      return 'i-solar:info-circle-bold-duotone text-blue-500 dark:text-blue-400'
++      return 'i-solar:info-circle-bold-duotone text-blue-400 dark:text-blue-400'
+     case 'loading':
+-      return 'i-svg-spinners:3-dots-fade text-blue-500 dark:text-blue-400'
++      return 'i-svg-spinners:3-dots-fade text-blue-400 dark:text-blue-400'
+   }
+   return ''
+ })
+@@ -47,22 +47,22 @@ const iconClass = computed(() => {
+ const titleClass = computed(() => {
+   switch (props.type) {
+     case 'error':
+-      return 'text-red-500 dark:text-red-400'
++      return 'text-red-600 dark:text-red-400'
+     case 'warning':
+-      return 'text-amber-500 dark:text-amber-400'
++      return 'text-amber-600 dark:text-amber-400'
+     case 'success':
+-      return 'text-green-500 dark:text-green-400'
++      return 'text-green-600 dark:text-green-400'
+     case 'info':
+-      return 'text-blue-500 dark:text-blue-400'
++      return 'text-blue-600 dark:text-blue-400'
+     case 'loading':
+-      return 'text-blue-500 dark:text-blue-400'
++      return 'text-blue-600 dark:text-blue-400'
+   }
+   return ''
+ })
+ </script>
+
+ <template>
+-  <div class="flex flex-col gap-3 border-2 rounded-xl border-solid p-2" :class="containerClass">
++  <div class="flex flex-col gap-3 rounded-xl p-2" :class="containerClass">
+     <div class="flex items-center gap-1.5 font-medium">
+       <div class="text-2xl" :class="iconClass" />
+       <div :class="titleClass">
+diff --git a/packages/stage-ui/src/components/misc/Button.story.vue b/packages/stage-ui/src/components/misc/Button.story.vue
+index 752a8ae5..777ae562 100644
+--- a/packages/stage-ui/src/components/misc/Button.story.vue
++++ b/packages/stage-ui/src/components/misc/Button.story.vue
+@@ -22,7 +22,7 @@ import { Button } from '@proj-airi/ui'
+           <Button label="Secondary Button" variant="secondary" />
+           <Button label="Caution Button" variant="caution" />
+           <Button label="Danger Button" variant="danger" />
+-          <Button label="Pure Button" variant="pure" />
++          <Button label="Ghost Button" variant="ghost" />
+         </div>
+       </div>
+     </Variant>
+@@ -36,7 +36,7 @@ import { Button } from '@proj-airi/ui'
+         <Button label="Disabled Secondary" variant="secondary" disabled />
+         <Button label="Disabled Caution" variant="caution" disabled />
+         <Button label="Disabled Danger" variant="danger" disabled />
+-        <Button label="Disabled Pure" variant="pure" disabled />
++        <Button label="Disabled Ghost" variant="ghost" disabled />
+       </div>
+     </Variant>
+
+@@ -49,7 +49,7 @@ import { Button } from '@proj-airi/ui'
+         <Button label="Loading Secondary" variant="secondary" loading />
+         <Button label="Loading Caution" variant="caution" loading />
+         <Button label="Loading Danger" variant="danger" loading />
+-        <Button label="Loading Pure" variant="pure" loading />
++        <Button label="Loading Ghost" variant="ghost" loading />
+       </div>
+     </Variant>
+
+@@ -62,7 +62,7 @@ import { Button } from '@proj-airi/ui'
+         <Button label="Warn" variant="caution" icon="i-solar:danger-triangle-line-duotone" />
+         <Button label="Delete Item" variant="danger" icon="i-solar:trash-bin-trash-line-duotone" />
+         <Button label="Settings" variant="secondary" icon="i-solar:settings-line-duotone" />
+-        <Button label="Plain" variant="pure" icon="i-solar:emoji-funny-circle-line-duotone" />
++        <Button label="Plain" variant="ghost" icon="i-solar:emoji-funny-circle-line-duotone" />
+       </div>
+     </Variant>
+
+@@ -75,7 +75,7 @@ import { Button } from '@proj-airi/ui'
+         <Button variant="secondary" icon="i-solar:settings-line-duotone" />
+         <Button variant="caution" icon="i-solar:danger-triangle-line-duotone" />
+         <Button variant="danger" icon="i-solar:trash-bin-trash-line-duotone" />
+-        <Button variant="pure" icon="i-solar:neutral-face-outline" />
++        <Button variant="ghost" icon="i-solar:neutral-face-outline" />
+       </div>
+     </Variant>
+
+diff --git a/packages/stage-ui/src/components/scenarios/dialogs/index.ts b/packages/stage-ui/src/components/scenarios/dialogs/index.ts
+index a168638d..36507388 100644
+--- a/packages/stage-ui/src/components/scenarios/dialogs/index.ts
++++ b/packages/stage-ui/src/components/scenarios/dialogs/index.ts
+@@ -3,3 +3,4 @@ export { default as AboutDialogWithContent } from './about.vue'
+ export * from './audio-input'
+ export * from './background-picker'
+ export * from './onboarding'
++export * from './validation-details'
+diff --git a/packages/stage-ui/src/components/scenarios/dialogs/validation-details/index.ts b/packages/stage-ui/src/components/scenarios/dialogs/validation-details/index.ts
+new file mode 100644
+index 00000000..041d46f2
+--- /dev/null
++++ b/packages/stage-ui/src/components/scenarios/dialogs/validation-details/index.ts
+@@ -0,0 +1 @@
++export { default as ProviderValidationDetailsDialog } from './provider-validation-details-dialog.vue'
+diff --git a/packages/stage-ui/src/components/scenarios/dialogs/validation-details/provider-validation-details-dialog.vue b/packages/stage-ui/src/components/scenarios/dialogs/validation-details/provider-validation-details-dialog.vue
+new file mode 100644
+index 00000000..225cdc70
+--- /dev/null
++++ b/packages/stage-ui/src/components/scenarios/dialogs/validation-details/provider-validation-details-dialog.vue
+@@ -0,0 +1,109 @@
++<script setup lang="ts">
++import type { ProviderValidationStep } from '../../../../libs/providers/validators/run'
++
++import { Button } from '@proj-airi/ui'
++import { useMediaQuery, useResizeObserver, useScreenSafeArea } from '@vueuse/core'
++import { DialogContent, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } from 'reka-ui'
++import { DrawerContent, DrawerHandle, DrawerOverlay, DrawerPortal, DrawerRoot } from 'vaul-vue'
++import { computed, onMounted } from 'vue'
++
++const props = withDefaults(defineProps<{
++  steps: ProviderValidationStep[]
++  stepId?: string
++  title?: string
++}>(), {
++  title: 'Validation details',
++})
++
++const showDialog = defineModel({ type: Boolean, default: false, required: false })
++
++const isDesktop = useMediaQuery('(min-width: 768px)')
++const screenSafeArea = useScreenSafeArea()
++
++useResizeObserver(document.documentElement, () => screenSafeArea.update())
++onMounted(() => screenSafeArea.update())
++
++const failedSteps = computed(() => props.steps.filter(step => step.status === 'invalid'))
++const selectedSteps = computed(() => {
++  if (!props.stepId)
++    return failedSteps.value
++  return failedSteps.value.filter(step => step.id === props.stepId)
++})
++</script>
++
++<template>
++  <DialogRoot v-if="isDesktop" :open="showDialog" @update:open="value => showDialog = value">
++    <DialogPortal>
++      <DialogOverlay :class="['fixed', 'inset-0', 'z-[9999]', 'bg-black/50', 'backdrop-blur-sm', 'data-[state=closed]:animate-fadeOut', 'data-[state=open]:animate-fadeIn']" />
++      <DialogContent :class="['fixed', 'left-1/2', 'top-1/2', 'z-[9999]', 'max-h-full', 'max-w-2xl', 'w-[92dvw]', 'transform', 'overflow-y-scroll', 'rounded-2xl', 'bg-white', 'p-6', 'shadow-xl', 'outline-none', 'backdrop-blur-md', 'scrollbar-none', '-translate-x-1/2', '-translate-y-1/2', 'data-[state=closed]:animate-contentHide', 'data-[state=open]:animate-contentShow', 'dark:bg-neutral-900']">
++        <div :class="['flex', 'items-center', 'justify-between', 'gap-2', 'mb-4']">
++          <DialogTitle :class="['text-lg', 'font-semibold', 'text-neutral-900', 'dark:text-neutral-100']">
++            {{ props.title }}
++          </DialogTitle>
++          <Button size="sm" variant="secondary" @click="() => showDialog = false">
++            Close
++          </Button>
++        </div>
++        <div :class="['flex', 'flex-col', 'gap-3']">
++          <div v-if="selectedSteps.length === 0" :class="['text-sm', 'text-neutral-500', 'dark:text-neutral-400']">
++            No failed checks.
++          </div>
++          <div
++            v-for="step in selectedSteps"
++            :key="step.id"
++            :class="['rounded-lg', 'bg-red-50', 'p-3', 'dark:border-red-800/40', 'dark:bg-red-900/20']"
++          >
++            <div :class="['flex', 'items-center', 'gap-2']">
++              <div :class="['i-solar:close-circle-line-duotone', 'text-lg', 'text-red-600', 'dark:text-red-500']" />
++              <div :class="['text-sm', 'font-medium', 'text-neutral-900', 'dark:text-neutral-100']">
++                {{ step.label }}
++              </div>
++            </div>
++            <div :class="['mt-1', 'text-xs', 'text-neutral-600', 'dark:text-neutral-300']">
++              {{ step.reason || 'Validation failed.' }}
++            </div>
++          </div>
++        </div>
++      </DialogContent>
++    </DialogPortal>
++  </DialogRoot>
++  <DrawerRoot v-else :open="showDialog" should-scale-background @update:open="value => showDialog = value">
++    <DrawerPortal>
++      <DrawerOverlay :class="['fixed', 'inset-0']" />
++      <DrawerContent
++        :class="['fixed', 'bottom-0', 'left-0', 'right-0', 'z-1000', 'mt-20', 'h-full', 'max-h-[70%]', 'flex', 'flex-col', 'rounded-t-2xl', 'bg-neutral-50', 'px-4', 'pt-4', 'outline-none', 'backdrop-blur-md', 'dark:bg-neutral-900/95']"
++        :style="{ paddingBottom: `${Math.max(Number.parseFloat(screenSafeArea.bottom.value.replace('px', '')), 24)}px` }"
++      >
++        <DrawerHandle />
++        <div :class="['flex', 'items-center', 'justify-between', 'gap-2', 'mb-4']">
++          <div :class="['text-lg', 'font-semibold', 'text-neutral-900', 'dark:text-neutral-100']">
++            {{ props.title }}
++          </div>
++          <Button size="sm" variant="secondary" @click="() => showDialog = false">
++            Close
++          </Button>
++        </div>
++        <div :class="['flex', 'flex-col', 'gap-3', 'overflow-y-auto']">
++          <div v-if="selectedSteps.length === 0" :class="['text-sm', 'text-neutral-500', 'dark:text-neutral-400']">
++            No failed checks.
++          </div>
++          <div
++            v-for="step in selectedSteps"
++            :key="step.id"
++            :class="['rounded-lg', 'bg-red-50', 'p-3', 'dark:border-red-800/40', 'dark:bg-red-900/20']"
++          >
++            <div :class="['flex', 'items-center', 'gap-2']">
++              <div :class="['i-solar:close-circle-line-duotone', 'text-lg', 'text-red-600', 'dark:text-red-500']" />
++              <div :class="['text-sm', 'font-medium', 'text-neutral-900', 'dark:text-neutral-100']">
++                {{ step.label }}
++              </div>
++            </div>
++            <div :class="['mt-1', 'text-xs', 'text-neutral-600', 'dark:text-neutral-300']">
++              {{ step.reason || 'Validation failed.' }}
++            </div>
++          </div>
++        </div>
++      </DrawerContent>
++    </DrawerPortal>
++  </DrawerRoot>
++</template>
+diff --git a/packages/stage-ui/src/components/scenarios/providers/ProviderApiKeyInput.vue b/packages/stage-ui/src/components/scenarios/providers/ProviderApiKeyInput.vue
+index 7dcc4209..da969f3b 100644
+--- a/packages/stage-ui/src/components/scenarios/providers/ProviderApiKeyInput.vue
++++ b/packages/stage-ui/src/components/scenarios/providers/ProviderApiKeyInput.vue
+@@ -13,7 +13,7 @@ const props = defineProps<{
+
+ const { t } = useI18n()
+
+-const modelValue = defineModel<string>({ required: true })
++const modelValue = defineModel<string>({ required: false, default: '' })
+
+ const computedDescription = computed(() => {
+   return props.description || `API Key for ${props.providerName}`
+diff --git a/packages/stage-ui/src/composables/index.ts b/packages/stage-ui/src/composables/index.ts
+index 571cd62d..de64a7b6 100644
+--- a/packages/stage-ui/src/composables/index.ts
++++ b/packages/stage-ui/src/composables/index.ts
+@@ -6,4 +6,5 @@ export * from './micvad'
+ export * from './queues'
+ export * from './use-analytics'
+ export * from './use-build-info'
++export * from './use-versioned-local-storage'
+ export * from './whisper'
+diff --git a/apps/stage-tamagotchi/src/renderer/composables/vueuse/use-versioned-local-storage/index.ts b/packages/stage-ui/src/composables/use-versioned-local-storage/index.ts
+similarity index 100%
+rename from apps/stage-tamagotchi/src/renderer/composables/vueuse/use-versioned-local-storage/index.ts
+rename to packages/stage-ui/src/composables/use-versioned-local-storage/index.ts
+diff --git a/packages/stage-ui/src/libs/index.ts b/packages/stage-ui/src/libs/index.ts
+index 6b21d65c..afd67b89 100644
+--- a/packages/stage-ui/src/libs/index.ts
++++ b/packages/stage-ui/src/libs/index.ts
+@@ -1,4 +1,6 @@
+ export * from './audio/manager'
+ export * from './color-from-element'
++export * from './providers'
+ export * from './workers/types'
+ export * from './workers/worker'
++export * from './zod'
+diff --git a/packages/stage-ui/src/libs/providers/index.ts b/packages/stage-ui/src/libs/providers/index.ts
+new file mode 100644
+index 00000000..0fc8794f
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/index.ts
+@@ -0,0 +1,3 @@
++export * from './providers'
++export * from './types'
++export * from './validators'
+diff --git a/packages/stage-ui/src/libs/providers/providers/cloudflare-workers-ai/index.ts b/packages/stage-ui/src/libs/providers/providers/cloudflare-workers-ai/index.ts
+new file mode 100644
+index 00000000..27af0e4f
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/cloudflare-workers-ai/index.ts
+@@ -0,0 +1,60 @@
++import { createWorkersAI } from '@xsai-ext/providers/special/create'
++import { z } from 'zod'
++
++import { defineProvider } from '../registry'
++
++export const providerCloudflareWorkersAI = defineProvider({
++  id: 'cloudflare-workers-ai',
++  name: 'Cloudflare Workers AI',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.cloudflare-workers-ai.title'),
++  description: 'Cloudflare Workers AI with account-scoped credentials.',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.cloudflare-workers-ai.description'),
++  tasks: ['chat'],
++  icon: 'i-simple-icons:cloudflare',
++  iconColor: 'i-lobe-icons:cloudflare-color',
++
++  createProviderConfig: ({ t }) => z.object({
++    apiKey: z.string().meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.provider.cloudflare-workers-ai.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    accountId: z.string().meta({
++      labelLocalized: t('settings.pages.providers.provider.cloudflare-workers-ai.fields.field.account-id.label'),
++      descriptionLocalized: t('settings.pages.providers.provider.cloudflare-workers-ai.fields.field.account-id.description'),
++      placeholderLocalized: t('settings.pages.providers.provider.cloudflare-workers-ai.fields.field.account-id.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return createWorkersAI(config.apiKey, config.accountId)
++  },
++  validationRequiredWhen: (config) => {
++    return !!config.apiKey && !!config.accountId
++  },
++  validators: {
++    validateConfig: [
++      ({ t }) => ({
++        id: 'cloudflare-workers-ai:check-config',
++        name: t('settings.pages.providers.catalog.edit.validators.openai-compatible.check-config.title'),
++        validator: async (config) => {
++          const errors: Array<{ error: unknown }> = []
++          const apiKey = typeof config.apiKey === 'string' ? config.apiKey.trim() : ''
++          const accountId = typeof config.accountId === 'string' ? config.accountId.trim() : ''
++
++          if (!apiKey)
++            errors.push({ error: new Error('API token is required.') })
++          if (!accountId)
++            errors.push({ error: new Error('Account ID is required.') })
++
++          return {
++            errors,
++            reason: errors.length > 0 ? errors.map(item => (item.error as Error).message).join(', ') : '',
++            reasonKey: '',
++            valid: errors.length === 0,
++          }
++        },
++      }),
++    ],
++  },
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/index.ts b/packages/stage-ui/src/libs/providers/providers/index.ts
+new file mode 100644
+index 00000000..5bda7e92
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/index.ts
+@@ -0,0 +1,9 @@
++import './openai'
++import './openai-compatible'
++import './ollama'
++import './cloudflare-workers-ai'
++
++export {
++  getDefinedProvider,
++  listProviders,
++} from './registry'
+diff --git a/packages/stage-ui/src/libs/providers/providers/ollama/index.ts b/packages/stage-ui/src/libs/providers/providers/ollama/index.ts
+new file mode 100644
+index 00000000..4035f671
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/ollama/index.ts
+@@ -0,0 +1,83 @@
++import { createOllama } from '@xsai-ext/providers/create'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators'
++import { defineProvider } from '../registry'
++
++export const providerOllama = defineProvider({
++  id: 'ollama',
++  name: 'Ollama',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.ollama.title'),
++  description: 'Local Ollama server for fast model iteration.',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.ollama.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:ollama',
++
++  createProviderConfig: ({ t }) => z.object({
++    baseUrl: z.string()
++      .default('http://localhost:11434/v1/')
++      .meta({
++        labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++        descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++        placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++      }),
++    headers: z.record(z.string(), z.string())
++      .optional()
++      .meta({
++        labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.headers.label'),
++        descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.headers.description'),
++        section: 'advanced',
++        type: 'key-values',
++      }),
++  }),
++  createProvider(config) {
++    return createOllama('', config.baseUrl)
++  },
++  validationRequiredWhen: () => true,
++  validators: {
++    validateConfig: [
++      ({ t }) => ({
++        id: 'ollama:check-config',
++        name: t('settings.pages.providers.catalog.edit.validators.openai-compatible.check-config.title'),
++        validator: async (config) => {
++          const errors: Array<{ error: unknown }> = []
++          const baseUrl = typeof config.baseUrl === 'string' ? config.baseUrl.trim() : ''
++
++          if (!baseUrl)
++            errors.push({ error: new Error('Base URL is required.') })
++
++          if (baseUrl) {
++            try {
++              const parsed = new URL(baseUrl)
++              if (!parsed.host)
++                errors.push({ error: new Error('Base URL is not absolute. Check your input.') })
++            }
++            catch {
++              errors.push({ error: new Error('Base URL is invalid. It must be an absolute URL.') })
++            }
++          }
++
++          return {
++            errors,
++            reason: errors.length > 0 ? errors.map(item => (item.error as Error).message).join(', ') : '',
++            reasonKey: '',
++            valid: errors.length === 0,
++          }
++        },
++      }),
++    ],
++    validateProvider: createOpenAICompatibleValidators({
++      checks: ['connectivity', 'model_list', 'chat_completions'],
++    })!.validateProvider,
++  },
++  business: ({ t }) => ({
++    troubleshooting: {
++      validators: {
++        openaiCompatibleCheckConnectivity: {
++          label: t('settings.pages.providers.catalog.edit.providers.provider.ollama.troubleshooting.validators.openai-compatible-check-connectivity.label'),
++          content: t('settings.pages.providers.catalog.edit.providers.provider.ollama.troubleshooting.validators.openai-compatible-check-connectivity.content'),
++        },
++      },
++    },
++  }),
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/openai-compatible/index.ts b/packages/stage-ui/src/libs/providers/providers/openai-compatible/index.ts
+new file mode 100644
+index 00000000..6da9a436
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/openai-compatible/index.ts
+@@ -0,0 +1,53 @@
++import { createOpenAI } from '@xsai-ext/providers/create'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators/openai-compatible'
++import { defineProvider } from '../registry'
++
++const openAICompatibleConfigSchema = z.object({
++  apiKey: z
++    .string('API Key')
++    .optional(),
++  baseUrl: z
++    .string('Base URL')
++    .optional()
++    .default('https://api.openai.com/v1'),
++})
++
++type OpenAICompatibleConfig = z.input<typeof openAICompatibleConfigSchema>
++
++export const providerOpenAICompatible = defineProvider<OpenAICompatibleConfig>({
++  id: 'openai-compatible',
++  name: 'OpenAI Compatible',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.openai-compatible.title'),
++  description: 'OpenAI-compatible chat APIs with API key authentication.',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.openai-compatible.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:openai',
++
++  createProviderConfig: ({ t }) => openAICompatibleConfigSchema.extend({
++    apiKey: openAICompatibleConfigSchema.shape.apiKey.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    baseUrl: openAICompatibleConfigSchema.shape.baseUrl.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return createOpenAI(config.apiKey as string, config.baseUrl)
++  },
++
++  validationRequiredWhen(config) {
++    return !!config.apiKey?.trim()
++  },
++  validators: {
++    ...createOpenAICompatibleValidators({
++      checks: ['connectivity', 'model_list', 'chat_completions'],
++    }),
++  },
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/openai/index.ts b/packages/stage-ui/src/libs/providers/providers/openai/index.ts
+new file mode 100644
+index 00000000..6d6eeef9
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/openai/index.ts
+@@ -0,0 +1,52 @@
++import { createOpenAI } from '@xsai-ext/providers/create'
++import { z } from 'zod'
++
++import { createOpenAICompatibleValidators } from '../../validators/openai-compatible'
++import { defineProvider } from '../registry'
++
++const openAICompatibleConfigSchema = z.object({
++  apiKey: z
++    .string('API Key'),
++  baseUrl: z
++    .string('Base URL')
++    .optional()
++    .default('https://api.openai.com/v1'),
++})
++
++type OpenAICompatibleConfig = z.input<typeof openAICompatibleConfigSchema>
++
++export const providerOpenAI = defineProvider<OpenAICompatibleConfig>({
++  id: 'openai',
++  name: 'OpenAI',
++  nameLocalize: ({ t }) => t('settings.pages.providers.provider.openai.title'),
++  description: 'OpenAI',
++  descriptionLocalize: ({ t }) => t('settings.pages.providers.provider.openai.description'),
++  tasks: ['chat'],
++  icon: 'i-lobe-icons:openai',
++
++  createProviderConfig: ({ t }) => openAICompatibleConfigSchema.extend({
++    apiKey: openAICompatibleConfigSchema.shape.apiKey.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.api-key.placeholder'),
++      type: 'password',
++    }),
++    baseUrl: openAICompatibleConfigSchema.shape.baseUrl.meta({
++      labelLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.label'),
++      descriptionLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.description'),
++      placeholderLocalized: t('settings.pages.providers.catalog.edit.config.common.fields.field.base-url.placeholder'),
++    }),
++  }),
++  createProvider(config) {
++    return createOpenAI(config.apiKey, config.baseUrl)
++  },
++
++  validationRequiredWhen(config) {
++    return !!config.apiKey?.trim()
++  },
++  validators: {
++    ...createOpenAICompatibleValidators({
++      checks: ['connectivity', 'model_list', 'chat_completions'],
++    }),
++  },
++})
+diff --git a/packages/stage-ui/src/libs/providers/providers/registry.ts b/packages/stage-ui/src/libs/providers/providers/registry.ts
+new file mode 100644
+index 00000000..8d138fd4
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/providers/registry.ts
+@@ -0,0 +1,27 @@
++import type { ComposerTranslation } from 'vue-i18n'
++import type { $ZodType } from 'zod/v4/core'
++
++import type { ProviderDefinition } from '../types'
++
++import { sortBy } from 'es-toolkit'
++
++const providerRegistry = new Map<string, ProviderDefinition>()
++
++export function listProviders(): ProviderDefinition[] {
++  const providerDefs = Array.from(providerRegistry.values())
++  return sortBy(providerDefs, [p => p.order, p => p.name.toLowerCase()])
++}
++
++export function getDefinedProvider(id: string): ProviderDefinition | undefined {
++  return providerRegistry.get(id)
++}
++
++export function defineProvider<T>(definition: { createProviderConfig: (contextOptions: { t: ComposerTranslation }) => $ZodType<T> } & ProviderDefinition<T>): ProviderDefinition<T> {
++  const provider = {
++    ...definition,
++  }
++
++  providerRegistry.set(definition.id, definition)
++
++  return provider
++}
+diff --git a/packages/stage-ui/src/libs/providers/types.ts b/packages/stage-ui/src/libs/providers/types.ts
+new file mode 100644
+index 00000000..c3e4c15e
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/types.ts
+@@ -0,0 +1,145 @@
++import type {
++  ChatProvider,
++  ChatProviderWithExtraOptions,
++  EmbedProvider,
++  EmbedProviderWithExtraOptions,
++  ModelProvider,
++  ModelProviderWithExtraOptions,
++  SpeechProvider,
++  SpeechProviderWithExtraOptions,
++  TranscriptionProvider,
++  TranscriptionProviderWithExtraOptions,
++} from '@xsai-ext/providers/utils'
++import type { ProgressInfo } from '@xsai-transformers/shared/types'
++import type { MaybePromise } from 'clustr'
++import type { ComposerTranslation } from 'vue-i18n'
++import type { $ZodType } from 'zod/v4/core'
++
++export type ProviderInstance
++  = | ChatProvider
++    | ChatProviderWithExtraOptions
++    | EmbedProvider
++    | EmbedProviderWithExtraOptions
++    | SpeechProvider
++    | SpeechProviderWithExtraOptions
++    | TranscriptionProvider
++    | TranscriptionProviderWithExtraOptions
++    | ModelProvider
++    | ModelProviderWithExtraOptions
++
++export function isModelProvider(providerInstance: ProviderInstance): providerInstance is ModelProvider | ModelProviderWithExtraOptions {
++  if ('model' in providerInstance && typeof providerInstance.model === 'function') {
++    return true
++  }
++
++  return false
++}
++
++export interface ProviderExtraMethods<TConfig> {
++  listModels?: (config: TConfig, provider: ProviderInstance) => Promise<ModelInfo[]>
++  listVoices?: (config: TConfig, provider: ProviderInstance) => Promise<VoiceInfo[]>
++  loadModel?: (config: TConfig, provider: ProviderInstance, hooks?: { onProgress?: (progress: ProgressInfo) => Promise<void> | void }) => Promise<void>
++}
++
++export interface ProviderValidationResult {
++  errors: Array<{ error: unknown, errorKey?: string }>
++  reason: string
++  reasonKey: string
++  valid: boolean
++}
++
++export interface ModelInfo {
++  id: string
++  name: string
++  provider: string
++  description?: string
++  capabilities?: string[]
++  contextLength?: number
++  deprecated?: boolean
++}
++
++export interface VoiceInfo {
++  id: string
++  name: string
++  provider: string
++  compatibleModels?: string[]
++  description?: string
++  gender?: string
++  deprecated?: boolean
++  previewURL?: string
++  languages: {
++    code: string
++    title: string
++  }[]
++}
++
++// eslint-disable-next-line ts/no-unnecessary-type-constraint
++export interface ProviderDefinition<TConfig extends any = any> {
++  id: string
++  order?: number
++  tasks: string[]
++  nameLocalize: (ctx: { t: (input: string) => string }) => string // i18n key for provider name
++  name: string // Default name (fallback)
++  descriptionLocalize: (ctx: { t: (input: string) => string }) => string // i18n key for provider description
++  description: string // Default description (fallback)
++  /**
++   * Iconify JSON icon name for the provider.
++   *
++   * Icons are available for most of the AI provides under @proj-airi/lobe-icons.
++   */
++  icon?: string
++  iconColor?: string
++  /**
++   * In case of having image instead of icon, you can specify the image URL here.
++   */
++  iconImage?: string
++
++  /**
++   * Indicates whether the provider is available.
++   * If not specified, the provider is always available.
++   *
++   * May be specified when any of the following criteria is required:
++   *
++   * Platform requirements:
++   *
++   * - app-* providers are only available on desktop, this is responsible for Tauri runtime checks
++   * - web-* providers are only available on web, this means Node.js and Tauri should not be imported or used
++   *
++   * System spec requirements:
++   *
++   * - may requires WebGPU / NVIDIA / other types of GPU,
++   *   on Web, WebGPU will automatically compiled to use targeting GPU hardware
++   * - may requires significant amount of GPU memory to run, especially for
++   *   using of small language models within browser or Tauri app
++   * - may requires significant amount of memory to run, especially for those
++   *   non-WebGPU supported environments.
++   */
++  isAvailableBy?: () => Promise<boolean> | boolean
++
++  createProviderConfig: (contextOptions: { t: ComposerTranslation }) => $ZodType<TConfig>
++  createProvider: (config: TConfig) => ProviderInstance
++  extraMethods?: ProviderExtraMethods<TConfig>
++  validationRequiredWhen?: (config: TConfig) => boolean
++  validators?: {
++    validateConfig?: Array<(contextOptions: { t: ComposerTranslation }) => { id: string, name: string, validator: (config: TConfig, contextOptions: { t: ComposerTranslation }) => MaybePromise<ProviderValidationResult> }>
++    validateProvider?: Array<(contextOptions: { t: ComposerTranslation }) => { id: string, name: string, validator: (config: TConfig, provider: ProviderInstance, providerExtra: ProviderExtraMethods<TConfig>, contextOptions: { t: ComposerTranslation }) => MaybePromise<ProviderValidationResult> }>
++  }
++  capabilities?: {
++    transcription?: {
++      protocol: 'websocket' | 'http'
++      generateOutput: boolean
++      streamOutput: boolean
++      streamInput: boolean
++    }
++  }
++  business?: (contextOptions: { t: ComposerTranslation }) => {
++    troubleshooting?: {
++      validators?: {
++        openaiCompatibleCheckConnectivity?: {
++          label?: string
++          content?: string
++        }
++      }
++    }
++  }
++}
+diff --git a/packages/stage-ui/src/libs/providers/validators/index.ts b/packages/stage-ui/src/libs/providers/validators/index.ts
+new file mode 100644
+index 00000000..ed93fced
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/validators/index.ts
+@@ -0,0 +1,2 @@
++export * from './openai-compatible'
++export * from './run'
+diff --git a/packages/stage-ui/src/libs/providers/validators/openai-compatible.ts b/packages/stage-ui/src/libs/providers/validators/openai-compatible.ts
+new file mode 100644
+index 00000000..6e7abf38
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/validators/openai-compatible.ts
+@@ -0,0 +1,307 @@
++import type { ProviderDefinition, ProviderExtraMethods, ProviderInstance } from '../types'
++
++import isNetworkError from 'is-network-error'
++
++import { errorMessageFrom } from '@moeru/std'
++import { generateText } from '@xsai/generate-text'
++import { listModels } from '@xsai/model'
++import { message } from '@xsai/utils-chat'
++import { Mutex } from 'es-toolkit'
++
++import { isModelProvider } from '../types'
++
++type OpenAICompatibleValidationCheck = 'connectivity' | 'model_list' | 'chat_completions'
++
++function extractStatusCode(error: unknown): number | null {
++  if (!error)
++    return null
++
++  const anyError = error as {
++    cause?: {
++      status?: unknown
++      statusCode?: unknown
++      response?: { status?: unknown }
++    }
++  }
++
++  const candidates = [
++    anyError.cause?.status,
++    anyError.cause?.statusCode,
++    anyError.cause?.response?.status,
++  ]
++
++  for (const candidate of candidates) {
++    if (typeof candidate === 'number')
++      return candidate
++  }
++
++  return null
++}
++
++function extractModelId(model: any): string {
++  if (!model)
++    return ''
++  if (typeof model === 'string')
++    return model
++  if (typeof model.id === 'string')
++    return model.id
++
++  return ''
++}
++
++function shouldSkipModelId(modelId: string): boolean {
++  return [
++    'embed',
++    'tts',
++    'models/gemini-2.5-pro',
++  ].some(fragment => modelId.includes(fragment))
++}
++
++async function resolveModels<TConfig extends { apiKey?: string | null, baseUrl?: string | URL | null }>(
++  config: TConfig,
++  provider: ProviderInstance,
++  providerExtra: ProviderExtraMethods<TConfig> | undefined,
++) {
++  if (providerExtra?.listModels) {
++    return providerExtra.listModels(config, provider)
++  }
++  if (!isModelProvider(provider)) {
++    return listModels({ baseURL: config.baseUrl!, apiKey: config.apiKey! })
++  }
++
++  return listModels(provider.model())
++}
++
++async function pickValidationModel<TConfig extends { apiKey?: string | null, baseUrl?: string | URL | null }>(
++  config: TConfig,
++  provider: ProviderInstance,
++  providerExtra: ProviderExtraMethods<TConfig> | undefined,
++): Promise<string> {
++  const fallback = 'test'
++
++  try {
++    const models = await resolveModels(config, provider, providerExtra)
++    const modelId = extractModelId(models.find(model => !shouldSkipModelId(extractModelId(model))))
++    return modelId || fallback
++  }
++  catch {
++    return fallback
++  }
++}
++
++export function createOpenAICompatibleValidators<TConfig extends { apiKey?: string, baseUrl?: string }>(options?: {
++  checks?: OpenAICompatibleValidationCheck[]
++  additionalHeaders?: Record<string, string>
++}): ProviderDefinition<TConfig>['validators'] {
++  const checks = options?.checks ?? ['connectivity', 'model_list', 'chat_completions']
++  const additionalHeaders = options?.additionalHeaders
++
++  interface ChatCheckResult {
++    connectivityOk: boolean
++    chatOk: boolean
++    errorMessage?: string
++  }
++
++  const chatCheckCacheKey = 'openai-compatible:chat-check'
++  const chatCheckMutexKey = 'openai-compatible:chat-check:mutex'
++  const getChatCheckResult = async (
++    config: TConfig,
++    provider: ProviderInstance,
++    providerExtra: ProviderExtraMethods<TConfig> | undefined,
++    contextOptions?: { validationCache?: Map<string, unknown> },
++  ) => {
++    const cache = contextOptions?.validationCache
++    const existing = cache?.get(chatCheckCacheKey) as Promise<ChatCheckResult> | undefined
++    if (existing)
++      return existing
++
++    if (!cache) {
++      const model = await pickValidationModel(config, provider, providerExtra)
++      try {
++        await generateText({
++          apiKey: config.apiKey,
++          baseURL: config.baseUrl!,
++          headers: additionalHeaders,
++          model,
++          messages: message.messages(message.user('ping')),
++          max_tokens: 1,
++        })
++
++        return { connectivityOk: true, chatOk: true }
++      }
++      catch (e) {
++        if (isNetworkError(e)) {
++          return { connectivityOk: false, chatOk: false, errorMessage: errorMessageFrom(e) }
++        }
++
++        const status = extractStatusCode(e)
++        const chatOk = status === 400 || (status && status >= 200 && status < 300)
++        return { connectivityOk: true, chatOk, errorMessage: errorMessageFrom(e) }
++      }
++    }
++
++    let mutex = cache.get(chatCheckMutexKey) as Mutex | undefined
++    if (!mutex) {
++      mutex = new Mutex()
++      cache.set(chatCheckMutexKey, mutex)
++    }
++
++    await mutex.acquire()
++
++    try {
++      const cached = cache.get(chatCheckCacheKey) as Promise<ChatCheckResult> | undefined
++      if (cached)
++        return cached
++
++      const sharedCheck = (async () => {
++        const model = await pickValidationModel(config, provider, providerExtra)
++        try {
++          await generateText({
++            apiKey: config.apiKey,
++            baseURL: config.baseUrl!,
++            headers: additionalHeaders,
++            model,
++            messages: message.messages(message.user('ping')),
++            max_tokens: 1,
++          })
++
++          return { connectivityOk: true, chatOk: true }
++        }
++        catch (e) {
++          if (isNetworkError(e)) {
++            return { connectivityOk: false, chatOk: false, errorMessage: errorMessageFrom(e) }
++          }
++
++          const status = extractStatusCode(e)
++          const chatOk = status === 400 || (status && status >= 200 && status < 300)
++          return { connectivityOk: true, chatOk, errorMessage: errorMessageFrom(e) }
++        }
++      })()
++
++      cache.set(chatCheckCacheKey, sharedCheck)
++
++      return sharedCheck
++    }
++    finally {
++      mutex.release()
++    }
++  }
++
++  const validatorConfig: ProviderDefinition<TConfig>['validators'] = {
++    validateConfig: [],
++    validateProvider: [],
++  }
++
++  validatorConfig.validateConfig?.push(({ t }) => ({
++    id: 'openai-compatible:check-config',
++    name: t('settings.pages.providers.catalog.edit.validators.openai-compatible.check-config.title'),
++    validator: async (config) => {
++      const errors: Array<{ error: unknown }> = []
++      const apiKey = typeof config.apiKey === 'string' ? config.apiKey.trim() : ''
++      const baseUrl = (config.baseUrl as string | URL | undefined) instanceof URL ? config.baseUrl?.toString() : (typeof config.baseUrl === 'string' ? config.baseUrl.trim() : '')
++
++      if (!apiKey)
++        errors.push({ error: new Error('API key is required.') })
++      if (!baseUrl)
++        errors.push({ error: new Error('Base URL is required.') })
++
++      if (baseUrl) {
++        try {
++          const parsed = new URL(baseUrl)
++          if (!parsed.host)
++            errors.push({ error: new Error('Base URL is not absolute. Check your input.') })
++        }
++        catch {
++          errors.push({ error: new Error('Base URL is invalid. It must be an absolute URL.') })
++        }
++      }
++
++      return {
++        errors,
++        reason: errors.length > 0 ? errors.map(item => (item.error as Error).message).join(', ') : '',
++        reasonKey: '',
++        valid: errors.length === 0,
++      }
++    },
++  }))
++
++  if (checks.includes('connectivity')) {
++    validatorConfig.validateProvider?.push(({ t }) => ({
++      id: 'openai-compatible:check-connectivity',
++      name: t('settings.pages.providers.catalog.edit.validators.openai-compatible.check-connectivity.title'),
++      validator: async (config, provider, providerExtra, contextOptions) => {
++        const errors: Array<{ error: unknown }> = []
++        const result = await getChatCheckResult(
++          config,
++          provider,
++          providerExtra,
++          contextOptions as { validationCache?: Map<string, unknown> } | undefined,
++        )
++        if (!result.connectivityOk) {
++          errors.push({ error: new Error(`Connectivity check failed: ${result.errorMessage || 'Unknown error.'}`) })
++        }
++
++        return {
++          errors,
++          reason: errors.length > 0 ? errors.map(item => (item.error as Error).message).join(', ') : '',
++          reasonKey: '',
++          valid: errors.length === 0,
++        }
++      },
++    }))
++  }
++
++  if (checks.includes('chat_completions')) {
++    validatorConfig.validateProvider?.push(({ t }) => ({
++      id: 'openai-compatible:check-chat-completions',
++      name: t('settings.pages.providers.catalog.edit.validators.openai-compatible.check-supports-chat-completion.title'),
++      validator: async (config, provider, providerExtra, contextOptions) => {
++        const errors: Array<{ error: unknown }> = []
++        const result = await getChatCheckResult(
++          config,
++          provider,
++          providerExtra,
++          contextOptions as { validationCache?: Map<string, unknown> } | undefined,
++        )
++        if (!result.chatOk) {
++          errors.push({ error: new Error(`Chat completions check failed: ${result.errorMessage || 'Unknown error.'}`) })
++        }
++
++        return {
++          errors,
++          reason: errors.length > 0 ? errors.map(item => (item.error as Error).message).join(', ') : '',
++          reasonKey: '',
++          valid: errors.length === 0,
++        }
++      },
++    }))
++  }
++
++  if (checks.includes('model_list')) {
++    validatorConfig.validateProvider?.push(({ t }) => ({
++      id: 'openai-compatible:check-model-list',
++      name: t('settings.pages.providers.catalog.edit.validators.openai-compatible.check-supports-model-listing.title'),
++      validator: async (config, provider, providerExtra) => {
++        const errors: Array<{ error: unknown }> = []
++        try {
++          const models = await resolveModels(config, provider, providerExtra)
++          if (!models || models.length === 0) {
++            errors.push({ error: new Error('Model list check failed: no models found') })
++          }
++        }
++        catch (e) {
++          errors.push({ error: new Error(`Model list check failed: ${(e as Error).message}`) })
++        }
++
++        return {
++          errors,
++          reason: errors.length > 0 ? errors.map(item => (item.error as Error).message).join(', ') : '',
++          reasonKey: '',
++          valid: errors.length === 0,
++        }
++      },
++    }))
++  }
++
++  return validatorConfig
++}
+diff --git a/packages/stage-ui/src/libs/providers/validators/run.ts b/packages/stage-ui/src/libs/providers/validators/run.ts
+new file mode 100644
+index 00000000..2ecafbb1
+--- /dev/null
++++ b/packages/stage-ui/src/libs/providers/validators/run.ts
+@@ -0,0 +1,160 @@
++import type { MaybePromise } from 'clustr'
++import type { ComposerTranslation } from 'vue-i18n'
++
++import type { ProviderDefinition, ProviderExtraMethods, ProviderInstance, ProviderValidationResult } from '../types'
++
++import { errorMessageFrom, merge } from '@moeru/std'
++
++export type ProviderValidationStepStatus = 'idle' | 'validating' | 'valid' | 'invalid'
++export type ProviderValidationStepKind = 'config' | 'provider'
++export interface ProviderValidationStep {
++  id: string
++  label: string
++  status: ProviderValidationStepStatus
++  reason: string
++  kind: ProviderValidationStepKind
++}
++
++export interface ProviderValidationPlan {
++  steps: ProviderValidationStep[]
++  config: Record<string, unknown>
++  definition: ProviderDefinition
++  configValidators: Array<{ id: string, name: string, validator: (config: Record<string, unknown>, contextOptions: { t: ComposerTranslation }) => MaybePromise<ProviderValidationResult> }>
++  providerValidators: Array<{ id: string, name: string, validator: (config: Record<string, unknown>, provider: ProviderInstance, providerExtra: ProviderExtraMethods<Record<string, unknown>>, contextOptions: { t: ComposerTranslation }) => MaybePromise<ProviderValidationResult> }>
++  providerExtra: ProviderExtraMethods<Record<string, unknown>> | undefined
++  shouldValidate: boolean
++}
++
++export interface ProviderValidationCallbacks {
++  onValidatorStart?: (info: { kind: ProviderValidationStepKind, index: number, step: ProviderValidationStep }) => void
++  onValidatorSuccess?: (info: { kind: ProviderValidationStepKind, index: number, step: ProviderValidationStep, result: { reason: string, valid: boolean } }) => void
++  onValidatorError?: (info: { kind: ProviderValidationStepKind, index: number, step: ProviderValidationStep, error: unknown }) => void
++}
++
++export function createConfigValidationSteps(configValidators: Array<{ id: string, name: string, validator: (config: Record<string, unknown>, contextOptions: { t: ComposerTranslation }) => MaybePromise<ProviderValidationResult> }>): ProviderValidationStep[] {
++  return configValidators.map(validator => ({
++    id: validator.id,
++    label: validator.name,
++    status: 'idle' as ProviderValidationStepStatus,
++    reason: '',
++    kind: 'config' as ProviderValidationStepKind,
++  }))
++}
++
++export function createProviderValidationSteps(providerValidators: Array<{ id: string, name: string, validator: (config: Record<string, unknown>, provider: ProviderInstance, providerExtra: ProviderExtraMethods<Record<string, unknown>>, contextOptions: { t: ComposerTranslation }) => MaybePromise<ProviderValidationResult> }>): ProviderValidationStep[] {
++  return providerValidators.map(validator => ({
++    id: validator.id,
++    label: validator.name,
++    status: 'idle' as ProviderValidationStepStatus,
++    reason: '',
++    kind: 'provider' as ProviderValidationStepKind,
++  }))
++}
++
++export function getValidatorsOfProvider(options: {
++  definition: ProviderDefinition
++  config: Record<string, unknown>
++  schemaDefaults: Record<string, unknown>
++  contextOptions: { t: ComposerTranslation }
++}): ProviderValidationPlan {
++  const { definition } = options
++
++  const configValidators = (definition.validators?.validateConfig || []).map(creator => creator(options.contextOptions))
++  const providerValidators = (definition.validators?.validateProvider || []).map(creator => creator(options.contextOptions))
++  const steps: ProviderValidationStep[] = [
++    ...createConfigValidationSteps(configValidators),
++    ...createProviderValidationSteps(providerValidators),
++  ]
++
++  const normalizedConfig = merge(options.schemaDefaults, options.config)
++  const validationRequired = definition.validationRequiredWhen || (<TConfig extends Record<string, any>>(_: TConfig) => false)
++  const shouldValidate = validationRequired(normalizedConfig)
++
++  return {
++    steps,
++    config: normalizedConfig,
++    definition,
++    configValidators: configValidators as ProviderValidationPlan['configValidators'],
++    providerValidators: providerValidators as ProviderValidationPlan['providerValidators'],
++    providerExtra: definition.extraMethods as ProviderValidationPlan['providerExtra'],
++    shouldValidate,
++  }
++}
++
++export async function validateProvider(
++  plan: ProviderValidationPlan,
++  contextOptions: { t: ComposerTranslation },
++  callbacks: ProviderValidationCallbacks = {},
++) {
++  const { configValidators, providerValidators, steps, config, definition, providerExtra } = plan
++  const runContext = {
++    ...contextOptions,
++    validationCache: new Map<string, unknown>(),
++  }
++  const { onValidatorError, onValidatorStart, onValidatorSuccess } = callbacks
++
++  const configResults = await Promise.all(configValidators.map(async (validatorDefinition, index) => {
++    const step = steps[index]
++    step.status = 'validating'
++    step.reason = ''
++    onValidatorStart?.({ kind: 'config', index, step })
++    try {
++      const result = await validatorDefinition.validator(config, runContext)
++      step.status = result.valid ? 'valid' : 'invalid'
++      step.reason = result.valid ? '' : result.reason
++      onValidatorSuccess?.({ kind: 'config', index, step, result })
++      return result
++    }
++    catch (error) {
++      step.status = 'invalid'
++      step.reason = errorMessageFrom(error) || 'Unknown error'
++      onValidatorError?.({ kind: 'config', index, step, error })
++      return { valid: false, reason: step.reason }
++    }
++  }))
++
++  const configIsValid = configResults.every(result => result.valid)
++
++  const providerStepOffset = configValidators.length
++  if (!configIsValid) {
++    for (let i = 0; i < providerValidators.length; i++) {
++      const step = steps[providerStepOffset + i]
++      step.status = 'invalid'
++      step.reason = 'Fix configuration checks first.'
++    }
++    return steps
++  }
++
++  let providerInstance: ProviderInstance
++  try {
++    providerInstance = await definition.createProvider(config as any)
++  }
++  catch (error) {
++    for (let i = 0; i < providerValidators.length; i++) {
++      const step = steps[providerStepOffset + i]
++      step.status = 'invalid'
++      step.reason = error instanceof Error ? error.message : String(error)
++    }
++    return steps
++  }
++
++  await Promise.all(providerValidators.map(async (validatorDefinition, index) => {
++    const step = steps[providerStepOffset + index]
++    step.status = 'validating'
++    step.reason = ''
++    onValidatorStart?.({ kind: 'provider', index, step })
++    try {
++      const result = await validatorDefinition.validator(config, providerInstance as any, providerExtra as any, runContext)
++      step.status = result.valid ? 'valid' : 'invalid'
++      step.reason = result.valid ? '' : result.reason
++      onValidatorSuccess?.({ kind: 'provider', index, step, result })
++    }
++    catch (error) {
++      step.status = 'invalid'
++      step.reason = error instanceof Error ? error.message : String(error)
++      onValidatorError?.({ kind: 'provider', index, step, error })
++    }
++  }))
++
++  return steps
++}
+diff --git a/packages/stage-ui/src/libs/zod/index.ts b/packages/stage-ui/src/libs/zod/index.ts
+new file mode 100644
+index 00000000..e934a0e7
+--- /dev/null
++++ b/packages/stage-ui/src/libs/zod/index.ts
+@@ -0,0 +1,18 @@
++import type { ZodObject } from 'zod'
++import type { $ZodType } from 'zod/v4/core'
++
++import { ZodDefault } from 'zod'
++
++// https://github.com/colinhacks/zod/discussions/1953#discussioncomment-14098158
++export function getSchemaDefault<T>(schema: $ZodType<T> | null | undefined): Partial<T> {
++  if (!schema)
++    return {}
++
++  const object = schema as unknown as ZodObject
++
++  return Object.fromEntries(
++    Object.entries(object.shape)
++      .map(([k, v]) => [k, v instanceof ZodDefault ? v._def.defaultValue : undefined])
++      .filter(([_, v]) => v !== undefined),
++  )
++}
+diff --git a/packages/stage-ui/src/stores/provider-catalog.test.ts b/packages/stage-ui/src/stores/provider-catalog.test.ts
+new file mode 100644
+index 00000000..cea17ef3
+--- /dev/null
++++ b/packages/stage-ui/src/stores/provider-catalog.test.ts
+@@ -0,0 +1,35 @@
++import { createPinia, setActivePinia } from 'pinia'
++import { beforeEach, describe, expect, it } from 'vitest'
++
++import { providerOpenAICompatible } from '../libs/providers/providers/openai-compatible'
++import { useProviderCatalogStore } from './provider-catalog'
++
++describe('store provider-catalog', () => {
++  beforeEach(() => {
++    // creates a fresh pinia and makes it active
++    // so it's automatically picked up by any useStore() call
++    // without having to pass it to it: `useStore(pinia)`
++    setActivePinia(createPinia())
++  })
++
++  it('add', () => {
++    const store = useProviderCatalogStore()
++    store.addProvider(providerOpenAICompatible.id)
++
++    expect(Object.values(store.configs)).toHaveLength(1)
++    expect(Object.values(store.configs)[0].id).toBeDefined()
++    expect(Object.values(store.configs)[0].definitionId).toBe(providerOpenAICompatible.id)
++    expect(Object.values(store.configs)[0].name).toBe('OpenAI Compatible')
++    expect(Object.values(store.configs)[0].config).toStrictEqual({})
++  })
++
++  it('remove', () => {
++    const store = useProviderCatalogStore()
++    store.addProvider(providerOpenAICompatible.id)
++
++    const providerId = Object.keys(store.configs)[0]
++    store.removeProvider(providerId)
++
++    expect(Object.values(store.configs)).toHaveLength(0)
++  })
++})
+diff --git a/packages/stage-ui/src/stores/provider-catalog.ts b/packages/stage-ui/src/stores/provider-catalog.ts
+new file mode 100644
+index 00000000..a8d9f82d
+--- /dev/null
++++ b/packages/stage-ui/src/stores/provider-catalog.ts
+@@ -0,0 +1,62 @@
++import { nanoid } from 'nanoid'
++import { defineStore } from 'pinia'
++import { computed } from 'vue'
++
++import { useVersionedLocalStorage } from '../composables/use-versioned-local-storage'
++import { getDefinedProvider, listProviders } from '../libs/providers/providers'
++
++interface ProviderCatalogProvider {
++  id: string
++  definitionId: string
++  name: string
++  config: Record<string, any>
++  validated: boolean
++  validationBypassed: boolean
++}
++
++export const useProviderCatalogStore = defineStore('provider-catalog', () => {
++  const defs = computed(() => listProviders())
++  const configs = useVersionedLocalStorage<Record<string, ProviderCatalogProvider>>('app:ui:provider-catalog:configs', {}, { defaultVersion: '1.0.0' })
++
++  function addProvider(definitionId: string, initialConfig: Record<string, any> = {}) {
++    if (!getDefinedProvider(definitionId)) {
++      throw new Error(`Provider definition with id "${definitionId}" not found.`)
++    }
++
++    const providerConfig = {
++      id: nanoid(),
++      definitionId,
++      name: getDefinedProvider(definitionId)!.name,
++      config: initialConfig,
++      validated: false,
++      validationBypassed: false,
++    } satisfies ProviderCatalogProvider
++
++    configs.value[providerConfig.id] = providerConfig
++  }
++
++  function removeProvider(providerId: string) {
++    delete configs.value[providerId]
++  }
++
++  function commitProviderConfig(providerId: string, newConfig: Record<string, any>, options: { validated: boolean, validationBypassed: boolean }) {
++    if (!configs.value[providerId]) {
++      return
++    }
++
++    configs.value[providerId].config = { ...newConfig }
++    configs.value[providerId].validated = options.validated
++    configs.value[providerId].validationBypassed = options.validationBypassed
++  }
++
++  return {
++    configs,
++    defs,
++
++    getDefinedProvider,
++
++    addProvider,
++    removeProvider,
++    commitProviderConfig,
++  }
++})
+diff --git a/packages/stage-ui/src/stores/providers.ts b/packages/stage-ui/src/stores/providers.ts
+index 96ed280a..59e5282e 100644
+--- a/packages/stage-ui/src/stores/providers.ts
++++ b/packages/stage-ui/src/stores/providers.ts
+@@ -452,11 +452,11 @@ export const useProvidersStore = defineStore('providers', () => {
+       defaultOptions: () => ({
+         baseUrl: 'http://localhost:11434/v1/',
+       }),
+-      createProvider: async config => createOllama((config.baseUrl as string).trim()),
++      createProvider: async config => createOllama('', (config.baseUrl as string).trim()),
+       capabilities: {
+         listModels: async (config) => {
+           return (await listModels({
+-            ...createOllama((config.baseUrl as string).trim()).model(),
++            ...createOllama('', (config.baseUrl as string).trim()).model(),
+           })).map((model) => {
+             return {
+               id: model.id,
+diff --git a/packages/ui/src/components/Form/Field/FieldInput.vue b/packages/ui/src/components/Form/Field/FieldInput.vue
+index 7ba3e0c2..edf95736 100644
+--- a/packages/ui/src/components/Form/Field/FieldInput.vue
++++ b/packages/ui/src/components/Form/Field/FieldInput.vue
+@@ -26,7 +26,7 @@ const modelValue = defineModel<string>({ required: false })
+           </slot>
+           <span v-if="props.required !== false" class="text-red-500">*</span>
+         </div>
+-        <div class="text-xs text-neutral-500 dark:text-neutral-400" text-nowrap>
++        <div class="text-xs text-neutral-500 dark:text-neutral-400" text-wrap>
+           <slot name="description">
+             {{ props.description }}
+           </slot>
+diff --git a/packages/ui/src/components/Form/Input/Input.vue b/packages/ui/src/components/Form/Input/Input.vue
+index 33541a0c..46c8b150 100644
+--- a/packages/ui/src/components/Form/Input/Input.vue
++++ b/packages/ui/src/components/Form/Input/Input.vue
+@@ -1,9 +1,61 @@
+ <script setup lang="ts">
+-const props = defineProps<{
++// Define button variants for better type safety and maintainability
++type InputVariant = 'primary' | 'secondary' | 'primary-dimmed'
++
++type InputTheme = 'default'
++
++// Define size options for better flexibility
++type InputSize = 'sm' | 'md' | 'lg'
++
++const props = withDefaults(defineProps<{
+   type?: string
+-}>()
++  variant?: InputVariant // Button style variant
++  size?: InputSize // Button size variant
++  theme?: InputTheme // Button theme
++}>(), {
++  variant: 'primary',
++  size: 'md',
++  theme: 'default',
++})
+
+ const modelValue = defineModel<string>({ required: false })
++
++const variantClasses: Record<InputVariant, Record<InputTheme, {
++  default: string[]
++}>> = {
++  'primary': {
++    default: {
++      default: [
++        'w-full rounded-lg px-2 py-1 text-nowrap text-sm outline-none',
++        'bg-neutral-50 dark:bg-neutral-950 focus:bg-neutral-50 dark:focus:bg-neutral-900',
++        'focus:border-primary-300 dark:focus:border-primary-400/50 border-2 border-solid border-neutral-100 dark:border-neutral-900',
++        'text-disabled:neutral-400 dark:text-disabled:neutral-600',
++        'shadow-sm',
++      ],
++    },
++  },
++  'secondary': {
++    default: {
++      default: [
++        'w-full rounded-lg px-2 py-1 text-nowrap text-sm outline-none',
++        'bg-neutral-50 dark:bg-neutral-950 focus:bg-neutral-50 dark:focus:bg-neutral-900',
++        'focus:border-primary-300 dark:focus:border-primary-400/50 border-2 border-solid border-neutral-100 dark:border-neutral-900',
++        'text-disabled:neutral-400 dark:text-disabled:neutral-600',
++        'shadow-sm',
++      ],
++    },
++  },
++  'primary-dimmed': {
++    default: {
++      default: [
++        'w-full rounded-lg px-2 py-1 text-nowrap text-sm outline-none',
++        'bg-neutral-100 dark:bg-neutral-800 focus:bg-neutral-50 dark:focus:bg-neutral-950',
++        'focus:border-primary-500/30 dark:focus:border-primary-400/50 border-2 border-solid border-neutral-500/5 dark:border-neutral-700/40',
++        'text-disabled:neutral-400 dark:text-disabled:neutral-600',
++      ],
++    },
++  },
++}
+ </script>
+
+ <template>
+@@ -11,13 +63,9 @@ const modelValue = defineModel<string>({ required: false })
+     v-model="modelValue"
+     :type="props.type || 'text'"
+     :class="[
+-      'focus:border-primary-300 dark:focus:border-primary-400/50 border-2 border-solid border-neutral-100 dark:border-neutral-900',
+       'transition-all duration-200 ease-in-out',
+-      'text-disabled:neutral-400 dark:text-disabled:neutral-600',
+       'cursor-disabled:not-allowed',
+-      'w-full rounded-lg px-2 py-1 text-nowrap text-sm outline-none',
+-      'shadow-sm',
+-      'bg-neutral-50 dark:bg-neutral-950 focus:bg-neutral-50 dark:focus:bg-neutral-900',
++      ...variantClasses[props.variant][props.theme].default,
+     ]"
+   >
+ </template>
+diff --git a/packages/ui/src/components/Misc/Button.vue b/packages/ui/src/components/Misc/Button.vue
+index 7268b84c..9f22e19c 100644
+--- a/packages/ui/src/components/Misc/Button.vue
++++ b/packages/ui/src/components/Misc/Button.vue
+@@ -3,7 +3,7 @@ import { BidirectionalTransition } from '@proj-airi/ui'
+ import { computed } from 'vue'
+
+ // Define button variants for better type safety and maintainability
+-type ButtonVariant = 'primary' | 'secondary' | 'secondary-muted' | 'danger' | 'caution' | 'pure'
++type ButtonVariant = 'primary' | 'secondary' | 'secondary-muted' | 'danger' | 'caution' | 'ghost'
+
+ type ButtonTheme = 'default'
+
+@@ -36,40 +36,70 @@ const isDisabled = computed(() => props.disabled || props.loading)
+
+ // Extract variant styles for better organization
+ const variantClasses: Record<ButtonVariant, Record<ButtonTheme, {
+-  default: string
++  default: string[]
+   nonToggled?: string
+   toggled?: string
+ }>> = {
+   'primary': {
+     default: {
+-      default: 'bg-primary-500/15 hover:bg-primary-500/20 active:bg-primary-500/30 dark:bg-primary-700/30 dark:hover:bg-primary-700/40 dark:active:bg-primary-700/30 focus:ring-primary-300/60 dark:focus:ring-primary-600/30 border-2 border-solid border-primary-500/5 dark:border-primary-900/40 text-primary-950 dark:text-primary-100',
++      default: [
++        'bg-primary-500/15 hover:bg-primary-500/20 active:bg-primary-500/30 dark:bg-primary-700/30 dark:hover:bg-primary-700/40 dark:active:bg-primary-700/30',
++        'focus:ring-primary-300/60 dark:focus:ring-primary-600/30',
++        'border-2 border-solid border-primary-500/5 dark:border-primary-900/40',
++        'text-primary-950 dark:text-primary-100',
++        'focus:ring-2',
++      ],
+     },
+   },
+   'secondary': {
+     default: {
+-      default: 'bg-neutral-100/55 hover:bg-neutral-400/20 active:bg-neutral-400/30 dark:bg-neutral-700/60 dark:hover:bg-neutral-700/80 dark:active:bg-neutral-700/60 focus:ring-neutral-300/30 dark:focus:ring-neutral-600/60 dark:focus:ring-neutral-600/30 border-2 border-solid border-neutral-300/30 dark:border-neutral-700/30 text-neutral-950 dark:text-neutral-100',
++      default: [
++        'bg-neutral-100/55 hover:bg-neutral-400/20 active:bg-neutral-400/30 dark:bg-neutral-700/60 dark:hover:bg-neutral-700/80 dark:active:bg-neutral-700/60',
++        'focus:ring-neutral-300/30 dark:focus:ring-neutral-600/60 dark:focus:ring-neutral-600/30',
++        'border-2 border-solid border-neutral-300/30 dark:border-neutral-700/30',
++        'text-neutral-950 dark:text-neutral-100',
++        'focus:ring-2',
++      ],
+     },
+   },
+   'secondary-muted': {
+     default: {
+-      default: 'hover:bg-neutral-50/50 active:bg-neutral-50/90 hover:dark:bg-neutral-800/50 active:dark:bg-neutral-800/90 border-2 border-solid border-neutral-100/60 dark:border-neutral-800/30 focus:ring-neutral-300/30 dark:focus:ring-neutral-600/60 dark:focus:ring-neutral-600/30',
++      default: [
++        'hover:bg-neutral-50/50 active:bg-neutral-50/90 hover:dark:bg-neutral-800/50 active:dark:bg-neutral-800/90',
++        'border-2 border-solid border-neutral-100/60 dark:border-neutral-800/30',
++        'focus:ring-2 focus:ring-neutral-300/30 dark:focus:ring-neutral-600/60 dark:focus:ring-neutral-600/30',
++      ],
+       nonToggled: 'bg-neutral-50/70 dark:bg-neutral-800/70 text-neutral-500 dark:text-neutral-400',
+       toggled: 'bg-white/90 dark:bg-neutral-500/70 ring-neutral-300/30 dark:ring-neutral-600/60 ring-2 dark:ring-neutral-600/30 text-primary-500 dark:text-primary-100',
+     },
+   },
+   'danger': {
+     default: {
+-      default: 'bg-red-500/15 hover:bg-red-500/20 active:bg-red-500/30 dark:bg-red-700/30 dark:hover:bg-red-700/40 dark:active:bg-red-700/30 focus:ring-red-300/30 dark:focus:ring-red-600/60 dark:focus:ring-red-600/30 border-2 border-solid border-red-200/30 dark:border-red-900/30 text-red-950 dark:text-red-100',
++      default: [
++        'bg-red-500/15 hover:bg-red-500/20 active:bg-red-500/30 dark:bg-red-700/30 dark:hover:bg-red-700/40 dark:active:bg-red-700/30',
++        'focus:ring-2 focus:ring-red-300/30 dark:focus:ring-red-600/60 dark:focus:ring-red-600/30',
++        'border-2 border-solid border-red-200/30 dark:border-red-900/30',
++        'text-red-950 dark:text-red-100',
++      ],
+     },
+   },
+   'caution': {
+     default: {
+-      default: 'bg-amber-400/20 hover:bg-amber-400/25 active:bg-amber-400/35 dark:bg-amber-500/20 dark:hover:bg-amber-500/30 dark:active:bg-amber-500/35 focus:ring-amber-300/40 dark:focus:ring-amber-400/40 border-2 border-solid border-amber-300/40 dark:border-amber-500/40 text-amber-900 dark:text-amber-50',
++      default: [
++        'bg-amber-400/20 hover:bg-amber-400/25 active:bg-amber-400/35 dark:bg-amber-500/20 dark:hover:bg-amber-500/30 dark:active:bg-amber-500/35',
++        'focus:ring-2 focus:ring-amber-300/40 dark:focus:ring-amber-400/40',
++        'border-2 border-solid border-amber-300/40 dark:border-amber-500/40',
++        'text-amber-900 dark:text-amber-50',
++      ],
+     },
+   },
+-  'pure': {
++  'ghost': {
+     default: {
+-      default: 'bg-white hover:bg-neutral-50 active:bg-neutral-100 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:active:bg-neutral-700 border-2 border-solid border-neutral-100 dark:border-neutral-800 focus:ring-neutral-200/40 dark:focus:ring-neutral-600/40 text-neutral-900 dark:text-neutral-50',
++      default: [
++        'bg-transparent hover:bg-neutral-50/60 active:bg-neutral-100/80 dark:hover:bg-neutral-800/50 dark:active:bg-neutral-700/60',
++        'text-neutral-900 dark:text-neutral-50',
++        '!px-0 !py-0',
++      ],
+     },
+   },
+ }
+@@ -89,10 +119,10 @@ const baseClasses = computed(() => [
+   'backdrop-blur-md',
+   props.block ? 'w-full' : '',
+   sizeClasses[props.size],
+-  variantClasses[props.variant][props.theme].default,
++  ...variantClasses[props.variant][props.theme].default,
+   props.toggled ? variantClasses[props.variant][props.theme].toggled || '' : variantClasses[props.variant][props.theme].nonToggled || '',
+   { 'opacity-50 cursor-not-allowed': isDisabled.value },
+-  'focus:ring-2',
++
+ ])
+ </script>
+
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index b84c28c3..0acde013 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -36,6 +36,9 @@ catalogs:
+     '@types/audioworklet':
+       specifier: ^0.0.92
+       version: 0.0.92
++    '@types/splitpanes':
++      specifier: ^2.2.6
++      version: 2.2.6
+     '@xsai-ext/providers':
+       specifier: ^0.4.0-beta.13
+       version: 0.4.0-beta.13
+@@ -81,6 +84,9 @@ catalogs:
+     injeca:
+       specifier: ^0.1.5
+       version: 0.1.5
++    is-network-error:
++      specifier: ^1.3.0
++      version: 1.3.0
+     nanoid:
+       specifier: ^5.1.6
+       version: 5.1.6
+@@ -90,6 +96,9 @@ catalogs:
+     posthog-js:
+       specifier: 1.306.1
+       version: 1.306.1
++    splitpanes:
++      specifier: ^4.0.4
++      version: 4.0.4
+     tsx:
+       specifier: ^4.21.0
+       version: 4.21.0
+@@ -105,6 +114,9 @@ catalogs:
+     xsschema:
+       specifier: ^0.4.0-beta.12
+       version: 0.4.0-beta.13
++    zod:
++      specifier: ^4.2.1
++      version: 4.2.1
+   rolldown-vite:
+     vite:
+       specifier: npm:rolldown-vite@^7.3.0
+@@ -509,6 +521,9 @@ importers:
+       shiki:
+         specifier: ^3.20.0
+         version: 3.20.0
++      splitpanes:
++        specifier: 'catalog:'
++        version: 4.0.4(vue@3.5.25(typescript@5.9.3))
+       three:
+         specifier: ^0.182.0
+         version: 0.182.0
+@@ -593,7 +608,7 @@ importers:
+         version: 1.0.18
+       '@proj-airi/unplugin-fetch':
+         specifier: ^0.2.1
+-        version: 0.2.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
++        version: 0.2.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+       '@proj-airi/unplugin-live2d-sdk':
+         specifier: ^0.1.6
+         version: 0.1.6(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+@@ -612,6 +627,9 @@ importers:
+       '@types/nprogress':
+         specifier: ^0.2.3
+         version: 0.2.3
++      '@types/splitpanes':
++        specifier: 'catalog:'
++        version: 2.2.6
+       '@types/three':
+         specifier: ^0.182.0
+         version: 0.182.0
+@@ -623,7 +641,7 @@ importers:
+         version: 66.5.11
+       '@vitejs/plugin-vue':
+         specifier: ^6.0.3
+-        version: 6.0.3(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
++        version: 6.0.3(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/volar':
+         specifier: ^3.1.1
+         version: 3.1.1(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))(vue@3.5.25(typescript@5.9.3))
+@@ -641,34 +659,34 @@ importers:
+         version: 4.5.1
+       unplugin-info:
+         specifier: ^1.2.4
+-        version: 1.2.4(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rollup@2.79.2)
++        version: 1.2.4(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rollup@2.79.2)
+       unplugin-vue-router:
+         specifier: ^0.19.0
+         version: 0.19.2(@vue/compiler-sfc@3.5.26)(vue-router@4.6.4(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3))
+       unplugin-yaml:
+         specifier: ^3.0.7
+-        version: 3.0.7(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)
++        version: 3.0.7(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)
+       vite:
+         specifier: catalog:rolldown-vite
+-        version: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++        version: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+       vite-bundle-visualizer:
+         specifier: ^1.2.1
+         version: 1.2.1(rolldown@1.0.0-beta.53)(rollup@2.79.2)
+       vite-plugin-mkcert:
+         specifier: 'catalog:'
+-        version: 1.17.9(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
++        version: 1.17.9(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+       vite-plugin-pwa:
+         specifier: ^1.2.0
+-        version: 1.2.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(workbox-build@7.4.0)(workbox-window@7.4.0)
++        version: 1.2.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(workbox-build@7.4.0)(workbox-window@7.4.0)
+       vite-plugin-vue-devtools:
+         specifier: ^8.0.5
+-        version: 8.0.5(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
++        version: 8.0.5(@nuxt/kit@3.20.2(magicast@0.5.1))(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
+       vite-plugin-vue-layouts:
+         specifier: ^0.11.0
+-        version: 0.11.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue-router@4.6.4(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3))
++        version: 0.11.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue-router@4.6.4(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3))
+       vue-macros:
+         specifier: ^3.1.1
+-        version: 3.1.1(@vueuse/core@14.1.0(vue@3.5.25(typescript@5.9.3)))(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))(vue@3.5.25(typescript@5.9.3))
++        version: 3.1.1(@vueuse/core@14.1.0(vue@3.5.25(typescript@5.9.3)))(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))(vue@3.5.25(typescript@5.9.3))
+       vue-tsc:
+         specifier: ^3.1.8
+         version: 3.2.1(typescript@5.9.3)
+@@ -906,6 +924,9 @@ importers:
+       shiki:
+         specifier: ^3.20.0
+         version: 3.20.0
++      splitpanes:
++        specifier: 'catalog:'
++        version: 4.0.4(vue@3.5.25(typescript@5.9.3))
+       std-env:
+         specifier: ^3.10.0
+         version: 3.10.0
+@@ -1012,6 +1033,9 @@ importers:
+       '@types/nprogress':
+         specifier: ^0.2.3
+         version: 0.2.3
++      '@types/splitpanes':
++        specifier: 'catalog:'
++        version: 2.2.6
+       '@types/three':
+         specifier: ^0.182.0
+         version: 0.182.0
+@@ -1273,6 +1297,9 @@ importers:
+       shiki:
+         specifier: ^3.20.0
+         version: 3.20.0
++      splitpanes:
++        specifier: 'catalog:'
++        version: 4.0.4(vue@3.5.25(typescript@5.9.3))
+       three:
+         specifier: ^0.182.0
+         version: 0.182.0
+@@ -1373,6 +1400,9 @@ importers:
+       '@types/nprogress':
+         specifier: ^0.2.3
+         version: 0.2.3
++      '@types/splitpanes':
++        specifier: 'catalog:'
++        version: 2.2.6
+       '@types/three':
+         specifier: ^0.182.0
+         version: 0.182.0
+@@ -1848,6 +1878,9 @@ importers:
+       '@moeru/eventa':
+         specifier: ^1.0.0-alpha.10
+         version: 1.0.0-alpha.10(electron@39.2.7)(h3@2.0.1-rc.5(crossws@0.4.1(srvx@0.9.8(patch_hash=f0151386fdcbcb6f53833cf8f66926ef2eb31b71a2782d6e0960dec832ef108d))))
++      '@moeru/std':
++        specifier: 'catalog:'
++        version: 0.1.0-beta.14
+       '@proj-airi/ccc':
+         specifier: workspace:*
+         version: link:../ccc
+@@ -1902,6 +1935,9 @@ importers:
+       reka-ui:
+         specifier: ^2.7.0
+         version: 2.7.0(typescript@5.9.3)(vue@3.5.25(typescript@5.9.3))
++      splitpanes:
++        specifier: 'catalog:'
++        version: 4.0.4(vue@3.5.25(typescript@5.9.3))
+       unspeech:
+         specifier: ^0.1.7
+         version: 0.1.7
+@@ -1914,6 +1950,9 @@ importers:
+       vue-router:
+         specifier: ^4.6.4
+         version: 4.6.4(vue@3.5.25(typescript@5.9.3))
++      zod:
++        specifier: 'catalog:'
++        version: 4.2.1
+     devDependencies:
+       '@nekopaw/tempora':
+         specifier: 'catalog:'
+@@ -1924,6 +1963,9 @@ importers:
+       '@types/audioworklet':
+         specifier: 'catalog:'
+         version: 0.0.92
++      '@types/splitpanes':
++        specifier: 'catalog:'
++        version: 2.2.6
+       '@types/three':
+         specifier: ^0.182.0
+         version: 0.182.0
+@@ -2185,6 +2227,9 @@ importers:
+       shiki:
+         specifier: ^3.20.0
+         version: 3.20.0
++      splitpanes:
++        specifier: 'catalog:'
++        version: 4.0.4(vue@3.5.25(typescript@5.9.3))
+       three:
+         specifier: ^0.182.0
+         version: 0.182.0
+@@ -2294,6 +2339,9 @@ importers:
+       '@types/culori':
+         specifier: ^4.0.1
+         version: 4.0.1
++      '@types/splitpanes':
++        specifier: 'catalog:'
++        version: 2.2.6
+       '@types/three':
+         specifier: ^0.182.0
+         version: 0.182.0
+@@ -2312,6 +2360,9 @@ importers:
+       histoire:
+         specifier: 1.0.0-alpha.2
+         version: 1.0.0-alpha.2(@types/node@24.10.4)(bufferutil@4.1.0)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(utf-8-validate@5.0.10)(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
++      is-network-error:
++        specifier: 'catalog:'
++        version: 1.3.0
+       unocss:
+         specifier: ^66.5.11
+         version: 66.5.11(postcss@8.5.6)(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+@@ -7728,6 +7779,9 @@ packages:
+   '@types/slice-ansi@4.0.0':
+     resolution: {integrity: sha512-+OpjSaq85gvlZAYINyzKpLeiFkSC4EsC6IIiT6v6TLSU5k5U83fHGj9Lel8oKEXM0HqgrMVCjXPDPVICtxF7EQ==}
+
++  '@types/splitpanes@2.2.6':
++    resolution: {integrity: sha512-3dV5sO1Ht74iER4jJU03mreL3f+Q2h47ZqXS6Sfbqc6hkCvsDrX1GA0NbYWRdNvZemPyTDzUoApWKeoGbALwkQ==}
++
+   '@types/stats.js@0.17.4':
+     resolution: {integrity: sha512-jIBvWWShCvlBqBNIZt0KAshWpvSjhkwkEu4ZUcASoAvhmrgAUI2t1dXrjSL4xXVLB4FznPrIsX3nKXFl/Dt4vA==}
+
+@@ -8303,6 +8357,9 @@ packages:
+   '@vue/compiler-dom@3.5.26':
+     resolution: {integrity: sha512-y1Tcd3eXs834QjswshSilCBnKGeQjQXB6PqFn/1nxcQw4pmG42G8lwz+FZPAZAby6gZeHSt/8LMPfZ4Rb+Bd/A==}
+
++  '@vue/compiler-sfc@2.7.16':
++    resolution: {integrity: sha512-KWhJ9k5nXuNtygPU7+t1rX6baZeqOYLEforUPjgNDBnLicfHCoi48H87Q8XyLZOrNNsmhuwKqtpDQWjEFe6Ekg==}
++
+   '@vue/compiler-sfc@3.5.25':
+     resolution: {integrity: sha512-PUgKp2rn8fFsI++lF2sO7gwO2d9Yj57Utr5yEsDf3GNaQcowCLKL7sf+LvVFvtJDXUp/03+dC6f2+LCv5aK1ag==}
+
+@@ -11326,6 +11383,10 @@ packages:
+   is-module@1.0.0:
+     resolution: {integrity: sha512-51ypPSPCoTEIN9dy5Oy+h4pShgJmPCygKfyRCISBI+JoWT/2oJvK8QPxmwv7b/p239jXrm9M1mlQbyKJ5A152g==}
+
++  is-network-error@1.3.0:
++    resolution: {integrity: sha512-6oIwpsgRfnDiyEDLMay/GqCl3HoAtH5+RUKW29gYkL0QA+ipzpDLA16yQs7/RHCSu+BwgbJaOUqa4A99qNVQVw==}
++    engines: {node: '>=16'}
++
+   is-npm@6.1.0:
+     resolution: {integrity: sha512-O2z4/kNgyjhQwVR1Wpkbfc19JIhggF97NZNCpWTnjH7kVcZMUrnut9XSN7txI7VdyIYk5ZatOq3zvSuWpU8hoA==}
+     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+@@ -13123,6 +13184,11 @@ packages:
+     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
+     engines: {node: '>= 0.8.0'}
+
++  prettier@2.8.8:
++    resolution: {integrity: sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==}
++    engines: {node: '>=10.13.0'}
++    hasBin: true
++
+   pretty-bytes@5.6.0:
+     resolution: {integrity: sha512-FFw039TmrBqFK8ma/7OL3sDz/VytdtJr044/QUJtH0wK9lb9jLq9tJyIxUwtQJHwar2BqtiA4iCWSwo9JLkzFg==}
+     engines: {node: '>=6'}
+@@ -13959,6 +14025,11 @@ packages:
+   split@1.0.1:
+     resolution: {integrity: sha512-mTyOoPbrivtXnwnIxZRFYRrPNtEFKlpB2fvjSnCQUiAA6qAZzqwna5envK4uk6OIeP17CsdF3rSBGYVBsU0Tkg==}
+
++  splitpanes@4.0.4:
++    resolution: {integrity: sha512-RbysugZhjbCw5fgplvk3hOXr41stahQDtZhHVkhnnJI6H4wlGDhM2kIpbehy7v92duy9GnMa8zIhHigIV1TWtg==}
++    peerDependencies:
++      vue: ^3.2.0
++
+   sprintf-js@1.0.3:
+     resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
+
+@@ -15295,6 +15366,10 @@ packages:
+     peerDependencies:
+       typescript: '>=5.0.0'
+
++  vue@2.7.16:
++    resolution: {integrity: sha512-4gCtFXaAA3zYZdTp5s4Hl2sozuySsgz4jy1EnpBHNfpMa9dK1ZCG7viqBPCwXtmgc8nHqUsAu3G4gtmXkkY3Sw==}
++    deprecated: Vue 2 has reached EOL and is no longer actively maintained. See https://v2.vuejs.org/eol/ for more details.
++
+   vue@3.5.25:
+     resolution: {integrity: sha512-YLVdgv2K13WJ6n+kD5owehKtEXwdwXuj2TTyJMsO7pSeKw2bfRNZGjhB7YzrpbMYj5b5QsUebHpOqR3R3ziy/g==}
+     peerDependencies:
+@@ -19946,11 +20021,6 @@ snapshots:
+
+   '@proj-airi/unocss-preset-chromatic@1.0.2': {}
+
+-  '@proj-airi/unplugin-fetch@0.2.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
+-    dependencies:
+-      ofetch: 1.5.1
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-
+   '@proj-airi/unplugin-fetch@0.2.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
+     dependencies:
+       ofetch: 1.5.1
+@@ -20691,6 +20761,10 @@ snapshots:
+
+   '@types/slice-ansi@4.0.0': {}
+
++  '@types/splitpanes@2.2.6':
++    dependencies:
++      vue: 2.7.16
++
+   '@types/stats.js@0.17.4': {}
+
+   '@types/tedious@4.0.14':
+@@ -21153,12 +21227,6 @@ snapshots:
+     dependencies:
+       '@vibrant/types': 4.0.0
+
+-  '@vitejs/plugin-vue@6.0.3(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))':
+-    dependencies:
+-      '@rolldown/pluginutils': 1.0.0-beta.53
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-      vue: 3.5.25(typescript@5.9.3)
+-
+   '@vitejs/plugin-vue@6.0.3(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))':
+     dependencies:
+       '@rolldown/pluginutils': 1.0.0-beta.53
+@@ -21426,15 +21494,6 @@ snapshots:
+     transitivePeerDependencies:
+       - vue
+
+-  '@vue-macros/devtools@3.1.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(typescript@5.9.3)':
+-    dependencies:
+-      sirv: 3.0.2
+-      vue: 3.5.25(typescript@5.9.3)
+-    optionalDependencies:
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-    transitivePeerDependencies:
+-      - typescript
+-
+   '@vue-macros/devtools@3.1.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(typescript@5.9.3)':
+     dependencies:
+       sirv: 3.0.2
+@@ -21648,6 +21707,14 @@ snapshots:
+       '@vue/compiler-core': 3.5.26
+       '@vue/shared': 3.5.26
+
++  '@vue/compiler-sfc@2.7.16':
++    dependencies:
++      '@babel/parser': 7.28.5
++      postcss: 8.5.6
++      source-map: 0.6.1
++    optionalDependencies:
++      prettier: 2.8.8
++
+   '@vue/compiler-sfc@3.5.25':
+     dependencies:
+       '@babel/parser': 7.28.5
+@@ -21697,18 +21764,6 @@ snapshots:
+     dependencies:
+       '@vue/devtools-kit': 8.0.5
+
+-  '@vue/devtools-core@8.0.5(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))':
+-    dependencies:
+-      '@vue/devtools-kit': 8.0.5
+-      '@vue/devtools-shared': 8.0.5
+-      mitt: 3.0.1
+-      nanoid: 5.1.6
+-      pathe: 2.0.3
+-      vite-hot-client: 2.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+-      vue: 3.5.25(typescript@5.9.3)
+-    transitivePeerDependencies:
+-      - vite
+-
+   '@vue/devtools-core@8.0.5(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))':
+     dependencies:
+       '@vue/devtools-kit': 8.0.5
+@@ -25293,6 +25348,8 @@ snapshots:
+
+   is-module@1.0.0: {}
+
++  is-network-error@1.3.0: {}
++
+   is-npm@6.1.0: {}
+
+   is-number@7.0.0: {}
+@@ -27480,6 +27537,9 @@ snapshots:
+
+   prelude-ls@1.2.1: {}
+
++  prettier@2.8.8:
++    optional: true
++
+   pretty-bytes@5.6.0: {}
+
+   pretty-bytes@6.1.1: {}
+@@ -28099,25 +28159,6 @@ snapshots:
+     transitivePeerDependencies:
+       - oxc-resolver
+
+-  rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2):
+-    dependencies:
+-      '@oxc-project/runtime': 0.101.0
+-      fdir: 6.5.0(picomatch@4.0.3)
+-      lightningcss: 1.30.2
+-      picomatch: 4.0.3
+-      postcss: 8.5.6
+-      rolldown: 1.0.0-beta.53
+-      tinyglobby: 0.2.15
+-    optionalDependencies:
+-      '@types/node': 24.10.4
+-      esbuild: 0.25.12
+-      fsevents: 2.3.3
+-      jiti: 2.6.1
+-      less: 4.5.1
+-      terser: 5.44.1
+-      tsx: 4.21.0
+-      yaml: 2.8.2
+-
+   rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2):
+     dependencies:
+       '@oxc-project/runtime': 0.101.0
+@@ -28612,6 +28653,10 @@ snapshots:
+     dependencies:
+       through: 2.3.8
+
++  splitpanes@4.0.4(vue@3.5.25(typescript@5.9.3)):
++    dependencies:
++      vue: 3.5.25(typescript@5.9.3)
++
+   sprintf-js@1.0.3: {}
+
+   sprintf-js@1.1.3: {}
+@@ -29450,13 +29495,13 @@ snapshots:
+
+   unpipe@1.0.0: {}
+
+-  unplugin-combine@2.1.3(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(unplugin@2.3.11):
++  unplugin-combine@2.1.3(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(unplugin@2.3.11):
+     optionalDependencies:
+-      esbuild: 0.25.12
++      esbuild: 0.27.2
+       rolldown: 1.0.0-beta.53
+       rollup: 2.79.2
+       unplugin: 2.3.11
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+
+   unplugin-combine@2.1.3(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@4.54.0)(unplugin@2.3.11):
+     optionalDependencies:
+@@ -29494,16 +29539,16 @@ snapshots:
+     transitivePeerDependencies:
+       - supports-color
+
+-  unplugin-info@1.2.4(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rollup@2.79.2):
++  unplugin-info@1.2.4(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rollup@2.79.2):
+     dependencies:
+       ci-info: 4.3.1
+       git-url-parse: 16.1.0
+       simple-git: 3.30.0
+       unplugin: 2.3.11
+     optionalDependencies:
+-      esbuild: 0.25.12
++      esbuild: 0.27.2
+       rollup: 2.79.2
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+     transitivePeerDependencies:
+       - supports-color
+
+@@ -29628,16 +29673,16 @@ snapshots:
+       rollup: 4.54.0
+       vite: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+
+-  unplugin-yaml@3.0.7(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2):
++  unplugin-yaml@3.0.7(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2):
+     dependencies:
+       '@rollup/pluginutils': 5.3.0(rollup@2.79.2)
+       unplugin: 2.3.10
+       yaml: 2.8.1
+     optionalDependencies:
+-      esbuild: 0.25.12
++      esbuild: 0.27.2
+       rolldown: 1.0.0-beta.53
+       rollup: 2.79.2
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+
+   unplugin-yaml@3.0.7(esbuild@0.27.2)(rolldown@1.0.0-beta.53)(rollup@4.54.0)(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+     dependencies:
+@@ -29825,12 +29870,6 @@ snapshots:
+       - rollup
+       - supports-color
+
+-  vite-dev-rpc@1.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+-    dependencies:
+-      birpc: 2.9.0
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-      vite-hot-client: 2.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+-
+   vite-dev-rpc@1.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+     dependencies:
+       birpc: 2.9.0
+@@ -29843,10 +29882,6 @@ snapshots:
+       vite: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+       vite-hot-client: 2.1.0(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+
+-  vite-hot-client@2.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+-    dependencies:
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-
+   vite-hot-client@2.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+     dependencies:
+       vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+@@ -29911,21 +29946,6 @@ snapshots:
+     transitivePeerDependencies:
+       - supports-color
+
+-  vite-plugin-inspect@11.3.3(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+-    dependencies:
+-      ansis: 4.2.0
+-      debug: 4.4.3
+-      error-stack-parser-es: 1.0.5
+-      ohash: 2.0.11
+-      open: 10.2.0
+-      perfect-debounce: 2.0.0
+-      sirv: 3.0.2
+-      unplugin-utils: 0.3.1
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-      vite-dev-rpc: 1.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+-    transitivePeerDependencies:
+-      - supports-color
+-
+   vite-plugin-inspect@11.3.3(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+     dependencies:
+       ansis: 4.2.0
+@@ -29941,23 +29961,12 @@ snapshots:
+     transitivePeerDependencies:
+       - supports-color
+
+-  vite-plugin-mkcert@1.17.9(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
++  vite-plugin-mkcert@1.17.9(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+     dependencies:
+       axios: feaxios@0.0.23
+       debug: 4.4.3
+       picocolors: 1.1.1
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-    transitivePeerDependencies:
+-      - supports-color
+-
+-  vite-plugin-pwa@1.2.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(workbox-build@7.4.0)(workbox-window@7.4.0):
+-    dependencies:
+-      debug: 4.4.3
+-      pretty-bytes: 6.1.1
+-      tinyglobby: 0.2.15
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-      workbox-build: 7.4.0
+-      workbox-window: 7.4.0
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+     transitivePeerDependencies:
+       - supports-color
+
+@@ -29986,35 +29995,6 @@ snapshots:
+       - supports-color
+       - vue
+
+-  vite-plugin-vue-devtools@8.0.5(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3)):
+-    dependencies:
+-      '@vue/devtools-core': 8.0.5(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
+-      '@vue/devtools-kit': 8.0.5
+-      '@vue/devtools-shared': 8.0.5
+-      sirv: 3.0.2
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-      vite-plugin-inspect: 11.3.3(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+-      vite-plugin-vue-inspector: 5.3.2(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+-    transitivePeerDependencies:
+-      - '@nuxt/kit'
+-      - supports-color
+-      - vue
+-
+-  vite-plugin-vue-inspector@5.3.2(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+-    dependencies:
+-      '@babel/core': 7.28.5
+-      '@babel/plugin-proposal-decorators': 7.28.0(@babel/core@7.28.5)
+-      '@babel/plugin-syntax-import-attributes': 7.27.1(@babel/core@7.28.5)
+-      '@babel/plugin-syntax-import-meta': 7.10.4(@babel/core@7.28.5)
+-      '@babel/plugin-transform-typescript': 7.28.5(@babel/core@7.28.5)
+-      '@vue/babel-plugin-jsx': 1.5.0(@babel/core@7.28.5)
+-      '@vue/compiler-dom': 3.5.26
+-      kolorist: 1.8.0
+-      magic-string: 0.30.21
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-    transitivePeerDependencies:
+-      - supports-color
+-
+   vite-plugin-vue-inspector@5.3.2(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+     dependencies:
+       '@babel/core': 7.28.5
+@@ -30030,16 +30010,6 @@ snapshots:
+     transitivePeerDependencies:
+       - supports-color
+
+-  vite-plugin-vue-layouts@0.11.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue-router@4.6.4(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3)):
+-    dependencies:
+-      debug: 4.4.3
+-      fast-glob: 3.3.3
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-      vue: 3.5.25(typescript@5.9.3)
+-      vue-router: 4.6.4(vue@3.5.25(typescript@5.9.3))
+-    transitivePeerDependencies:
+-      - supports-color
+-
+   vite-plugin-vue-layouts@0.11.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue-router@4.6.4(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3)):
+     dependencies:
+       debug: 4.4.3
+@@ -30241,7 +30211,7 @@ snapshots:
+       '@vue/devtools-api': 6.6.4
+       vue: 3.5.25(typescript@5.9.3)
+
+-  vue-macros@3.1.1(@vueuse/core@14.1.0(vue@3.5.25(typescript@5.9.3)))(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))(vue@3.5.25(typescript@5.9.3)):
++  vue-macros@3.1.1(@vueuse/core@14.1.0(vue@3.5.25(typescript@5.9.3)))(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))(vue@3.5.25(typescript@5.9.3)):
+     dependencies:
+       '@vue-macros/better-define': 3.1.1(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/boolean-prop': 3.1.1(vue@3.5.25(typescript@5.9.3))
+@@ -30256,7 +30226,7 @@ snapshots:
+       '@vue-macros/define-render': 3.1.1(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/define-slots': 3.1.1(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/define-stylex': 3.1.1(vue@3.5.25(typescript@5.9.3))
+-      '@vue-macros/devtools': 3.1.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(typescript@5.9.3)
++      '@vue-macros/devtools': 3.1.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(typescript@5.9.3)
+       '@vue-macros/export-expose': 3.1.1(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/export-props': 3.1.1(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/export-render': 3.1.1(vue@3.5.25(typescript@5.9.3))
+@@ -30273,7 +30243,7 @@ snapshots:
+       '@vue-macros/short-vmodel': 3.1.1(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/volar': 3.1.1(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))(vue@3.5.25(typescript@5.9.3))
+       unplugin: 2.3.11
+-      unplugin-combine: 2.1.3(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(unplugin@2.3.11)
++      unplugin-combine: 2.1.3(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(unplugin@2.3.11)
+       unplugin-vue-define-options: 3.1.1(vue@3.5.25(typescript@5.9.3))
+       vue: 3.5.25(typescript@5.9.3)
+     transitivePeerDependencies:
+@@ -30350,6 +30320,11 @@ snapshots:
+       '@vue/language-core': 3.2.1
+       typescript: 5.9.3
+
++  vue@2.7.16:
++    dependencies:
++      '@vue/compiler-sfc': 2.7.16
++      csstype: 3.2.3
++
+   vue@3.5.25(typescript@5.9.3):
+     dependencies:
+       '@vue/compiler-dom': 3.5.25
+diff --git a/pnpm-workspace.yaml b/pnpm-workspace.yaml
+index 34be3c4d..29508625 100644
+--- a/pnpm-workspace.yaml
++++ b/pnpm-workspace.yaml
+@@ -1,6 +1,3 @@
+-catalogMode: prefer
+-
+-shellEmulator: true
+ packages:
+   - packages/**
+   - plugins/**
+@@ -10,18 +7,6 @@ packages:
+   - apps/**
+   - '!**/dist/**'
+
+-overrides:
+-  array-flatten: npm:@nolyfill/array-flatten@^1.0.44
+-  axios: npm:feaxios@^0.0.23
+-  is-core-module: npm:@nolyfill/is-core-module@^1.0.39
+-  isarray: npm:@nolyfill/isarray@^1.0.44
+-  safe-buffer: npm:@nolyfill/safe-buffer@^1.0.44
+-  safer-buffer: npm:@nolyfill/safer-buffer@^1.0.44
+-  side-channel: npm:@nolyfill/side-channel@^1.0.44
+-  string.prototype.matchall: npm:@nolyfill/string.prototype.matchall@^1.0.44
+-
+-patchedDependencies:
+-  srvx@0.9.8: patches/srvx@0.9.8.patch
+ catalog:
+   '@capacitor/cli': ^8.0.0
+   '@capacitor/core': ^8.0.0
+@@ -33,6 +18,7 @@ catalog:
+   '@nekopaw/tempora': 0.4.0-alpha.1
+   '@proj-airi/drizzle-duckdb-wasm': ^0.4.29
+   '@types/audioworklet': ^0.0.92
++  '@types/splitpanes': ^2.2.6
+   '@xsai-ext/providers': ^0.4.0-beta.13
+   '@xsai/embed': ^0.4.0-beta.13
+   '@xsai/generate-speech': 0.4.0-beta.13
+@@ -48,14 +34,19 @@ catalog:
+   embla-carousel-vue: ^8.6.0
+   es-toolkit: 1.43.0
+   injeca: ^0.1.5
++  is-network-error: ^1.3.0
+   nanoid: ^5.1.6
+   ofetch: ^1.5.1
+   posthog-js: 1.306.1
++  splitpanes: ^4.0.4
+   tsx: ^4.21.0
+   uncrypto: ^0.1.3
+   unplugin-info: 1.2.4
+   vite-plugin-mkcert: ^1.17.9
+   xsschema: ^0.4.0-beta.12
++  zod: ^4.2.1
++
++catalogMode: prefer
+
+ catalogs:
+   rolldown-vite:
+@@ -87,3 +78,18 @@ onlyBuiltDependencies:
+   - spawn-sync
+   - utf-8-validate
+   - vue-demi
++
++overrides:
++  array-flatten: npm:@nolyfill/array-flatten@^1.0.44
++  axios: npm:feaxios@^0.0.23
++  is-core-module: npm:@nolyfill/is-core-module@^1.0.39
++  isarray: npm:@nolyfill/isarray@^1.0.44
++  safe-buffer: npm:@nolyfill/safe-buffer@^1.0.44
++  safer-buffer: npm:@nolyfill/safer-buffer@^1.0.44
++  side-channel: npm:@nolyfill/side-channel@^1.0.44
++  string.prototype.matchall: npm:@nolyfill/string.prototype.matchall@^1.0.44
++
++patchedDependencies:
++  srvx@0.9.8: patches/srvx@0.9.8.patch
++
++shellEmulator: true
