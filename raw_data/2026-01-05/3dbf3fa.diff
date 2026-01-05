@@ -1,0 +1,2771 @@
+commit 3dbf3fafd9406edcbb28d68e0f93a5429ec2ee7d
+Author: RainbowBird <rbxin2003@outlook.com>
+Date:   Tue Dec 30 00:45:39 2025 +0800
+
+    feat(server): hono server with character schema, valibot, routes (#848)
+
+    Co-authored-by: Neko Ayaka <neko@ayaka.moe>
+
+diff --git a/apps/server/drizzle/0001_simple_garia.sql b/apps/server/drizzle/0001_simple_garia.sql
+new file mode 100644
+index 00000000..f28be7d9
+--- /dev/null
++++ b/apps/server/drizzle/0001_simple_garia.sql
+@@ -0,0 +1,107 @@
++CREATE TABLE "avatar_model" (
++	"id" text PRIMARY KEY NOT NULL,
++	"name" text NOT NULL,
++	"type" text NOT NULL,
++	"description" text NOT NULL,
++	"config" jsonb NOT NULL,
++	"created_at" timestamp DEFAULT now() NOT NULL,
++	"updated_at" timestamp DEFAULT now() NOT NULL
++);
++--> statement-breakpoint
++CREATE TABLE "characters" (
++	"id" text PRIMARY KEY NOT NULL,
++	"version" text NOT NULL,
++	"cover_url" text NOT NULL,
++	"creator_id" text NOT NULL,
++	"owner_id" text NOT NULL,
++	"character_id" text NOT NULL,
++	"created_at" timestamp DEFAULT now() NOT NULL,
++	"updated_at" timestamp DEFAULT now() NOT NULL
++);
++--> statement-breakpoint
++CREATE TABLE "character_capabilities" (
++	"id" text PRIMARY KEY NOT NULL,
++	"character_id" text NOT NULL,
++	"type" text NOT NULL,
++	"config" jsonb NOT NULL
++);
++--> statement-breakpoint
++CREATE TABLE "character_i18n" (
++	"id" text PRIMARY KEY NOT NULL,
++	"character_id" text NOT NULL,
++	"language" text NOT NULL,
++	"name" text NOT NULL,
++	"description" text NOT NULL,
++	"tags" text[] NOT NULL,
++	"created_at" timestamp DEFAULT now() NOT NULL,
++	"updated_at" timestamp DEFAULT now() NOT NULL
++);
++--> statement-breakpoint
++CREATE TABLE "character_prompts" (
++	"id" text PRIMARY KEY NOT NULL,
++	"character_id" text NOT NULL,
++	"language" text NOT NULL,
++	"type" text NOT NULL,
++	"content" text NOT NULL
++);
++--> statement-breakpoint
++CREATE TABLE "chat_members" (
++	"id" text PRIMARY KEY NOT NULL,
++	"chat_id" text NOT NULL,
++	"user_id" text NOT NULL
++);
++--> statement-breakpoint
++CREATE TABLE "chats" (
++	"id" text PRIMARY KEY NOT NULL,
++	"type" text NOT NULL,
++	"created_at" timestamp DEFAULT now() NOT NULL,
++	"updated_at" timestamp DEFAULT now() NOT NULL,
++	"deleted_at" timestamp
++);
++--> statement-breakpoint
++CREATE TABLE "media" (
++	"id" text PRIMARY KEY NOT NULL,
++	"url" text NOT NULL,
++	"mime_type" text NOT NULL,
++	"size" integer NOT NULL,
++	"created_at" timestamp DEFAULT now() NOT NULL,
++	"updated_at" timestamp DEFAULT now() NOT NULL
++);
++--> statement-breakpoint
++CREATE TABLE "messages" (
++	"id" text PRIMARY KEY NOT NULL,
++	"chat_id" text NOT NULL,
++	"sender_id" text NOT NULL,
++	"content" text NOT NULL,
++	"media_ids" text[] NOT NULL,
++	"sticker_ids" text[] NOT NULL,
++	"reply_message_id" text,
++	"forward_from_message_id" text,
++	"created_at" timestamp DEFAULT now() NOT NULL,
++	"updated_at" timestamp DEFAULT now() NOT NULL,
++	"deleted_at" timestamp
++);
++--> statement-breakpoint
++CREATE TABLE "sticker_packs" (
++	"id" text PRIMARY KEY NOT NULL,
++	"name" text NOT NULL,
++	"description" text NOT NULL,
++	"created_at" timestamp DEFAULT now() NOT NULL,
++	"updated_at" timestamp DEFAULT now() NOT NULL
++);
++--> statement-breakpoint
++CREATE TABLE "stickers" (
++	"id" text PRIMARY KEY NOT NULL,
++	"url" text NOT NULL,
++	"created_at" timestamp DEFAULT now() NOT NULL,
++	"updated_at" timestamp DEFAULT now() NOT NULL
++);
++--> statement-breakpoint
++ALTER TABLE "characters" ADD CONSTRAINT "characters_creator_id_user_id_fk" FOREIGN KEY ("creator_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
++ALTER TABLE "characters" ADD CONSTRAINT "characters_owner_id_user_id_fk" FOREIGN KEY ("owner_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
++ALTER TABLE "character_capabilities" ADD CONSTRAINT "character_capabilities_character_id_characters_id_fk" FOREIGN KEY ("character_id") REFERENCES "public"."characters"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
++ALTER TABLE "character_i18n" ADD CONSTRAINT "character_i18n_character_id_characters_id_fk" FOREIGN KEY ("character_id") REFERENCES "public"."characters"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
++ALTER TABLE "character_prompts" ADD CONSTRAINT "character_prompts_character_id_characters_id_fk" FOREIGN KEY ("character_id") REFERENCES "public"."characters"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
++ALTER TABLE "chat_members" ADD CONSTRAINT "chat_members_chat_id_chats_id_fk" FOREIGN KEY ("chat_id") REFERENCES "public"."chats"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
++ALTER TABLE "chat_members" ADD CONSTRAINT "chat_members_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
++ALTER TABLE "messages" ADD CONSTRAINT "messages_chat_id_chats_id_fk" FOREIGN KEY ("chat_id") REFERENCES "public"."chats"("id") ON DELETE cascade ON UPDATE no action;
+\ No newline at end of file
+diff --git a/apps/server/drizzle/meta/0001_snapshot.json b/apps/server/drizzle/meta/0001_snapshot.json
+new file mode 100644
+index 00000000..602b8e1c
+--- /dev/null
++++ b/apps/server/drizzle/meta/0001_snapshot.json
+@@ -0,0 +1,1039 @@
++{
++  "id": "8adb8523-37fc-4c77-84f4-3a3f21c0a013",
++  "prevId": "b19a2fb9-f374-4190-808b-0988677f5823",
++  "version": "7",
++  "dialect": "postgresql",
++  "tables": {
++    "public.account": {
++      "name": "account",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "account_id": {
++          "name": "account_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "provider_id": {
++          "name": "provider_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "user_id": {
++          "name": "user_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "access_token": {
++          "name": "access_token",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "refresh_token": {
++          "name": "refresh_token",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "id_token": {
++          "name": "id_token",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "access_token_expires_at": {
++          "name": "access_token_expires_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "refresh_token_expires_at": {
++          "name": "refresh_token_expires_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "scope": {
++          "name": "scope",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "password": {
++          "name": "password",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true
++        }
++      },
++      "indexes": {
++        "account_userId_idx": {
++          "name": "account_userId_idx",
++          "columns": [
++            {
++              "expression": "user_id",
++              "isExpression": false,
++              "asc": true,
++              "nulls": "last"
++            }
++          ],
++          "isUnique": false,
++          "concurrently": false,
++          "method": "btree",
++          "with": {}
++        }
++      },
++      "foreignKeys": {
++        "account_user_id_user_id_fk": {
++          "name": "account_user_id_user_id_fk",
++          "tableFrom": "account",
++          "tableTo": "user",
++          "columnsFrom": [
++            "user_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.session": {
++      "name": "session",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "expires_at": {
++          "name": "expires_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "token": {
++          "name": "token",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "ip_address": {
++          "name": "ip_address",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "user_agent": {
++          "name": "user_agent",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "user_id": {
++          "name": "user_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        }
++      },
++      "indexes": {
++        "session_userId_idx": {
++          "name": "session_userId_idx",
++          "columns": [
++            {
++              "expression": "user_id",
++              "isExpression": false,
++              "asc": true,
++              "nulls": "last"
++            }
++          ],
++          "isUnique": false,
++          "concurrently": false,
++          "method": "btree",
++          "with": {}
++        }
++      },
++      "foreignKeys": {
++        "session_user_id_user_id_fk": {
++          "name": "session_user_id_user_id_fk",
++          "tableFrom": "session",
++          "tableTo": "user",
++          "columnsFrom": [
++            "user_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {
++        "session_token_unique": {
++          "name": "session_token_unique",
++          "nullsNotDistinct": false,
++          "columns": [
++            "token"
++          ]
++        }
++      },
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.user": {
++      "name": "user",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "name": {
++          "name": "name",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "email": {
++          "name": "email",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "email_verified": {
++          "name": "email_verified",
++          "type": "boolean",
++          "primaryKey": false,
++          "notNull": true,
++          "default": false
++        },
++        "image": {
++          "name": "image",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {},
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {
++        "user_email_unique": {
++          "name": "user_email_unique",
++          "nullsNotDistinct": false,
++          "columns": [
++            "email"
++          ]
++        }
++      },
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.verification": {
++      "name": "verification",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "identifier": {
++          "name": "identifier",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "value": {
++          "name": "value",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "expires_at": {
++          "name": "expires_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {
++        "verification_identifier_idx": {
++          "name": "verification_identifier_idx",
++          "columns": [
++            {
++              "expression": "identifier",
++              "isExpression": false,
++              "asc": true,
++              "nulls": "last"
++            }
++          ],
++          "isUnique": false,
++          "concurrently": false,
++          "method": "btree",
++          "with": {}
++        }
++      },
++      "foreignKeys": {},
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.avatar_model": {
++      "name": "avatar_model",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "name": {
++          "name": "name",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "type": {
++          "name": "type",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "description": {
++          "name": "description",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "config": {
++          "name": "config",
++          "type": "jsonb",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {},
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.characters": {
++      "name": "characters",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "version": {
++          "name": "version",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "cover_url": {
++          "name": "cover_url",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "creator_id": {
++          "name": "creator_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "owner_id": {
++          "name": "owner_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "character_id": {
++          "name": "character_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "characters_creator_id_user_id_fk": {
++          "name": "characters_creator_id_user_id_fk",
++          "tableFrom": "characters",
++          "tableTo": "user",
++          "columnsFrom": [
++            "creator_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        },
++        "characters_owner_id_user_id_fk": {
++          "name": "characters_owner_id_user_id_fk",
++          "tableFrom": "characters",
++          "tableTo": "user",
++          "columnsFrom": [
++            "owner_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.character_capabilities": {
++      "name": "character_capabilities",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "character_id": {
++          "name": "character_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "type": {
++          "name": "type",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "config": {
++          "name": "config",
++          "type": "jsonb",
++          "primaryKey": false,
++          "notNull": true
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "character_capabilities_character_id_characters_id_fk": {
++          "name": "character_capabilities_character_id_characters_id_fk",
++          "tableFrom": "character_capabilities",
++          "tableTo": "characters",
++          "columnsFrom": [
++            "character_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.character_i18n": {
++      "name": "character_i18n",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "character_id": {
++          "name": "character_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "language": {
++          "name": "language",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "name": {
++          "name": "name",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "description": {
++          "name": "description",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "tags": {
++          "name": "tags",
++          "type": "text[]",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "character_i18n_character_id_characters_id_fk": {
++          "name": "character_i18n_character_id_characters_id_fk",
++          "tableFrom": "character_i18n",
++          "tableTo": "characters",
++          "columnsFrom": [
++            "character_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.character_prompts": {
++      "name": "character_prompts",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "character_id": {
++          "name": "character_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "language": {
++          "name": "language",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "type": {
++          "name": "type",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "content": {
++          "name": "content",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "character_prompts_character_id_characters_id_fk": {
++          "name": "character_prompts_character_id_characters_id_fk",
++          "tableFrom": "character_prompts",
++          "tableTo": "characters",
++          "columnsFrom": [
++            "character_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.chat_members": {
++      "name": "chat_members",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "chat_id": {
++          "name": "chat_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "user_id": {
++          "name": "user_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "chat_members_chat_id_chats_id_fk": {
++          "name": "chat_members_chat_id_chats_id_fk",
++          "tableFrom": "chat_members",
++          "tableTo": "chats",
++          "columnsFrom": [
++            "chat_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        },
++        "chat_members_user_id_user_id_fk": {
++          "name": "chat_members_user_id_user_id_fk",
++          "tableFrom": "chat_members",
++          "tableTo": "user",
++          "columnsFrom": [
++            "user_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.chats": {
++      "name": "chats",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "type": {
++          "name": "type",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "deleted_at": {
++          "name": "deleted_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": false
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {},
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.media": {
++      "name": "media",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "url": {
++          "name": "url",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "mime_type": {
++          "name": "mime_type",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "size": {
++          "name": "size",
++          "type": "integer",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {},
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.messages": {
++      "name": "messages",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "chat_id": {
++          "name": "chat_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "sender_id": {
++          "name": "sender_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "content": {
++          "name": "content",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "media_ids": {
++          "name": "media_ids",
++          "type": "text[]",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "sticker_ids": {
++          "name": "sticker_ids",
++          "type": "text[]",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "reply_message_id": {
++          "name": "reply_message_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "forward_from_message_id": {
++          "name": "forward_from_message_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "deleted_at": {
++          "name": "deleted_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": false
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "messages_chat_id_chats_id_fk": {
++          "name": "messages_chat_id_chats_id_fk",
++          "tableFrom": "messages",
++          "tableTo": "chats",
++          "columnsFrom": [
++            "chat_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.sticker_packs": {
++      "name": "sticker_packs",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "name": {
++          "name": "name",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "description": {
++          "name": "description",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {},
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.stickers": {
++      "name": "stickers",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "url": {
++          "name": "url",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {},
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    }
++  },
++  "enums": {},
++  "schemas": {},
++  "sequences": {},
++  "roles": {},
++  "policies": {},
++  "views": {},
++  "_meta": {
++    "columns": {},
++    "schemas": {},
++    "tables": {}
++  }
++}
+\ No newline at end of file
+diff --git a/apps/server/drizzle/meta/_journal.json b/apps/server/drizzle/meta/_journal.json
+index ad6df0f6..2224d1ff 100644
+--- a/apps/server/drizzle/meta/_journal.json
++++ b/apps/server/drizzle/meta/_journal.json
+@@ -8,6 +8,13 @@
+       "when": 1766665325052,
+       "tag": "0000_steep_gamora",
+       "breakpoints": true
++    },
++    {
++      "idx": 1,
++      "version": "7",
++      "when": 1766998160836,
++      "tag": "0001_simple_garia",
++      "breakpoints": true
+     }
+   ]
+-}
+\ No newline at end of file
++}
+diff --git a/apps/server/package.json b/apps/server/package.json
+index 740d1c6b..813a8ac7 100644
+--- a/apps/server/package.json
++++ b/apps/server/package.json
+@@ -5,7 +5,7 @@
+   "private": true,
+   "scripts": {
+     "apply:env": "dotenvx run -f .env -f .env.local --overload --ignore=MISSING_ENV_FILE",
+-    "auth:generate": "pnpm run apply:env -- better-auth generate --config src/scripts/auth.ts --output src/schemas/auth.ts -y",
++    "auth:generate": "pnpm run apply:env -- better-auth generate --config src/scripts/auth.ts --output src/schemas/accounts.ts -y",
+     "dev": "pnpm run apply:env -- tsx --watch src/app.ts",
+     "start": "tsx src/app.ts",
+     "db:generate": "drizzle-kit generate",
+@@ -17,6 +17,7 @@
+     "@hono/node-server": "^1.19.6",
+     "better-auth": "^1.4.5",
+     "drizzle-orm": "^0.44.7",
++    "drizzle-valibot": "catalog:",
+     "hono": "^4.10.7",
+     "injeca": "catalog:",
+     "postgres": "^3.4.7",
+diff --git a/apps/server/src/api/characters.schema.ts b/apps/server/src/api/characters.schema.ts
+new file mode 100644
+index 00000000..e97e4001
+--- /dev/null
++++ b/apps/server/src/api/characters.schema.ts
+@@ -0,0 +1,100 @@
++import { createInsertSchema, createSelectSchema } from 'drizzle-valibot'
++import { array, literal, number, object, optional, pipe, string, transform, union } from 'valibot'
++
++import * as schema from '../schemas/characters'
++
++export const AvatarModelConfigSchema = object({
++  vrm: optional(object({
++    urls: array(string()),
++  })),
++  live2d: optional(object({
++    urls: array(string()),
++  })),
++})
++
++export const CharacterCapabilityConfigSchema = object({
++  apiKey: string(),
++  apiBaseUrl: string(),
++  llm: optional(object({
++    temperature: number(),
++    model: string(),
++  })),
++  tts: optional(object({
++    ssml: string(),
++    voiceId: string(),
++    speed: number(),
++    pitch: number(),
++  })),
++  vlm: optional(object({
++    image: string(),
++  })),
++  asr: optional(object({
++    audio: string(),
++  })),
++})
++
++const CharacterCapabilityTypeSchema = union([
++  literal('llm'),
++  literal('tts'),
++  literal('vlm'),
++  literal('asr'),
++])
++
++const AvatarModelTypeSchema = union([
++  literal('vrm'),
++  literal('live2d'),
++])
++
++export const CharacterSchema = createSelectSchema(schema.character)
++export const InsertCharacterSchema = createInsertSchema(schema.character)
++
++export const AvatarModelSchema = createSelectSchema(schema.avatarModel)
++export const InsertAvatarModelSchema = createInsertSchema(schema.avatarModel)
++
++export const CharacterCapabilitySchema = createSelectSchema(schema.characterCapabilities)
++export const InsertCharacterCapabilitySchema = createInsertSchema(schema.characterCapabilities)
++
++export const CharacterI18nSchema = createSelectSchema(schema.characterI18n)
++export const InsertCharacterI18nSchema = createInsertSchema(schema.characterI18n)
++
++export const CharacterPromptSchema = createSelectSchema(schema.characterPrompts)
++export const InsertCharacterPromptSchema = createInsertSchema(schema.characterPrompts)
++
++const DateSchema = pipe(
++  string(),
++  transform(v => new Date(v)),
++)
++
++export const CreateCharacterSchema = object({
++  character: createInsertSchema(schema.character, {
++    creatorId: optional(string()),
++    ownerId: optional(string()),
++  }),
++  capabilities: optional(array(createInsertSchema(schema.characterCapabilities, {
++    characterId: optional(string()),
++    type: CharacterCapabilityTypeSchema,
++    config: CharacterCapabilityConfigSchema,
++  }))),
++  avatarModels: optional(array(createInsertSchema(schema.avatarModel, {
++    characterId: optional(string()),
++    type: AvatarModelTypeSchema,
++    config: AvatarModelConfigSchema,
++  }))),
++  i18n: optional(array(createInsertSchema(schema.characterI18n, {
++    characterId: optional(string()),
++  }))),
++  prompts: optional(array(createInsertSchema(schema.characterPrompts, {
++    characterId: optional(string()),
++  }))),
++})
++
++export const UpdateCharacterSchema = createInsertSchema(schema.character, {
++  id: optional(string()),
++  version: optional(string()),
++  coverUrl: optional(string()),
++  creatorId: optional(string()),
++  ownerId: optional(string()),
++  characterId: optional(string()),
++  createdAt: optional(DateSchema),
++  updatedAt: optional(DateSchema),
++})
+diff --git a/apps/server/src/app.ts b/apps/server/src/app.ts
+index 2194322f..479cbb5a 100644
+--- a/apps/server/src/app.ts
++++ b/apps/server/src/app.ts
+@@ -1,3 +1,5 @@
++import type { HonoEnv } from './types/hono'
++
+ import process, { exit } from 'node:process'
+
+ import { initLogger, LoggerFormat, LoggerLevel, useLogger } from '@guiiai/logg'
+@@ -5,82 +7,93 @@ import { serve } from '@hono/node-server'
+ import { Hono } from 'hono'
+ import { cors } from 'hono/cors'
+ import { logger as honoLogger } from 'hono/logger'
+-import { injeca } from 'injeca'
++import { createLoggLogger, injeca } from 'injeca'
+
++import { authGuard, sessionMiddleware } from './middlewares/auth'
++import { createCharacterRoutes } from './routes/characters'
+ import { createAuth } from './services/auth'
++import { createCharacterService } from './services/characters'
+ import { createDrizzle } from './services/db'
+ import { parsedEnv } from './services/env'
++import { ApiError, createInternalError } from './utils/error'
+ import { getTrustedOrigin } from './utils/origin'
+
++import * as schema from './schemas'
++
+ async function createApp() {
+   initLogger(LoggerLevel.Debug, LoggerFormat.Pretty)
+-
+-  const resolved = await injeca.resolve({ parsedEnv })
++  injeca.setLogger(createLoggLogger(useLogger('injeca').useGlobalConfig()))
+
+   const logger = useLogger('app').useGlobalConfig()
+-  const db = createDrizzle(resolved.parsedEnv.DATABASE_URL)
+-  const auth = createAuth(db, resolved.parsedEnv)
+
+-  db.execute('SELECT 1')
+-    .then(() => {
+-      logger.log('Connected to database')
+-    })
+-    .catch((err) => {
+-      logger.withError(err).error('Failed to connect to database')
+-      exit(1)
+-    })
++  const db = injeca.provide('services:db', {
++    dependsOn: { env: parsedEnv },
++    build: ({ dependsOn }) => {
++      const dbInstance = createDrizzle(dependsOn.env.DATABASE_URL, schema)
++      dbInstance.execute('SELECT 1')
++        .then(() => logger.log('Connected to database'))
++        .catch((err) => {
++          logger.withError(err).error('Failed to connect to database')
++          exit(1)
++        })
++      return dbInstance
++    },
++  })
+
+-  const app = new Hono<{
+-    Variables: {
+-      user: typeof auth.$Infer.Session.user | null
+-      session: typeof auth.$Infer.Session.session | null
+-    }
+-  }>()
++  const auth = injeca.provide('services:auth', {
++    dependsOn: { db, env: parsedEnv },
++    build: ({ dependsOn }) => createAuth(dependsOn.db, dependsOn.env),
++  })
++
++  const characterService = injeca.provide('services:characters', {
++    dependsOn: { db },
++    build: ({ dependsOn }) => createCharacterService(dependsOn.db),
++  })
++
++  await injeca.start()
++  const resolved = await injeca.resolve({ auth, characterService })
++  const authInstance = resolved.auth
++
++  const app = new Hono<HonoEnv>()
+
+   app.use(
+-    '/api/auth/*', // or replace with "*" to enable cors for all routes
++    '/api/*',
+     cors({
+-      origin(origin: string) {
+-        return getTrustedOrigin(origin)
+-      },
++      origin: origin => getTrustedOrigin(origin),
+       credentials: true,
+     }),
+   )
+
+   app.use(honoLogger())
+
+-  app.use('*', async (c, next) => {
+-    const session = await auth.api.getSession({ headers: c.req.raw.headers })
++  app.use('*', sessionMiddleware(authInstance))
+
+-    if (!session) {
+-      c.set('user', null)
+-      c.set('session', null)
+-      await next()
+-      return
+-    }
+-
+-    c.set('user', session.user)
+-    c.set('session', session.session)
+-
+-    await next()
++  app.get('/session', authGuard, (c) => {
++    return c.json({
++      session: c.get('session'),
++      user: c.get('user')!,
++    })
+   })
+
+-  app.get('/session', (c) => {
+-    const session = c.get('session')
+-    const user = c.get('user')
++  app.on(['POST', 'GET'], '/api/auth/*', c => authInstance.handler(c.req.raw))
+
+-    if (!user)
+-      return c.body(null, 401)
++  app.route('/api/characters', createCharacterRoutes(resolved.characterService))
+
+-    return c.json({
+-      session,
+-      user,
+-    })
+-  })
++  app.onError((err, c) => {
++    if (err instanceof ApiError) {
++      return c.json({
++        error: err.errorCode,
++        message: err.message,
++        details: err.details,
++      }, err.statusCode)
++    }
+
+-  // NOTICE: required by better-auth
+-  app.on(['POST', 'GET'], '/api/auth/*', (c) => {
+-    return auth.handler(c.req.raw)
++    logger.withError(err).error('Unhandled error')
++    const internalError = createInternalError()
++    return c.json({
++      error: internalError.errorCode,
++      message: internalError.message,
++    }, internalError.statusCode)
+   })
+
+   logger.withFields({ port: 3000 }).log('Server started')
+@@ -88,6 +101,8 @@ async function createApp() {
+   return app
+ }
+
++export type AppType = Awaited<ReturnType<typeof createApp>>
++
+ // eslint-disable-next-line antfu/no-top-level-await
+ serve(await createApp())
+
+diff --git a/apps/server/src/middlewares/auth.ts b/apps/server/src/middlewares/auth.ts
+new file mode 100644
+index 00000000..cfa09a22
+--- /dev/null
++++ b/apps/server/src/middlewares/auth.ts
+@@ -0,0 +1,40 @@
++import type { MiddlewareHandler } from 'hono'
++
++import type { createAuth } from '../services/auth'
++import type { HonoEnv } from '../types/hono'
++
++import { createUnauthorizedError } from '../utils/error'
++
++type AuthInstance = ReturnType<typeof createAuth>
++
++/**
++ * Session middleware injects the user and session into the Hono context.
++ * It does not block unauthorized requests.
++ */
++export function sessionMiddleware(auth: AuthInstance): MiddlewareHandler<HonoEnv> {
++  return async (c, next) => {
++    const session = await auth.api.getSession({ headers: c.req.raw.headers })
++
++    if (!session) {
++      c.set('user', null)
++      c.set('session', null)
++      return await next()
++    }
++
++    c.set('user', session.user)
++    c.set('session', session.session)
++    await next()
++  }
++}
++
++/**
++ * Auth guard middleware blocks requests if the user is not authenticated.
++ * Must be used after sessionMiddleware.
++ */
++export const authGuard: MiddlewareHandler<HonoEnv> = async (c, next) => {
++  const user = c.get('user')
++  if (!user) {
++    throw createUnauthorizedError()
++  }
++  await next()
++}
+diff --git a/apps/server/src/routes/characters.test.ts b/apps/server/src/routes/characters.test.ts
+new file mode 100644
+index 00000000..4c331536
+--- /dev/null
++++ b/apps/server/src/routes/characters.test.ts
+@@ -0,0 +1,191 @@
++import type { HonoEnv } from '../types/hono'
++
++import { Hono } from 'hono'
++import { beforeEach, describe, expect, it, vi } from 'vitest'
++
++import { createCharacterRoutes } from './characters'
++
++describe('characterRoutes', () => {
++  let characterService: any
++  let app: Hono<HonoEnv>
++
++  beforeEach(() => {
++    characterService = {
++      findById: vi.fn(),
++      findByOwnerId: vi.fn(),
++      create: vi.fn(),
++      update: vi.fn(),
++      delete: vi.fn(),
++    }
++    auth = {
++      $Infer: {
++        Session: {
++          user: {},
++          session: {},
++        },
++      },
++    }
++
++    const routes = createCharacterRoutes(characterService)
++    app = new Hono<HonoEnv>()
++
++    app.use('*', async (c, next) => {
++      const user = (c.env as any)?.user
++      if (user) {
++        c.set('user', user)
++      }
++      await next()
++    })
++
++    app.route('/', routes)
++  })
++
++  it('get / should return unauthorized if no user', async () => {
++    const res = await app.request('/')
++    expect(res.status).toBe(401)
++  })
++
++  it('get / should return characters for user', async () => {
++    const mockUser = { id: 'user-1' }
++    const mockChars = [{ id: 'char-1' }]
++    characterService.findByOwnerId.mockResolvedValue(mockChars)
++
++    const res = await app.fetch(new Request('http://localhost/'), { user: mockUser } as any)
++
++    expect(res.status).toBe(200)
++    expect(await res.json()).toEqual(mockChars)
++  })
++
++  it('get /:id should return 404 if not found', async () => {
++    characterService.findById.mockResolvedValue(null)
++    const res = await app.request('/char-1')
++    expect(res.status).toBe(404)
++  })
++
++  it('get /:id should return character', async () => {
++    const mockChar = { id: 'char-1' }
++    characterService.findById.mockResolvedValue(mockChar)
++    const res = await app.request('/char-1')
++    expect(res.status).toBe(200)
++    expect(await res.json()).toEqual(mockChar)
++  })
++
++  it('post / should return unauthorized if no user', async () => {
++    const res = await app.request('/', { method: 'POST' })
++    expect(res.status).toBe(401)
++  })
++
++  it('post / should validate body and create character', async () => {
++    const mockUser = { id: 'user-1' }
++    const payload = {
++      character: { id: 'c1', version: '1', coverUrl: 'url', characterId: 'cid' },
++    }
++    characterService.create.mockResolvedValue({ id: 'new-id' })
++
++    const res = await app.fetch(new Request('http://localhost/', {
++      method: 'POST',
++      body: JSON.stringify(payload),
++      headers: { 'Content-Type': 'application/json' },
++    }), { user: mockUser } as any)
++
++    expect(res.status).toBe(201)
++  })
++
++  it('post / should return 400 on invalid body', async () => {
++    const mockUser = { id: 'user-1' }
++    const res = await app.fetch(new Request('http://localhost/', {
++      method: 'POST',
++      body: JSON.stringify({ invalid: 'data' }),
++      headers: { 'Content-Type': 'application/json' },
++    }), { user: mockUser } as any)
++
++    expect(res.status).toBe(400)
++  })
++
++  it('patch /:id should return unauthorized if no user', async () => {
++    const res = await app.request('/c1', { method: 'PATCH' })
++    expect(res.status).toBe(401)
++  })
++
++  it('patch /:id should return 400 on invalid body', async () => {
++    const mockUser = { id: 'user-1' }
++    const res = await app.fetch(new Request('http://localhost/c1', {
++      method: 'PATCH',
++      body: JSON.stringify({ version: 123 }),
++      headers: { 'Content-Type': 'application/json' },
++    }), { user: mockUser } as any)
++    expect(res.status).toBe(400)
++  })
++
++  it('patch /:id should return 404 if not found', async () => {
++    const mockUser = { id: 'user-1' }
++    characterService.findById.mockResolvedValue(null)
++    const res = await app.fetch(new Request('http://localhost/c1', {
++      method: 'PATCH',
++      body: JSON.stringify({ version: '2' }),
++      headers: { 'Content-Type': 'application/json' },
++    }), { user: mockUser } as any)
++    expect(res.status).toBe(404)
++  })
++
++  it('patch /:id should return 403 if not owner', async () => {
++    const mockUser = { id: 'user-1' }
++    characterService.findById.mockResolvedValue({ id: 'c1', ownerId: 'user-2' })
++    const res = await app.fetch(new Request('http://localhost/c1', {
++      method: 'PATCH',
++      body: JSON.stringify({ version: '2' }),
++      headers: { 'Content-Type': 'application/json' },
++    }), { user: mockUser } as any)
++    expect(res.status).toBe(403)
++  })
++
++  it('patch /:id should update if owner', async () => {
++    const mockUser = { id: 'user-1' }
++    characterService.findById.mockResolvedValue({ id: 'c1', ownerId: 'user-1' })
++    characterService.update.mockResolvedValue({ id: 'c1', version: '2' })
++    const res = await app.fetch(new Request('http://localhost/c1', {
++      method: 'PATCH',
++      body: JSON.stringify({ version: '2' }),
++      headers: { 'Content-Type': 'application/json' },
++    }), { user: mockUser } as any)
++    expect(res.status).toBe(200)
++  })
++
++  it('patch /:id should update with empty body', async () => {
++    const mockUser = { id: 'user-1' }
++    characterService.findById.mockResolvedValue({ id: 'c1', ownerId: 'user-1' })
++    characterService.update.mockResolvedValue({ id: 'c1' })
++    const res = await app.fetch(new Request('http://localhost/c1', {
++      method: 'PATCH',
++      body: JSON.stringify({}),
++      headers: { 'Content-Type': 'application/json' },
++    }), { user: mockUser } as any)
++    expect(res.status).toBe(200)
++  })
++
++  it('delete /:id should return unauthorized if no user', async () => {
++    const res = await app.request('/c1', { method: 'DELETE' })
++    expect(res.status).toBe(401)
++  })
++
++  it('delete /:id should return 404 if not found', async () => {
++    const mockUser = { id: 'user-1' }
++    characterService.findById.mockResolvedValue(null)
++    const res = await app.fetch(new Request('http://localhost/c1', { method: 'DELETE' }), { user: mockUser } as any)
++    expect(res.status).toBe(404)
++  })
++
++  it('delete /:id should return 403 if not owner', async () => {
++    const mockUser = { id: 'user-1' }
++    characterService.findById.mockResolvedValue({ id: 'c1', ownerId: 'user-2' })
++    const res = await app.fetch(new Request('http://localhost/c1', { method: 'DELETE' }), { user: mockUser } as any)
++    expect(res.status).toBe(403)
++  })
++
++  it('delete /:id should delete if owner', async () => {
++    const mockUser = { id: 'user-1' }
++    characterService.findById.mockResolvedValue({ id: 'c1', ownerId: 'user-1' })
++    const res = await app.fetch(new Request('http://localhost/c1', { method: 'DELETE' }), { user: mockUser } as any)
++    expect(res.status).toBe(204)
++  })
++})
+diff --git a/apps/server/src/routes/characters.ts b/apps/server/src/routes/characters.ts
+new file mode 100644
+index 00000000..174a96e1
+--- /dev/null
++++ b/apps/server/src/routes/characters.ts
+@@ -0,0 +1,90 @@
++import type { CharacterService } from '../services/characters'
++import type { HonoEnv } from '../types/hono'
++
++import { Hono } from 'hono'
++import { safeParse } from 'valibot'
++
++import { CreateCharacterSchema, UpdateCharacterSchema } from '../api/characters.schema'
++import { authGuard } from '../middlewares/auth'
++import { createBadRequestError, createForbiddenError, createNotFoundError } from '../utils/error'
++
++export function createCharacterRoutes(characterService: CharacterService) {
++  const app = new Hono<HonoEnv>()
++
++  app.use('*', authGuard)
++
++  app.get('/', async (c) => {
++    const user = c.get('user')!
++
++    const characters = await characterService.findByOwnerId(user.id)
++    return c.json(characters)
++  })
++
++  app.get('/:id', async (c) => {
++    const id = c.req.param('id')
++    const character = await characterService.findById(id)
++    if (!character)
++      throw createNotFoundError()
++
++    return c.json(character)
++  })
++
++  app.post('/', async (c) => {
++    const user = c.get('user')!
++
++    const body = await c.req.json()
++    const result = safeParse(CreateCharacterSchema, body)
++
++    if (!result.success) {
++      throw createBadRequestError('Invalid Request', 'INVALID_REQUEST', result.issues)
++    }
++
++    const character = await characterService.create({
++      ...result.output,
++      character: {
++        ...result.output.character,
++        ownerId: user.id,
++        creatorId: user.id,
++      },
++    } as any)
++
++    return c.json(character, 201)
++  })
++
++  app.patch('/:id', async (c) => {
++    const user = c.get('user')!
++
++    const id = c.req.param('id')
++    const body = await c.req.json()
++    const result = safeParse(UpdateCharacterSchema, body)
++
++    if (!result.success) {
++      throw createBadRequestError('Invalid Request', 'INVALID_REQUEST', result.issues)
++    }
++
++    const existing = await characterService.findById(id)
++    if (!existing)
++      throw createNotFoundError()
++    if (existing.ownerId !== user.id)
++      throw createForbiddenError()
++
++    const updated = await characterService.update(id, result.output)
++    return c.json(updated)
++  })
++
++  app.delete('/:id', async (c) => {
++    const user = c.get('user')!
++
++    const id = c.req.param('id')
++    const existing = await characterService.findById(id)
++    if (!existing)
++      throw createNotFoundError()
++    if (existing.ownerId !== user.id)
++      throw createForbiddenError()
++
++    await characterService.delete(id)
++    return c.body(null, 204)
++  })
++
++  return app
++}
+diff --git a/apps/server/src/schemas/accounts.ts b/apps/server/src/schemas/accounts.ts
+new file mode 100644
+index 00000000..b638d843
+--- /dev/null
++++ b/apps/server/src/schemas/accounts.ts
+@@ -0,0 +1,93 @@
++import { relations } from 'drizzle-orm'
++import { boolean, index, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
++
++export const user = pgTable('user', {
++  id: text('id').primaryKey(),
++  name: text('name').notNull(),
++  email: text('email').notNull().unique(),
++  emailVerified: boolean('email_verified').default(false).notNull(),
++  image: text('image'),
++  createdAt: timestamp('created_at').defaultNow().notNull(),
++  updatedAt: timestamp('updated_at')
++    .defaultNow()
++    .$onUpdate(() => /* @__PURE__ */ new Date())
++    .notNull(),
++})
++
++export const session = pgTable(
++  'session',
++  {
++    id: text('id').primaryKey(),
++    expiresAt: timestamp('expires_at').notNull(),
++    token: text('token').notNull().unique(),
++    createdAt: timestamp('created_at').defaultNow().notNull(),
++    updatedAt: timestamp('updated_at')
++      .$onUpdate(() => /* @__PURE__ */ new Date())
++      .notNull(),
++    ipAddress: text('ip_address'),
++    userAgent: text('user_agent'),
++    userId: text('user_id')
++      .notNull()
++      .references(() => user.id, { onDelete: 'cascade' }),
++  },
++  table => [index('session_userId_idx').on(table.userId)],
++)
++
++export const account = pgTable(
++  'account',
++  {
++    id: text('id').primaryKey(),
++    accountId: text('account_id').notNull(),
++    providerId: text('provider_id').notNull(),
++    userId: text('user_id')
++      .notNull()
++      .references(() => user.id, { onDelete: 'cascade' }),
++    accessToken: text('access_token'),
++    refreshToken: text('refresh_token'),
++    idToken: text('id_token'),
++    accessTokenExpiresAt: timestamp('access_token_expires_at'),
++    refreshTokenExpiresAt: timestamp('refresh_token_expires_at'),
++    scope: text('scope'),
++    password: text('password'),
++    createdAt: timestamp('created_at').defaultNow().notNull(),
++    updatedAt: timestamp('updated_at')
++      .$onUpdate(() => /* @__PURE__ */ new Date())
++      .notNull(),
++  },
++  table => [index('account_userId_idx').on(table.userId)],
++)
++
++export const verification = pgTable(
++  'verification',
++  {
++    id: text('id').primaryKey(),
++    identifier: text('identifier').notNull(),
++    value: text('value').notNull(),
++    expiresAt: timestamp('expires_at').notNull(),
++    createdAt: timestamp('created_at').defaultNow().notNull(),
++    updatedAt: timestamp('updated_at')
++      .defaultNow()
++      .$onUpdate(() => /* @__PURE__ */ new Date())
++      .notNull(),
++  },
++  table => [index('verification_identifier_idx').on(table.identifier)],
++)
++
++export const userRelations = relations(user, ({ many }) => ({
++  sessions: many(session),
++  accounts: many(account),
++}))
++
++export const sessionRelations = relations(session, ({ one }) => ({
++  user: one(user, {
++    fields: [session.userId],
++    references: [user.id],
++  }),
++}))
++
++export const accountRelations = relations(account, ({ one }) => ({
++  user: one(user, {
++    fields: [account.userId],
++    references: [user.id],
++  }),
++}))
+diff --git a/apps/server/src/schemas/characters.ts b/apps/server/src/schemas/characters.ts
+new file mode 100644
+index 00000000..f44a0bcc
+--- /dev/null
++++ b/apps/server/src/schemas/characters.ts
+@@ -0,0 +1,171 @@
++import type { InferInsertModel, InferSelectModel } from 'drizzle-orm'
++
++import type { AvatarModelConfig } from '../types/character-avatar-model'
++import type { CharacterCapabilityConfig } from '../types/character-capability'
++
++import { relations } from 'drizzle-orm'
++import { jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
++
++import { user } from './accounts'
++
++export const character = pgTable(
++  'characters',
++  {
++    id: text('id').primaryKey(),
++    version: text('version').notNull(),
++    coverUrl: text('cover_url').notNull(),
++
++    // TODO: json patch?
++
++    creatorId: text('creator_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
++    ownerId: text('owner_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
++    characterId: text('character_id').notNull(),
++
++    // TODO: Live2d and VRM
++    // TODO: Memory
++    // TODO: Skills and MCP
++
++    createdAt: timestamp('created_at').defaultNow().notNull(),
++    updatedAt: timestamp('updated_at').defaultNow().notNull(),
++  },
++)
++
++export type Character = InferSelectModel<typeof character>
++export type NewCharacter = InferInsertModel<typeof character>
++
++export const avatarModel = pgTable(
++  'avatar_model',
++  {
++    id: text('id').primaryKey(),
++    characterId: text('character_id').notNull().references(() => character.id, { onDelete: 'cascade' }),
++    name: text('name').notNull(),
++    type: text('type').notNull().$type<keyof AvatarModelConfig>(),
++
++    description: text('description').notNull(),
++
++    config: jsonb('config').notNull().$type<AvatarModelConfig[keyof AvatarModelConfig]>(),
++    createdAt: timestamp('created_at').defaultNow().notNull(),
++    updatedAt: timestamp('updated_at').defaultNow().notNull(),
++  },
++)
++
++export type AvatarModel = InferSelectModel<typeof avatarModel>
++export type NewAvatarModel = InferInsertModel<typeof avatarModel>
++
++export const characterCapabilities = pgTable(
++  'character_capabilities',
++  {
++    id: text('id').primaryKey(),
++    characterId: text('character_id').notNull().references(() => character.id, { onDelete: 'cascade' }),
++
++    type: text('type').notNull().$type<keyof CharacterCapabilityConfig>(),
++
++    config: jsonb('config').notNull().$type<CharacterCapabilityConfig[keyof CharacterCapabilityConfig]>(),
++  },
++)
++
++export type CharacterCapability = InferSelectModel<typeof characterCapabilities>
++export type NewCharacterCapability = InferInsertModel<typeof characterCapabilities>
++
++export const characterI18n = pgTable(
++  'character_i18n',
++  {
++    id: text('id').primaryKey(),
++    characterId: text('character_id').notNull().references(() => character.id, { onDelete: 'cascade' }),
++
++    language: text('language').notNull(),
++
++    name: text('name').notNull(),
++    description: text('description').notNull(),
++    tags: text('tags').array().notNull(),
++
++    // TODO: Implement the system prompt
++    // systemPrompt: text('system_prompt').notNull(),
++    // TODO: Implement the personality
++    // personality: text('personality').notNull(),
++
++    // TODO: Implement the initial memories
++    // initialMemories: text('initial_memories').array().notNull(),
++
++    // TODO: greetings?
++    // TODO: notes?
++    // TODO: metadata?
++
++    createdAt: timestamp('created_at').defaultNow().notNull(),
++    updatedAt: timestamp('updated_at').defaultNow().notNull(),
++  },
++)
++
++export type CharacterI18n = InferSelectModel<typeof characterI18n>
++export type NewCharacterI18n = InferInsertModel<typeof characterI18n>
++
++type PromptType = 'system' | 'personality' | 'greetings'
++
++export const characterPrompts = pgTable(
++  'character_prompts',
++  {
++    id: text('id').primaryKey(),
++    characterId: text('character_id').notNull().references(() => character.id, { onDelete: 'cascade' }),
++
++    language: text('language').notNull(),
++    type: text('type').notNull().$type<PromptType>(),
++    content: text('content').notNull(),
++  },
++)
++
++export type CharacterPrompt = InferSelectModel<typeof characterPrompts>
++export type NewCharacterPrompt = InferInsertModel<typeof characterPrompts>
++
++export const characterRelations = relations(
++  character,
++  ({ one, many }) => ({
++    capabilities: many(characterCapabilities),
++    avatarModels: many(avatarModel),
++    i18n: many(characterI18n),
++    prompts: many(characterPrompts),
++    owner: one(user, {
++      fields: [character.ownerId],
++      references: [user.id],
++    }),
++  }),
++)
++
++export const avatarModelRelations = relations(
++  avatarModel,
++  ({ one }) => ({
++    character: one(character, {
++      fields: [avatarModel.characterId],
++      references: [character.id],
++    }),
++  }),
++)
++
++export const characterCapabilitiesRelations = relations(
++  characterCapabilities,
++  ({ one }) => ({
++    character: one(character, {
++      fields: [characterCapabilities.characterId],
++      references: [character.id],
++    }),
++  }),
++)
++
++export const characterI18nRelations = relations(
++  characterI18n,
++  ({ one }) => ({
++    character: one(character, {
++      fields: [characterI18n.characterId],
++      references: [character.id],
++    }),
++  }),
++)
++
++export const characterPromptsRelations = relations(
++  characterPrompts,
++  ({ one }) => ({
++    character: one(character, {
++      fields: [characterPrompts.characterId],
++      references: [character.id],
++    }),
++  }),
++)
+diff --git a/apps/server/src/schemas/chats.ts b/apps/server/src/schemas/chats.ts
+new file mode 100644
+index 00000000..aacc6795
+--- /dev/null
++++ b/apps/server/src/schemas/chats.ts
+@@ -0,0 +1,81 @@
++import { integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
++
++import { user } from './accounts'
++
++export const media = pgTable(
++  'media',
++  {
++    id: text('id').primaryKey(),
++    url: text('url').notNull(),
++    mimeType: text('mime_type').notNull(),
++    size: integer('size').notNull(),
++    createdAt: timestamp('created_at').defaultNow().notNull(),
++    updatedAt: timestamp('updated_at').defaultNow().notNull(),
++  },
++)
++
++export const stickers = pgTable(
++  'stickers',
++  {
++    id: text('id').primaryKey(),
++    url: text('url').notNull(),
++    createdAt: timestamp('created_at').defaultNow().notNull(),
++    updatedAt: timestamp('updated_at').defaultNow().notNull(),
++  },
++)
++
++export const stickerPacks = pgTable(
++  'sticker_packs',
++  {
++    id: text('id').primaryKey(),
++    name: text('name').notNull(),
++    description: text('description').notNull(),
++    createdAt: timestamp('created_at').defaultNow().notNull(),
++    updatedAt: timestamp('updated_at').defaultNow().notNull(),
++  },
++)
++
++type ChatType = 'private' | 'bot' | 'group' | 'channel'
++
++export const chats = pgTable(
++  'chats',
++  {
++    id: text('id').primaryKey(),
++
++    type: text('type').notNull().$type<ChatType>(),
++
++    createdAt: timestamp('created_at').defaultNow().notNull(),
++    updatedAt: timestamp('updated_at').defaultNow().notNull(),
++    deletedAt: timestamp('deleted_at'),
++  },
++)
++
++export const chatMembers = pgTable(
++  'chat_members',
++  {
++    id: text('id').primaryKey(),
++    chatId: text('chat_id').notNull().references(() => chats.id, { onDelete: 'cascade' }),
++    userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
++  },
++)
++
++export const messages = pgTable(
++  'messages',
++  {
++    id: text('id').primaryKey(),
++
++    chatId: text('chat_id').notNull().references(() => chats.id, { onDelete: 'cascade' }),
++    senderId: text('sender_id').notNull(),
++
++    content: text('content').notNull(),
++    mediaIds: text('media_ids').array().notNull(),
++    stickerIds: text('sticker_ids').array().notNull(),
++
++    replyToMessageId: text('reply_message_id'),
++    forwardFromMessageId: text('forward_from_message_id'),
++
++    createdAt: timestamp('created_at').defaultNow().notNull(),
++    updatedAt: timestamp('updated_at').defaultNow().notNull(),
++    deletedAt: timestamp('deleted_at'),
++  },
++)
+diff --git a/apps/server/src/schemas/index.ts b/apps/server/src/schemas/index.ts
+new file mode 100644
+index 00000000..bfc7adba
+--- /dev/null
++++ b/apps/server/src/schemas/index.ts
+@@ -0,0 +1,3 @@
++export * from './accounts'
++export * from './characters'
++export * from './chats'
+diff --git a/apps/server/src/services/auth.ts b/apps/server/src/services/auth.ts
+index 9f172d68..5b370d15 100644
+--- a/apps/server/src/services/auth.ts
++++ b/apps/server/src/services/auth.ts
+@@ -7,7 +7,7 @@ import { betterAuth } from 'better-auth'
+ import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+ import { bearer } from 'better-auth/plugins'
+
+-import * as authSchema from '../schemas/auth'
++import * as authSchema from '../schemas/accounts'
+
+ export function createAuth(db: Database, env: Env) {
+   return betterAuth({
+diff --git a/apps/server/src/services/characters.test.ts b/apps/server/src/services/characters.test.ts
+new file mode 100644
+index 00000000..b47b6a33
+--- /dev/null
++++ b/apps/server/src/services/characters.test.ts
+@@ -0,0 +1,156 @@
++import { beforeEach, describe, expect, it, vi } from 'vitest'
++
++import { createCharacterService } from './characters'
++
++import * as schema from '../schemas/characters'
++
++describe('characterService', () => {
++  let db: any
++  let service: ReturnType<typeof createCharacterService>
++
++  beforeEach(() => {
++    db = {
++      query: {
++        character: {
++          findFirst: vi.fn(),
++          findMany: vi.fn(),
++        },
++      },
++      insert: vi.fn(() => ({
++        values: vi.fn(() => ({
++          returning: vi.fn(),
++        })),
++      })),
++      update: vi.fn(() => ({
++        set: vi.fn(() => ({
++          where: vi.fn(() => ({
++            returning: vi.fn(),
++          })),
++        })),
++      })),
++      delete: vi.fn(() => ({
++        where: vi.fn(() => ({
++          returning: vi.fn(),
++        })),
++      })),
++      transaction: vi.fn(async (cb: any) => {
++        const tx = {
++          insert: vi.fn(() => ({
++            values: vi.fn(() => ({
++              returning: vi.fn(),
++            })),
++          })),
++        }
++        return await cb(tx)
++      }),
++    }
++    service = createCharacterService(db)
++  })
++
++  it('findById should return a character with relations', async () => {
++    const mockChar = { id: '1', name: 'Test' }
++    db.query.character.findFirst.mockResolvedValue(mockChar)
++
++    const result = await service.findById('1')
++    expect(result).toEqual(mockChar)
++    expect(db.query.character.findFirst).toHaveBeenCalledWith(expect.objectContaining({
++      where: expect.any(Object),
++      with: {
++        capabilities: true,
++        avatarModels: true,
++        i18n: true,
++        prompts: true,
++      },
++    }))
++  })
++
++  it('findByOwnerId should return user characters', async () => {
++    const mockChars = [{ id: '1' }]
++    db.query.character.findMany.mockResolvedValue(mockChars)
++
++    const result = await service.findByOwnerId('user-1')
++    expect(result).toEqual(mockChars)
++    expect(db.query.character.findMany).toHaveBeenCalledWith(expect.objectContaining({
++      where: expect.any(Object),
++      with: { i18n: true },
++    }))
++  })
++
++  it('create should handle full character creation in transaction', async () => {
++    const characterData = { id: 'char-1', name: 'Test' } as any
++    const insertedChar = { id: 'char-1' }
++
++    db.transaction.mockImplementation(async (cb: any) => {
++      const tx = {
++        insert: vi.fn(() => ({
++          values: vi.fn(() => ({
++            returning: vi.fn().mockResolvedValue([insertedChar]),
++          })),
++        })),
++      }
++      return await cb(tx)
++    })
++
++    const result = await service.create({
++      character: characterData,
++      capabilities: [{ id: 'cap-1', type: 'llm', config: {} } as any],
++    })
++
++    expect(result).toEqual(insertedChar)
++    expect(db.transaction).toHaveBeenCalled()
++  })
++
++  it('create should handle all optional relations', async () => {
++    const characterData = { id: 'char-1' } as any
++    const insertedChar = { id: 'char-1' }
++
++    db.transaction.mockImplementation(async (cb: any) => {
++      const tx = {
++        insert: vi.fn(() => ({
++          values: vi.fn(() => ({
++            returning: vi.fn().mockResolvedValue([insertedChar]),
++          })),
++        })),
++      }
++      return await cb(tx)
++    })
++
++    await service.create({
++      character: characterData,
++      avatarModels: [{ id: 'am-1' } as any],
++      i18n: [{ id: 'i18n-1' } as any],
++      prompts: [{ id: 'p-1' } as any],
++    })
++
++    expect(db.transaction).toHaveBeenCalled()
++  })
++
++  it('update should update character and updatedAt', async () => {
++    const updateData = { version: '2.0' }
++    const mockReturning = [{ id: '1', ...updateData }]
++
++    // Setup nested mocks for update chain
++    const returningMock = vi.fn().mockResolvedValue(mockReturning)
++    const whereMock = vi.fn(() => ({ returning: returningMock }))
++    const setMock = vi.fn(() => ({ where: whereMock }))
++    db.update.mockReturnValue({ set: setMock })
++
++    const result = await service.update('1', updateData)
++    expect(result).toEqual(mockReturning)
++    expect(setMock).toHaveBeenCalledWith(expect.objectContaining({
++      ...updateData,
++      updatedAt: expect.any(Date),
++    }))
++  })
++
++  it('delete should remove character', async () => {
++    const mockReturning = [{ id: '1' }]
++    const returningMock = vi.fn().mockResolvedValue(mockReturning)
++    const whereMock = vi.fn(() => ({ returning: returningMock }))
++    db.delete.mockReturnValue({ where: whereMock })
++
++    const result = await service.delete('1')
++    expect(result).toEqual(mockReturning)
++    expect(db.delete).toHaveBeenCalledWith(schema.character)
++  })
++})
+diff --git a/apps/server/src/services/characters.ts b/apps/server/src/services/characters.ts
+new file mode 100644
+index 00000000..2207c816
+--- /dev/null
++++ b/apps/server/src/services/characters.ts
+@@ -0,0 +1,84 @@
++import type * as fullSchema from '../schemas'
++import type { Database } from './db'
++
++import { eq } from 'drizzle-orm'
++
++import * as schema from '../schemas/characters'
++
++export function createCharacterService(db: Database<typeof fullSchema>) {
++  return {
++    async findById(id: string) {
++      return await db.query.character.findFirst({
++        where: eq(schema.character.id, id),
++        with: {
++          capabilities: true,
++          avatarModels: true,
++          i18n: true,
++          prompts: true,
++        },
++      })
++    },
++
++    async findByOwnerId(ownerId: string) {
++      return await db.query.character.findMany({
++        where: eq(schema.character.ownerId, ownerId),
++        with: {
++          i18n: true,
++        },
++      })
++    },
++
++    async create(data: {
++      character: schema.NewCharacter
++      capabilities?: Omit<schema.NewCharacterCapability, 'characterId'>[]
++      avatarModels?: Omit<schema.NewAvatarModel, 'characterId'>[]
++      i18n?: Omit<schema.NewCharacterI18n, 'characterId'>[]
++      prompts?: Omit<schema.NewCharacterPrompt, 'characterId'>[]
++    }) {
++      return await db.transaction(async (tx) => {
++        const [inserted] = await tx.insert(schema.character).values(data.character).returning()
++
++        if (data.capabilities?.length) {
++          await tx.insert(schema.characterCapabilities).values(
++            data.capabilities.map(c => ({ ...c, characterId: inserted.id }) as schema.NewCharacterCapability),
++          )
++        }
++
++        if (data.avatarModels?.length) {
++          await tx.insert(schema.avatarModel).values(
++            data.avatarModels.map(a => ({ ...a, characterId: inserted.id }) as schema.NewAvatarModel),
++          )
++        }
++
++        if (data.i18n?.length) {
++          await tx.insert(schema.characterI18n).values(
++            data.i18n.map(i => ({ ...i, characterId: inserted.id }) as schema.NewCharacterI18n),
++          )
++        }
++
++        if (data.prompts?.length) {
++          await tx.insert(schema.characterPrompts).values(
++            data.prompts.map(p => ({ ...p, characterId: inserted.id }) as schema.NewCharacterPrompt),
++          )
++        }
++
++        return inserted
++      })
++    },
++
++    async update(id: string, data: Partial<schema.NewCharacter>) {
++      return await db.update(schema.character)
++        .set({ ...data, updatedAt: new Date() })
++        .where(eq(schema.character.id, id))
++        .returning()
++    },
++
++    async delete(id: string) {
++      return await db.delete(schema.character)
++        .where(eq(schema.character.id, id))
++        .returning()
++    },
++  }
++}
++
++export type CharacterService = ReturnType<typeof createCharacterService>
+diff --git a/apps/server/src/services/db.ts b/apps/server/src/services/db.ts
+index 2800f40d..66dba9f9 100644
+--- a/apps/server/src/services/db.ts
++++ b/apps/server/src/services/db.ts
+@@ -2,8 +2,8 @@ import postgres from 'postgres'
+
+ import { drizzle } from 'drizzle-orm/postgres-js'
+
+-export type Database = ReturnType<typeof createDrizzle>
++export type Database<TSchema extends Record<string, unknown> = Record<string, unknown>> = ReturnType<typeof createDrizzle<TSchema>>
+
+-export function createDrizzle(dsn: string) {
+-  return drizzle(postgres(dsn))
++export function createDrizzle<TSchema extends Record<string, unknown>>(dsn: string, schema?: TSchema) {
++  return drizzle(postgres(dsn), { schema })
+ }
+diff --git a/apps/server/src/types/character-avatar-model.ts b/apps/server/src/types/character-avatar-model.ts
+new file mode 100644
+index 00000000..0e8e3bf9
+--- /dev/null
++++ b/apps/server/src/types/character-avatar-model.ts
+@@ -0,0 +1,9 @@
++// TODO: Implement the config for the avatar model
++export interface AvatarModelConfig {
++  vrm: {
++    urls: string[]
++  }
++  live2d: {
++    urls: string[]
++  }
++}
+diff --git a/apps/server/src/types/character-capability.ts b/apps/server/src/types/character-capability.ts
+new file mode 100644
+index 00000000..94adf78c
+--- /dev/null
++++ b/apps/server/src/types/character-capability.ts
+@@ -0,0 +1,24 @@
++interface CharacterCapabilityBaseConfig {
++  apiKey: string
++  apiBaseUrl: string
++}
++
++// TODO: Implement the config for the character capability
++export interface CharacterCapabilityConfig extends CharacterCapabilityBaseConfig {
++  llm: {
++    temperature: number
++    model: string
++  }
++  tts: {
++    ssml: string
++    voiceId: string
++    speed: number
++    pitch: number
++  }
++  vlm: {
++    image: string
++  }
++  asr: {
++    audio: string
++  }
++}
+diff --git a/apps/server/src/types/hono.ts b/apps/server/src/types/hono.ts
+new file mode 100644
+index 00000000..cc20e9dc
+--- /dev/null
++++ b/apps/server/src/types/hono.ts
+@@ -0,0 +1,8 @@
++import type auth from '../scripts/auth'
++
++export interface HonoEnv {
++  Variables: {
++    user: typeof auth.$Infer.Session.user | null
++    session: typeof auth.$Infer.Session.session | null
++  }
++}
+diff --git a/apps/server/src/utils/error.ts b/apps/server/src/utils/error.ts
+new file mode 100644
+index 00000000..92f16844
+--- /dev/null
++++ b/apps/server/src/utils/error.ts
+@@ -0,0 +1,55 @@
++import type { ContentfulStatusCode } from 'hono/utils/http-status'
++
++export class ApiError extends Error {
++  constructor(
++    public readonly statusCode: ContentfulStatusCode,
++    public readonly errorCode: string,
++    message: string,
++    public readonly details?: unknown,
++  ) {
++    super(message)
++    this.name = 'ApiError'
++  }
++}
++
++/**
++ * Creates an internal server error (500)
++ */
++export function createInternalError(message = 'Internal Server Error', details?: unknown) {
++  return new ApiError(500, 'INTERNAL_SERVER_ERROR', message, details)
++}
++
++/**
++ * Creates a bad request error (400)
++ */
++export function createBadRequestError(message: string, errorCode = 'BAD_REQUEST', details?: unknown) {
++  return new ApiError(400, errorCode, message, details)
++}
++
++/**
++ * Creates an unauthorized error (401)
++ */
++export function createUnauthorizedError(message = 'Unauthorized', details?: unknown) {
++  return new ApiError(401, 'UNAUTHORIZED', message, details)
++}
++
++/**
++ * Creates a forbidden error (403)
++ */
++export function createForbiddenError(message = 'Forbidden', details?: unknown) {
++  return new ApiError(403, 'FORBIDDEN', message, details)
++}
++
++/**
++ * Creates a not found error (404)
++ */
++export function createNotFoundError(message = 'Not Found', details?: unknown) {
++  return new ApiError(404, 'NOT_FOUND', message, details)
++}
++
++/**
++ * Creates a conflict error (409)
++ */
++export function createConflictError(message: string, details?: unknown) {
++  return new ApiError(409, 'CONFLICT', message, details)
++}
+diff --git a/apps/server/vitest.config.ts b/apps/server/vitest.config.ts
+new file mode 100644
+index 00000000..9e551b73
+--- /dev/null
++++ b/apps/server/vitest.config.ts
+@@ -0,0 +1,21 @@
++import { defineConfig } from 'vitest/config'
++
++export default defineConfig({
++  test: {
++    environment: 'node',
++    globals: true,
++    coverage: {
++      provider: 'v8',
++      include: [
++        'src/**/*.ts',
++      ],
++      reporter: ['text', 'json', 'html'],
++      thresholds: {
++        lines: 100,
++        functions: 100,
++        branches: 100,
++        statements: 100,
++      },
++    },
++  },
++})
+diff --git a/cspell.config.yaml b/cspell.config.yaml
+index a5d541d0..4fe70744 100644
+--- a/cspell.config.yaml
++++ b/cspell.config.yaml
+@@ -295,6 +295,7 @@ words:
+   - vllm
+   - Volcengine
+   - vrma
++  - vrms
+   - vtuber
+   - vueuse
+   - waapi
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index 3f5a7d6d..4176c530 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -81,11 +81,14 @@ catalogs:
+     builder-util-runtime:
+       specifier: ^9.3.1
+       version: 9.3.1
++    drizzle-valibot:
++      specifier: ^0.4.2
++      version: 0.4.2
+     embla-carousel-vue:
+       specifier: ^8.6.0
+       version: 8.6.0
+     es-toolkit:
+-      specifier: 1.43.0
++      specifier: ^1.43.0
+       version: 1.43.0
+     injeca:
+       specifier: ^0.1.5
+@@ -115,7 +118,7 @@ catalogs:
+       specifier: ^0.1.3
+       version: 0.1.3
+     unplugin-info:
+-      specifier: 1.2.4
++      specifier: ^1.2.4
+       version: 1.2.4
+     valibot:
+       specifier: ^1.2.0
+@@ -366,6 +369,9 @@ importers:
+       drizzle-orm:
+         specifier: ^0.44.7
+         version: 0.44.7(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7)
++      drizzle-valibot:
++        specifier: 'catalog:'
++        version: 0.4.2(drizzle-orm@0.44.7(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7))(valibot@1.2.0(typescript@5.9.3))
+       hono:
+         specifier: ^4.10.7
+         version: 4.11.3
+@@ -2909,7 +2915,7 @@ importers:
+         specifier: 'catalog:'
+         version: 0.1.0-beta.14
+       '@napi-rs/image':
+-        specifier: ^1.12.0
++        specifier: ^1.9.1
+         version: 1.12.0
+       '@opentelemetry/api':
+         specifier: ^1.9.0
+@@ -10320,6 +10326,12 @@ packages:
+       sqlite3:
+         optional: true
+
++  drizzle-valibot@0.4.2:
++    resolution: {integrity: sha512-tzjT7g0Di/HX7426marIy8IDtWODjPgrwvgscdevLQRUe5rzYzRhx6bDsYLdDFF9VI/eaYgnjNeF/fznWJoUjg==}
++    peerDependencies:
++      drizzle-orm: '>=0.36.0'
++      valibot: '>=1.0.0-beta.7'
++
+   dts-resolver@2.1.3:
+     resolution: {integrity: sha512-bihc7jPC90VrosXNzK0LTE2cuLP6jr0Ro8jk+kMugHReJVLIpHz/xadeq3MhuwyO4TD4OA3L1Q8pBBFRc08Tsw==}
+     engines: {node: '>=20.19.0'}
+@@ -24141,6 +24153,11 @@ snapshots:
+       pg: 8.16.3
+       postgres: 3.4.7
+
++  drizzle-valibot@0.4.2(drizzle-orm@0.44.7(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7))(valibot@1.2.0(typescript@5.9.3)):
++    dependencies:
++      drizzle-orm: 0.44.7(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7)
++      valibot: 1.2.0(typescript@5.9.3)
++
+   dts-resolver@2.1.3(oxc-resolver@11.16.2):
+     optionalDependencies:
+       oxc-resolver: 11.16.2
+diff --git a/pnpm-workspace.yaml b/pnpm-workspace.yaml
+index 6fb96f08..9ee6ccc8 100644
+--- a/pnpm-workspace.yaml
++++ b/pnpm-workspace.yaml
+@@ -1,3 +1,7 @@
++catalogMode: prefer
++
++shellEmulator: true
++
+ packages:
+   - packages/**
+   - plugins/**
+@@ -34,8 +38,9 @@ catalog:
+   '@xsai/tool': ^0.4.0-beta.13
+   '@xsai/utils-chat': 0.4.0-beta.13
+   builder-util-runtime: ^9.3.1
++  drizzle-valibot: ^0.4.2
+   embla-carousel-vue: ^8.6.0
+-  es-toolkit: 1.43.0
++  es-toolkit: ^1.43.0
+   injeca: ^0.1.5
+   is-network-error: ^1.3.0
+   nano-staged: ^0.9.0
+@@ -45,14 +50,12 @@ catalog:
+   splitpanes: ^4.0.4
+   tsx: ^4.21.0
+   uncrypto: ^0.1.3
+-  unplugin-info: 1.2.4
+   vite-plugin-mkcert: ^1.17.9
++  unplugin-info: ^1.2.4
+   valibot: ^1.2.0
+   xsschema: ^0.4.0-beta.12
+   zod: ^4.2.1
+
+-catalogMode: prefer
+-
+ catalogs:
+   rolldown-vite:
+     vite: npm:rolldown-vite@^7.3.0
+@@ -98,5 +101,3 @@ overrides:
+
+ patchedDependencies:
+   srvx@0.9.8: patches/srvx@0.9.8.patch
+-
+-shellEmulator: true
+diff --git a/services/telegram-bot/package.json b/services/telegram-bot/package.json
+index 228f2d57..a18ccb1f 100644
+--- a/services/telegram-bot/package.json
++++ b/services/telegram-bot/package.json
+@@ -27,7 +27,7 @@
+     "@grammyjs/files": "^1.2.0",
+     "@guiiai/logg": "catalog:",
+     "@moeru/std": "catalog:",
+-    "@napi-rs/image": "^1.12.0",
++    "@napi-rs/image": "^1.9.1",
+     "@opentelemetry/api": "^1.9.0",
+     "@opentelemetry/auto-instrumentations-node": "^0.67.3",
+     "@opentelemetry/exporter-metrics-otlp-proto": "^0.208.0",
+diff --git a/vitest.config.ts b/vitest.config.ts
+index 442caf8e..ba53730b 100644
+--- a/vitest.config.ts
++++ b/vitest.config.ts
+@@ -3,6 +3,7 @@ import { defineConfig } from 'vitest/config'
+ export default defineConfig({
+   test: {
+     projects: [
++      'apps/server',
+       'packages/stage-ui',
+       'packages/vite-plugin-warpdrive',
+       'packages/audio-pipelines-transcribe',

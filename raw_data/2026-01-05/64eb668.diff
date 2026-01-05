@@ -1,0 +1,19 @@
+commit 64eb6682485e39759134caaeab32b94884579aa3
+Author: Neko Ayaka <neko@ayaka.moe>
+Date:   Sun Jan 4 23:08:40 2026 +0800
+
+    fix(docs): should count any range between Jan & Dec
+
+diff --git a/docs/.vitepress/composables/date.ts b/docs/.vitepress/composables/date.ts
+index 83d0637e..2122bac1 100644
+--- a/docs/.vitepress/composables/date.ts
++++ b/docs/.vitepress/composables/date.ts
+@@ -11,7 +11,7 @@ export function isBetweenHalloweenAndHalfOfNovember(date: Date) {
+ export function isBetweenChristmasAndHalfOfJanuary(date: Date) {
+   const year = date.getFullYear()
+   const christmas = new Date(year, 11, 20) // December 20
+-  const halfOfJanuary = new Date(year + 1, 0, 10) // January 10 of the next year
++  const halfOfJanuary = new Date(year, 0, 10) // January 10 of the next year
+
+   return isAfter(date, christmas) && isBefore(date, halfOfJanuary)
+ }

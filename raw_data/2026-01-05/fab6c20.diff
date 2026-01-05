@@ -1,0 +1,95 @@
+commit fab6c201cd3738bc826a09ae4a34eb912240b483
+Author: Neko Ayaka <neko@ayaka.moe>
+Date:   Tue Dec 30 02:52:43 2025 +0800
+
+    fix(server,stage-web): auth & rename
+
+diff --git a/apps/server/package.json b/apps/server/package.json
+index 813a8ac7..a411bfcf 100644
+--- a/apps/server/package.json
++++ b/apps/server/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "@proj-airi/api-server",
++  "name": "@proj-airi/server",
+   "type": "module",
+   "version": "0.0.1",
+   "private": true,
+diff --git a/apps/stage-web/src/composables/api.ts b/apps/stage-web/src/composables/api.ts
+index 3591e22b..83f87013 100644
+--- a/apps/stage-web/src/composables/api.ts
++++ b/apps/stage-web/src/composables/api.ts
+@@ -2,10 +2,10 @@ import type { AppType } from '../../../server/src/app'
+
+ import { hc } from 'hono/client'
+
++import { SERVER_URL } from '../libs/auth'
+ import { useAuthStore } from '../stores/auth'
+-import { API_SERVER_URL } from './auth'
+
+-export const client = hc<AppType>(API_SERVER_URL, {
++export const client = hc<AppType>(SERVER_URL, {
+   fetch: (input: RequestInfo | URL, init?: RequestInit) => {
+     const authStore = useAuthStore()
+     const headers = new Headers(init?.headers)
+diff --git a/apps/stage-web/src/composables/auth.ts b/apps/stage-web/src/libs/auth.ts
+similarity index 88%
+rename from apps/stage-web/src/composables/auth.ts
+rename to apps/stage-web/src/libs/auth.ts
+index 606b6d98..1f513b0b 100644
+--- a/apps/stage-web/src/composables/auth.ts
++++ b/apps/stage-web/src/libs/auth.ts
+@@ -2,12 +2,12 @@ import { createAuthClient } from 'better-auth/vue'
+
+ import { useAuthStore } from '../stores/auth'
+
+-export const API_SERVER_URL = import.meta.env.VITE_SERVER_URL || 'https://airi-api.moeru.ai'
++export const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'https://airi-api.moeru.ai'
+
+ const authStore = useAuthStore()
+
+ export const authClient = createAuthClient({
+-  baseURL: API_SERVER_URL,
++  baseURL: SERVER_URL,
+
+   credentials: 'include',
+   fetchOptions: {
+diff --git a/apps/stage-web/src/pages/auth/login.vue b/apps/stage-web/src/pages/auth/login.vue
+index 36fc0711..d1aadfdb 100644
+--- a/apps/stage-web/src/pages/auth/login.vue
++++ b/apps/stage-web/src/pages/auth/login.vue
+@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue'
+ import { useRouter } from 'vue-router'
+ import { toast } from 'vue-sonner'
+
+-import { authClient, fetchSession } from '../../composables/auth'
++import { authClient, fetchSession } from '../../libs/auth'
+ import { useAuthStore } from '../../stores/auth'
+
+ const router = useRouter()
+diff --git a/apps/stage-web/src/pages/index.vue b/apps/stage-web/src/pages/index.vue
+index 1d2b5d6c..81158198 100644
+--- a/apps/stage-web/src/pages/index.vue
++++ b/apps/stage-web/src/pages/index.vue
+@@ -23,7 +23,7 @@ import { breakpointsTailwind, useBreakpoints, useMouse } from '@vueuse/core'
+ import { storeToRefs } from 'pinia'
+ import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue'
+
+-import { fetchSession } from '../composables/auth'
++import { fetchSession } from '../libs/auth'
+
+ const paused = ref(false)
+
+diff --git a/packages/stage-layouts/src/components/Layouts/HeaderAvatar.vue b/packages/stage-layouts/src/components/Layouts/HeaderAvatar.vue
+index 3fa446b4..2abe0a63 100644
+--- a/packages/stage-layouts/src/components/Layouts/HeaderAvatar.vue
++++ b/packages/stage-layouts/src/components/Layouts/HeaderAvatar.vue
+@@ -5,7 +5,7 @@ import { computed, ref } from 'vue'
+ import { RouterLink } from 'vue-router'
+ import { toast } from 'vue-sonner'
+
+-import { listSessions, signOut } from '../../composables/auth'
++import { listSessions, signOut } from '../../libs/auth'
+ import { useAuthStore } from '../../stores/auth'
+
+ const authStore = useAuthStore()

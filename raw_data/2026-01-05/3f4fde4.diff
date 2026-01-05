@@ -1,0 +1,720 @@
+commit 3f4fde48648b11e0f3bb87d7720b3a6b6a9cc1cf
+Author: Neko Ayaka <neko@ayaka.moe>
+Date:   Mon Jan 5 14:33:40 2026 +0800
+
+    feat(stage-pages,stage-ui,ui): character list for v2
+
+diff --git a/apps/stage-web/package.json b/apps/stage-web/package.json
+index 0ef719ea..15ba6ff4 100644
+--- a/apps/stage-web/package.json
++++ b/apps/stage-web/package.json
+@@ -98,12 +98,14 @@
+   "devDependencies": {
+     "@iconify-json/carbon": "^1.2.15",
+     "@iconify-json/eos-icons": "^1.2.4",
++    "@iconify-json/logos": "catalog:",
+     "@iconify-json/lucide": "^1.2.82",
+     "@iconify-json/mingcute": "^1.2.6",
+     "@iconify-json/ph": "^1.2.2",
+     "@iconify-json/simple-icons": "^1.2.63",
+     "@iconify-json/solar": "^1.2.5",
+     "@iconify-json/svg-spinners": "^1.2.4",
++    "@iconify-json/tabler": "catalog:",
+     "@iconify-json/vscode-icons": "^1.2.37",
+     "@intlify/unplugin-vue-i18n": "^11.0.1",
+     "@proj-airi/lobe-icons": "^1.0.18",
+diff --git a/packages/stage-pages/src/pages/v2/index.vue b/packages/stage-pages/src/pages/v2/index.vue
+new file mode 100644
+index 00000000..62cf8598
+--- /dev/null
++++ b/packages/stage-pages/src/pages/v2/index.vue
+@@ -0,0 +1,372 @@
++<script setup lang="ts">
++import { Button } from '@proj-airi/ui'
++
++const coverImage = new URL('../../../../stage-ui/src/components/menu/relu.avif', import.meta.url).href
++const characterWithBackgroundBackgroundImage = new URL('../../../../../docs/.vitepress/assets/home-cover-2025-12-24-bg.avif', import.meta.url).href
++const characterWithBackgroundAvatar = new URL('../../../../../docs/.vitepress/assets/home-cover-2025-12-24.avif', import.meta.url).href
++const characterAvatarImage = new URL('../../../../stage-ui/src/assets/live2d/models/hiyori/preview.png', import.meta.url).href
++
++function formatCount(value: number) {
++  const units = [
++    { suffix: 'Q', value: 1_000_000_000_000_000 },
++    { suffix: 'T', value: 1_000_000_000_000 },
++    { suffix: 'B', value: 1_000_000_000 },
++    { suffix: 'M', value: 1_000_000 },
++    { suffix: 'K', value: 1_000 },
++  ]
++
++  for (const unit of units) {
++    if (value >= unit.value) {
++      const scaled = value / unit.value
++      const digits = scaled >= 10 ? 0 : 1
++      return `${scaled.toFixed(digits)}${unit.suffix}`
++    }
++  }
++
++  return value.toString()
++}
++
++const characters = [
++  {
++    id: 'nyx-001',
++    name: 'Aster Nyx',
++    tagline: 'Solar striker with a radiant core.',
++    creator: 'Kara Lin',
++    creatorRole: 'Concept Artist',
++    avatarUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80',
++    characterAvatarUrl: characterWithBackgroundAvatar,
++    coverUrl: characterWithBackgroundAvatar,
++    coverBackgroundUrl: characterWithBackgroundBackgroundImage,
++    usedBy: 24891,
++    interactions: 482000,
++    likes: 94000,
++    bookmarks: 12000,
++    forks: 1840,
++    liked: true,
++    bookmarked: false,
++    priceCredit: 49,
++    accent: {
++      ring: 'ring-amber-400/60',
++      chip: 'bg-amber-400/20 text-amber-100',
++      glow: 'bg-amber-400/20',
++      text: 'text-amber-200',
++    },
++  },
++  {
++    id: 'vale-008',
++    name: 'Mira Vale',
++    tagline: 'Glacial tactician who remains calm under pressure, analyzing every battlefield with precision and executing strategies that turn the tide of combat through calculated frost manipulation.',
++    creator: 'Evan Wu',
++    creatorRole: 'Gameplay Designer',
++    avatarUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=200&q=80',
++    characterAvatarUrl: characterAvatarImage,
++    coverUrl: coverImage,
++    usedBy: 17210,
++    interactions: 361000,
++    likes: 68300,
++    bookmarks: 9200,
++    forks: 1320,
++    liked: false,
++    bookmarked: true,
++    priceCredit: 0,
++    accent: {
++      ring: 'ring-cyan-400/60',
++      chip: 'bg-cyan-400/20 text-cyan-100',
++      glow: 'bg-cyan-400/20',
++      text: 'text-cyan-200',
++    },
++  },
++  {
++    id: 'sable-014',
++    name: 'Rook Sable',
++    tagline: 'Umbral runner who moves before you blink.',
++    creator: 'Nina Park',
++    creatorRole: 'Rigger',
++    avatarUrl: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&w=200&q=80',
++    characterAvatarUrl: characterAvatarImage,
++    coverUrl: coverImage,
++    usedBy: 31400,
++    interactions: 509500,
++    likes: 118200,
++    bookmarks: 19200,
++    forks: 2650,
++    liked: true,
++    bookmarked: true,
++    priceCredit: 49,
++    accent: {
++      ring: 'ring-fuchsia-400/60',
++      chip: 'bg-fuchsia-400/20 text-fuchsia-100',
++      glow: 'bg-fuchsia-400/20',
++      text: 'text-fuchsia-200',
++    },
++  },
++  {
++    id: 'sol-021',
++    name: 'Iri Sol',
++    tagline: 'Storm weaver with precision control.',
++    creator: 'Daisuke Ito',
++    creatorRole: 'Tech Artist',
++    avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80',
++    characterAvatarUrl: characterAvatarImage,
++    coverUrl: coverImage,
++    usedBy: 20980000000000000,
++    interactions: 2984000000000000,
++    likes: 64300,
++    bookmarks: 870000000,
++    forks: 1150,
++    liked: false,
++    bookmarked: false,
++    priceCredit: 49,
++    accent: {
++      ring: 'ring-sky-400/60',
++      chip: 'bg-sky-400/20 text-sky-100',
++      glow: 'bg-sky-400/20',
++      text: 'text-sky-200',
++    },
++  },
++  {
++    id: 'rin-034',
++    name: 'Kael Rin of the Earthbound Vanguard',
++    tagline: 'Terra guardian, resilient and steady.',
++    creator: 'Mara Voss',
++    creatorRole: 'Animator',
++    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
++    characterAvatarUrl: characterAvatarImage,
++    coverUrl: coverImage,
++    usedBy: 15860,
++    interactions: 244200,
++    likes: 51400,
++    bookmarks: 6900,
++    forks: 940,
++    liked: false,
++    bookmarked: true,
++    priceCredit: 49,
++    accent: {
++      ring: 'ring-emerald-400/60',
++      chip: 'bg-emerald-400/20 text-emerald-100',
++      glow: 'bg-emerald-400/20',
++      text: 'text-emerald-200',
++    },
++  },
++  {
++    id: 'lux-047',
++    name: 'Nova Lux',
++    tagline: 'Astral support, lifts the whole squad.',
++    creator: 'Yuki Tan',
++    creatorRole: 'Illustrator',
++    avatarUrl: 'https://images.unsplash.com/photo-1525134479668-1bee5c7c6845?auto=format&fit=crop&w=200&q=80',
++    characterAvatarUrl: characterAvatarImage,
++    coverUrl: coverImage,
++    usedBy: 11420,
++    interactions: 189000,
++    likes: 40200,
++    bookmarks: 5400,
++    forks: 680,
++    liked: true,
++    bookmarked: false,
++    priceCredit: 49,
++    accent: {
++      ring: 'ring-rose-400/60',
++      chip: 'bg-rose-400/20 text-rose-100',
++      glow: 'bg-rose-400/20',
++      text: 'text-rose-200',
++    },
++  },
++]
++</script>
++
++<template>
++  <div :class="['min-h-screen w-full']">
++    <div>
++      <div :class="['mt-10 grid gap-6', 'sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5']">
++        <article
++          v-for="character in characters"
++          :key="character.id"
++          :class="[
++            'group relative rounded-3xl overflow-hidden',
++            'shadow-sm',
++            '[&_.character-card-buttons-more]:opacity-0 [&_.character-card-buttons-more]:hover:opacity-100',
++            'aspect-[12/19]',
++          ]"
++        >
++          <div :class="['relative overflow-hidden w-full h-70% rounded-2xl']">
++            <img
++              v-if="character.coverBackgroundUrl"
++              :src="character.coverBackgroundUrl"
++              :alt="character.name"
++              :class="[
++                'absolute inset-0 z-5',
++                'w-full h-full',
++                'object-cover',
++              ]"
++            >
++            <div
++              v-else
++              :class="[
++                'absolute inset-0 z-5',
++                'w-full h-full',
++                'bg-white',
++              ]"
++            />
++            <img
++              :src="character.coverUrl"
++              :alt="character.name"
++              :class="[
++                'absolute left-0 top-0 z-5',
++                'h-full w-full',
++                'object-cover',
++                'transition duration-300 ease-in-out',
++              ]"
++            >
++            <!-- Dropdown -->
++            <button
++              type="button"
++              :class="[
++                'character-card-buttons-more',
++                'absolute right-3 top-3 z-6',
++                'h-7 w-7',
++                'flex items-center justify-center',
++                'rounded-lg backdrop-blur-sm',
++                'text-white',
++                'bg-neutral-900/30 hover:bg-neutral-900/45 active:bg-neutral-900/60',
++                'dark:bg-neutral-950/50 hover:dark:bg-neutral-900/65 active:dark:bg-neutral-900/90',
++                'transition duration-200 ease-in-out',
++              ]"
++              aria-label="Options for character"
++            >
++              <div :class="['i-solar-menu-dots-bold inline-block']" />
++            </button>
++
++            <!-- <div :class="['absolute top-3 left-3 flex justify-end z-8']">
++              <div :class="['flex items-center gap-3', 'rounded-full bg-white/85 px-3 py-1', 'text-[11px] text-primary-600 backdrop-blur']">
++                <div :class="['flex items-center gap-1.5']">
++                  <div :class="['i-solar-download-line-duotone text-sm text-primary-600 inline-block']" />
++                  <span :class="['text-primary-600']">{{ formatCount(character.usedBy) }}</span>
++                </div>
++                <div :class="['flex items-center gap-1.5']">
++                  <div :class="['i-solar-chat-square-arrow-linear text-sm text-primary-600 inline-block']" />
++                  <span :class="['text-primary-600']">{{ formatCount(character.interactions) }}</span>
++                </div>
++              </div>
++            </div> -->
++          </div>
++
++          <div :class="['relative z-7 overflow-hidden h-30%']">
++            <div class="relative z-1 h-full">
++              <div class="relative h-full flex flex-col justify-between gap-2 px-3 pb-3 pt-2">
++                <div :class="['flex items-center justify-between gap-3']">
++                  <div :class="['flex items-center gap-2']">
++                    <img
++                      :src="character.characterAvatarUrl"
++                      :alt="character.name"
++                      :class="['h-7 w-7 rounded-full object-cover']"
++                    >
++                    <div :class="['text-lg font-semibold line-clamp-1']">
++                      {{ character.name }}
++                    </div>
++                  </div>
++                  <button
++                    aria-label="Connect"
++                    :class="[
++                      'px-2 py-1 flex flex-row items-center gap-1',
++                    ]"
++                  >
++                    <div class="flex flex items-center gap-1">
++                      <div i-tabler:coins />
++                      <div :class="['text-xs']">
++                        {{ formatCount(character.priceCredit) }}
++                      </div>
++                    </div>
++                  </button>
++                </div>
++                <div :class="['flex-1 text-xs text-ellipsis text-neutral-500 line-clamp-3 max-h-[3rem] overflow-hidden']">
++                  {{ character.tagline }}
++                </div>
++                <div :class="['grid grid-cols-3 items-center']">
++                  <div :class="['flex items-center justify-start']">
++                    <Button variant="ghost" size="sm" aria-label="Bookmark">
++                      <div
++                        :class="[
++                          character.bookmarked ? 'i-solar-star-bold' : 'i-solar-star-linear',
++                          'text-base inline-block',
++                          character.bookmarked ? 'text-amber-300 dark:text-amber-500' : 'text-neutral-400',
++                        ]"
++                      />
++                      <span
++                        :class="[
++                          'text-xs',
++                          character.bookmarked ? 'text-amber-500 dark:text-amber-300' : 'text-neutral-500',
++                        ]"
++                      >
++                        {{ formatCount(character.bookmarks) }}
++                      </span>
++                    </Button>
++                  </div>
++                  <div :class="['flex items-center justify-center']">
++                    <Button variant="ghost" size="sm" aria-label="Like">
++                      <div
++                        :class="[
++                          character.liked ? 'i-solar-heart-bold' : 'i-solar-heart-outline',
++                          'text-base inline-block',
++                          character.liked ? 'text-rose-500 dark:text-rose-400' : 'text-neutral-400',
++                        ]"
++                      />
++                      <span
++                        :class="[
++                          'text-xs',
++                          character.liked ? 'text-rose-500 dark:text-rose-400' : 'text-neutral-500',
++                        ]"
++                      >
++                        {{ formatCount(character.likes) }}
++                      </span>
++                    </Button>
++                  </div>
++                  <div :class="['flex items-center justify-end']">
++                    <div
++                      :class="[
++                        'flex flex-row items-center gap-1',
++                        'pl-1.5 pr-2 py-1 rounded-full',
++                        'bg-neutral-900/50',
++                      ]"
++                    >
++                      <div
++                        :class="[
++                          'i-ph:plus-bold',
++                          'text-xs inline-block',
++                          'text-neutral-100 dark:text-neutral-900',
++                        ]"
++                      />
++                      <span
++                        :class="[
++                          'text-xs',
++                          'text-neutral-100 dark:text-neutral-900',
++                        ]"
++                      >
++                        Chat
++                      </span>
++                    </div>
++                  </div>
++                </div>
++              </div>
++            </div>
++          </div>
++
++          <div :class="['absolute left-0 top-0 z-0 w-full h-full']">
++            <div :class="['absolute inset-0 z-2 bg-white/70 backdrop-blur-lg w-full h-full']" />
++            <img
++              :src="character.coverUrl"
++              :alt="character.name"
++              :class="[
++                'relative z-1',
++                'h-full w-full',
++                'object-contain',
++                'transition duration-300 ease-in-out',
++                'scale-300 group-hover:scale-350',
++              ]"
++            >
++          </div>
++        </article>
++      </div>
++    </div>
++  </div>
++</template>
+diff --git a/packages/stage-pages/src/pages/v2/settings.vue b/packages/stage-pages/src/pages/v2/settings.vue
+new file mode 100644
+index 00000000..a78fb6fd
+--- /dev/null
++++ b/packages/stage-pages/src/pages/v2/settings.vue
+@@ -0,0 +1,7 @@
++<script setup lang="ts">
++import { RouterView } from 'vue-router'
++</script>
++
++<template>
++  <RouterView />
++</template>
+diff --git a/packages/stage-ui/src/components/menu/CharacterCard.vue b/packages/stage-ui/src/components/menu/CharacterCard.vue
+index c35f106a..f42da8b6 100644
+--- a/packages/stage-ui/src/components/menu/CharacterCard.vue
++++ b/packages/stage-ui/src/components/menu/CharacterCard.vue
+@@ -127,16 +127,15 @@ const cssVars = computed(() => {
+               <div font-jura relative z-3 pb-4 pl-4 pt-2>
+                 <div relative z-4 class="subtitle-text">
+                   <!-- Subtitle section -->
+-                  <div text-base font-semibold>
++                  <!-- <div text-base font-semibold>
+                     <span text-base>{{ subtitle }}</span>
+-                  </div>
++                  </div> -->
+                   <!-- Title section -->
+                   <div
+                     class="title-text"
+-
+-                    font-jura text-6xl font-bold font-italic text-stroke-1
+                     :style="{ paintOrder: 'stroke fill' }"
+                     leading="[0.75]"
++                    font-jura pt-2 text-xl font-bold font-italic text-stroke-1
+                   >
+                     <span>{{ title }}</span>
+                   </div>
+@@ -162,7 +161,7 @@ const cssVars = computed(() => {
+             <div mx-5 h-0.5 rounded-full class="divider" />
+             <!-- Info section -->
+             <div class="description" max-h="[4.5rem]" font-quicksand mx-5 mb-4 mt-2 h-full>
+-              <div h-full text-base>
++              <div h-full text-sm>
+                 {{ description }}
+               </div>
+             </div>
+diff --git a/packages/ui/src/components/Misc/Button.vue b/packages/ui/src/components/Misc/Button.vue
+index 9f22e19c..b2c0947a 100644
+--- a/packages/ui/src/components/Misc/Button.vue
++++ b/packages/ui/src/components/Misc/Button.vue
+@@ -43,6 +43,8 @@ const variantClasses: Record<ButtonVariant, Record<ButtonTheme, {
+   'primary': {
+     default: {
+       default: [
++        'rounded-lg',
++        'backdrop-blur-md',
+         'bg-primary-500/15 hover:bg-primary-500/20 active:bg-primary-500/30 dark:bg-primary-700/30 dark:hover:bg-primary-700/40 dark:active:bg-primary-700/30',
+         'focus:ring-primary-300/60 dark:focus:ring-primary-600/30',
+         'border-2 border-solid border-primary-500/5 dark:border-primary-900/40',
+@@ -54,6 +56,8 @@ const variantClasses: Record<ButtonVariant, Record<ButtonTheme, {
+   'secondary': {
+     default: {
+       default: [
++        'rounded-lg',
++        'backdrop-blur-md',
+         'bg-neutral-100/55 hover:bg-neutral-400/20 active:bg-neutral-400/30 dark:bg-neutral-700/60 dark:hover:bg-neutral-700/80 dark:active:bg-neutral-700/60',
+         'focus:ring-neutral-300/30 dark:focus:ring-neutral-600/60 dark:focus:ring-neutral-600/30',
+         'border-2 border-solid border-neutral-300/30 dark:border-neutral-700/30',
+@@ -65,6 +69,8 @@ const variantClasses: Record<ButtonVariant, Record<ButtonTheme, {
+   'secondary-muted': {
+     default: {
+       default: [
++        'rounded-lg',
++        'backdrop-blur-md',
+         'hover:bg-neutral-50/50 active:bg-neutral-50/90 hover:dark:bg-neutral-800/50 active:dark:bg-neutral-800/90',
+         'border-2 border-solid border-neutral-100/60 dark:border-neutral-800/30',
+         'focus:ring-2 focus:ring-neutral-300/30 dark:focus:ring-neutral-600/60 dark:focus:ring-neutral-600/30',
+@@ -76,6 +82,8 @@ const variantClasses: Record<ButtonVariant, Record<ButtonTheme, {
+   'danger': {
+     default: {
+       default: [
++        'rounded-lg',
++        'backdrop-blur-md',
+         'bg-red-500/15 hover:bg-red-500/20 active:bg-red-500/30 dark:bg-red-700/30 dark:hover:bg-red-700/40 dark:active:bg-red-700/30',
+         'focus:ring-2 focus:ring-red-300/30 dark:focus:ring-red-600/60 dark:focus:ring-red-600/30',
+         'border-2 border-solid border-red-200/30 dark:border-red-900/30',
+@@ -86,6 +94,8 @@ const variantClasses: Record<ButtonVariant, Record<ButtonTheme, {
+   'caution': {
+     default: {
+       default: [
++        'rounded-lg',
++        'backdrop-blur-md',
+         'bg-amber-400/20 hover:bg-amber-400/25 active:bg-amber-400/35 dark:bg-amber-500/20 dark:hover:bg-amber-500/30 dark:active:bg-amber-500/35',
+         'focus:ring-2 focus:ring-amber-300/40 dark:focus:ring-amber-400/40',
+         'border-2 border-solid border-amber-300/40 dark:border-amber-500/40',
+@@ -96,7 +106,7 @@ const variantClasses: Record<ButtonVariant, Record<ButtonTheme, {
+   'ghost': {
+     default: {
+       default: [
+-        'bg-transparent hover:bg-neutral-50/60 active:bg-neutral-100/80 dark:hover:bg-neutral-800/50 dark:active:bg-neutral-700/60',
++        'bg-transparent',
+         'text-neutral-900 dark:text-neutral-50',
+         '!px-0 !py-0',
+       ],
+@@ -113,16 +123,16 @@ const sizeClasses: Record<ButtonSize, string> = {
+
+ // Base classes that are always applied
+ const baseClasses = computed(() => [
+-  'rounded-lg font-medium outline-none',
++  'font-medium outline-none',
+   'transition-all duration-200 ease-in-out',
+   'disabled:cursor-not-allowed disabled:opacity-50',
+-  'backdrop-blur-md',
+   props.block ? 'w-full' : '',
+   sizeClasses[props.size],
+   ...variantClasses[props.variant][props.theme].default,
+-  props.toggled ? variantClasses[props.variant][props.theme].toggled || '' : variantClasses[props.variant][props.theme].nonToggled || '',
+-  { 'opacity-50 cursor-not-allowed': isDisabled.value },
+-
++  props.toggled
++    ? variantClasses[props.variant][props.theme].toggled || ''
++    : variantClasses[props.variant][props.theme].nonToggled || '',
++  isDisabled.value ? 'opacity-50 cursor-not-allowed' : '',
+ ])
+ </script>
+
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index 7ae2325b..3c3f2b03 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -21,6 +21,12 @@ catalogs:
+     '@guiiai/logg':
+       specifier: ^1.2.11
+       version: 1.2.11
++    '@iconify-json/logos':
++      specifier: ^1.2.10
++      version: 1.2.10
++    '@iconify-json/tabler':
++      specifier: ^1.2.26
++      version: 1.2.26
+     '@moeru/eslint-config':
+       specifier: 0.1.0-beta.14
+       version: 0.1.0-beta.14
+@@ -1362,6 +1368,9 @@ importers:
+       '@iconify-json/eos-icons':
+         specifier: ^1.2.4
+         version: 1.2.4
++      '@iconify-json/logos':
++        specifier: 'catalog:'
++        version: 1.2.10
+       '@iconify-json/lucide':
+         specifier: ^1.2.82
+         version: 1.2.82
+@@ -1380,6 +1389,9 @@ importers:
+       '@iconify-json/svg-spinners':
+         specifier: ^1.2.4
+         version: 1.2.4
++      '@iconify-json/tabler':
++        specifier: 'catalog:'
++        version: 1.2.26
+       '@iconify-json/vscode-icons':
+         specifier: ^1.2.37
+         version: 1.2.37
+@@ -2696,7 +2708,7 @@ importers:
+         version: 66.5.11
+       '@wxt-dev/module-vue':
+         specifier: ^1.0.3
+-        version: 1.0.3(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
++        version: 1.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+       vue-tsc:
+         specifier: ^3.1.8
+         version: 3.2.1(typescript@5.9.3)
+@@ -5092,6 +5104,9 @@ packages:
+   '@iconify-json/eos-icons@1.2.4':
+     resolution: {integrity: sha512-gp2BCSF3+aRgMqE7LRAVxT5nXJLOtfcvGnOYwJz4gc4zxcEqAaOByxFVLZej15jXPRJmUv2TSzMNrQ2gDtw4VA==}
+
++  '@iconify-json/logos@1.2.10':
++    resolution: {integrity: sha512-qxaXKJ6fu8jzTMPQdHtNxlfx6tBQ0jXRbHZIYy5Ilh8Lx9US9FsAdzZWUR8MXV8PnWTKGDFO4ZZee9VwerCyMA==}
++
+   '@iconify-json/lucide@1.2.82':
+     resolution: {integrity: sha512-fHZWegspOZonl5GNTvOkHsjnTMdSslFh3EzpzUtRyLxO8bOonqk2OTU3hCl0k4VXzViMjqpRK3X1sotnuBXkFA==}
+
+@@ -5110,6 +5125,9 @@ packages:
+   '@iconify-json/svg-spinners@1.2.4':
+     resolution: {integrity: sha512-ayn0pogFPwJA1WFZpDnoq9/hjDxN+keeCMyThaX4d3gSJ3y0mdKUxIA/b1YXWGtY9wVtZmxwcvOIeEieG4+JNg==}
+
++  '@iconify-json/tabler@1.2.26':
++    resolution: {integrity: sha512-92G+ZD70AZgeJf07JfQzH+isnai6DwPcMBuF/qL1F+xAxdXCJzGd3w2RmsRvOmB+w1ImmWEEDms50QivQIjd6g==}
++
+   '@iconify-json/twemoji@1.2.5':
+     resolution: {integrity: sha512-uKpuIEV0v6K5BW3Mjdyl+XKFVAbbcPxAgifKvEMtZoUZB5+YiY5zaMm2uNNCxyXzAWU9yNLlj41WU6/mvgALsw==}
+
+@@ -17953,6 +17971,10 @@ snapshots:
+     dependencies:
+       '@iconify/types': 2.0.0
+
++  '@iconify-json/logos@1.2.10':
++    dependencies:
++      '@iconify/types': 2.0.0
++
+   '@iconify-json/lucide@1.2.82':
+     dependencies:
+       '@iconify/types': 2.0.0
+@@ -17977,6 +17999,10 @@ snapshots:
+     dependencies:
+       '@iconify/types': 2.0.0
+
++  '@iconify-json/tabler@1.2.26':
++    dependencies:
++      '@iconify/types': 2.0.0
++
+   '@iconify-json/twemoji@1.2.5':
+     dependencies:
+       '@iconify/types': 2.0.0
+@@ -21231,6 +21257,12 @@ snapshots:
+       vite: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+       vue: 3.5.25(typescript@5.9.3)
+
++  '@vitejs/plugin-vue@6.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))':
++    dependencies:
++      '@rolldown/pluginutils': 1.0.0-beta.53
++      vite: 8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++      vue: 3.5.25(typescript@5.9.3)
++
+   '@vitest/browser-playwright@4.0.16(bufferutil@4.1.0)(playwright@1.57.0)(utf-8-validate@5.0.10)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)':
+     dependencies:
+       '@vitest/browser': 4.0.16(bufferutil@4.1.0)(utf-8-validate@5.0.10)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)
+@@ -21997,9 +22029,9 @@ snapshots:
+       '@types/filesystem': 0.0.36
+       '@types/har-format': 1.2.16
+
+-  '@wxt-dev/module-vue@1.0.3(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
++  '@wxt-dev/module-vue@1.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
+     dependencies:
+-      '@vitejs/plugin-vue': 6.0.3(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
++      '@vitejs/plugin-vue': 6.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
+       wxt: 0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+     transitivePeerDependencies:
+       - vite
+diff --git a/pnpm-workspace.yaml b/pnpm-workspace.yaml
+index 980ad6f6..c791ab0e 100644
+--- a/pnpm-workspace.yaml
++++ b/pnpm-workspace.yaml
+@@ -1,7 +1,3 @@
+-catalogMode: prefer
+-
+-shellEmulator: true
+-
+ packages:
+   - packages/**
+   - plugins/**
+@@ -11,25 +7,15 @@ packages:
+   - apps/**
+   - '!**/dist/**'
+
+-overrides:
+-  array-flatten: npm:@nolyfill/array-flatten@^1.0.44
+-  axios: npm:feaxios@^0.0.23
+-  is-core-module: npm:@nolyfill/is-core-module@^1.0.39
+-  isarray: npm:@nolyfill/isarray@^1.0.44
+-  safe-buffer: npm:@nolyfill/safe-buffer@^1.0.44
+-  safer-buffer: npm:@nolyfill/safer-buffer@^1.0.44
+-  side-channel: npm:@nolyfill/side-channel@^1.0.44
+-  string.prototype.matchall: npm:@nolyfill/string.prototype.matchall@^1.0.44
+-
+-patchedDependencies:
+-  srvx@0.9.8: patches/srvx@0.9.8.patch
+-
+ catalog:
+   '@capacitor/cli': ^8.0.0
+   '@capacitor/core': ^8.0.0
+   '@capacitor/ios': ^8.0.0
+   '@capacitor/local-notifications': ^8.0.0
+   '@guiiai/logg': ^1.2.11
++  '@iconify-json/logos': ^1.2.10
++  '@iconify-json/material-icon-theme': ^1.2.45
++  '@iconify-json/tabler': ^1.2.26
+   '@moeru/eslint-config': 0.1.0-beta.14
+   '@moeru/std': 0.1.0-beta.14
+   '@nekopaw/tempora': 0.4.0-alpha.1
+@@ -64,6 +50,8 @@ catalog:
+   xsschema: ^0.4.0-beta.12
+   zod: ^4.2.1
+
++catalogMode: prefer
++
+ catalogs:
+   rolldown-vite:
+     vite: npm:rolldown-vite@^7.3.0
+@@ -72,7 +60,7 @@ catalogs:
+     '@vitest/coverage-v8': ^4.0.16
+     vitest: ^4.0.16
+   xsai:
+-    'unspeech': ^0.1.11
++    unspeech: ^0.1.11
+
+ onlyBuiltDependencies:
+   - '@discordjs/opus'
+@@ -96,3 +84,18 @@ onlyBuiltDependencies:
+   - spawn-sync
+   - utf-8-validate
+   - vue-demi
++
++overrides:
++  array-flatten: npm:@nolyfill/array-flatten@^1.0.44
++  axios: npm:feaxios@^0.0.23
++  is-core-module: npm:@nolyfill/is-core-module@^1.0.39
++  isarray: npm:@nolyfill/isarray@^1.0.44
++  safe-buffer: npm:@nolyfill/safe-buffer@^1.0.44
++  safer-buffer: npm:@nolyfill/safer-buffer@^1.0.44
++  side-channel: npm:@nolyfill/side-channel@^1.0.44
++  string.prototype.matchall: npm:@nolyfill/string.prototype.matchall@^1.0.44
++
++patchedDependencies:
++  srvx@0.9.8: patches/srvx@0.9.8.patch
++
++shellEmulator: true

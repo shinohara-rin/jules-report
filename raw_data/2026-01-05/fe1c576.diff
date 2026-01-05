@@ -1,0 +1,405 @@
+commit fe1c576994a1510ec4c9320eb9e18c20c8a7b443
+Author: RainbowBird <git@luoling.moe>
+Date:   Mon Jan 5 17:40:22 2026 +0800
+
+    refactor(stage-ui): move auth lib to stage-ui
+
+diff --git a/apps/server/src/services/db.ts b/apps/server/src/services/db.ts
+index d46b6bc7..d6d9dc5b 100644
+--- a/apps/server/src/services/db.ts
++++ b/apps/server/src/services/db.ts
+@@ -2,7 +2,7 @@ import postgres from 'postgres'
+
+ import { drizzle } from 'drizzle-orm/postgres-js'
+
+-export type Database<TSchema extends Record<string, unknown> = Record<string, never>> = ReturnType<typeof createDrizzle<TSchema>>
++export type Database = ReturnType<typeof createDrizzle>
+
+ export function createDrizzle<TSchema extends Record<string, unknown>>(dsn: string, schema?: TSchema) {
+   return drizzle(postgres(dsn), { schema })
+diff --git a/apps/stage-web/src/pages/auth/login.vue b/apps/stage-web/src/pages/auth/login.vue
+index 24cae986..ccfbb1cb 100644
+--- a/apps/stage-web/src/pages/auth/login.vue
++++ b/apps/stage-web/src/pages/auth/login.vue
+@@ -1,12 +1,11 @@
+ <script setup lang="ts">
++import { authClient, fetchSession } from '@proj-airi/stage-ui/libs/auth'
++import { useAuthStore } from '@proj-airi/stage-ui/stores/auth'
+ import { Button } from '@proj-airi/ui'
+ import { onMounted } from 'vue'
+ import { useRouter } from 'vue-router'
+ import { toast } from 'vue-sonner'
+
+-import { authClient, fetchSession } from '../../libs/auth'
+-import { useAuthStore } from '../../stores/auth'
+-
+ const router = useRouter()
+
+ function signIn(provider: 'google' | 'github') {
+diff --git a/apps/stage-web/src/pages/index.vue b/apps/stage-web/src/pages/index.vue
+index 81158198..739d697a 100644
+--- a/apps/stage-web/src/pages/index.vue
++++ b/apps/stage-web/src/pages/index.vue
+@@ -12,6 +12,7 @@ import { useBackgroundThemeColor } from '@proj-airi/stage-layouts/composables/th
+ import { useBackgroundStore } from '@proj-airi/stage-layouts/stores/background'
+ import { WidgetStage } from '@proj-airi/stage-ui/components/scenes'
+ import { useAudioRecorder } from '@proj-airi/stage-ui/composables/audio/audio-recorder'
++import { fetchSession } from '@proj-airi/stage-ui/libs/auth'
+ import { useVAD } from '@proj-airi/stage-ui/stores/ai/models/vad'
+ import { useChatStore } from '@proj-airi/stage-ui/stores/chat'
+ import { useLive2d } from '@proj-airi/stage-ui/stores/live2d'
+@@ -23,8 +24,6 @@ import { breakpointsTailwind, useBreakpoints, useMouse } from '@vueuse/core'
+ import { storeToRefs } from 'pinia'
+ import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue'
+
+-import { fetchSession } from '../libs/auth'
+-
+ const paused = ref(false)
+
+ function handleSettingsOpen(open: boolean) {
+diff --git a/apps/stage-web/src/pages/settings/characters/components/CharacterDialog.vue b/apps/stage-web/src/pages/settings/characters/components/CharacterDialog.vue
+index cf620605..5912fa75 100644
+--- a/apps/stage-web/src/pages/settings/characters/components/CharacterDialog.vue
++++ b/apps/stage-web/src/pages/settings/characters/components/CharacterDialog.vue
+@@ -1,6 +1,8 @@
+ <script setup lang="ts">
+-import type { Character, CreateCharacterPayload } from '../../../../types/character'
++import type { Character, CreateCharacterPayload } from '@proj-airi/stage-ui/types/character'
+
++import { useCharacterStore } from '@proj-airi/stage-ui/stores/characters'
++import { CreateCharacterSchema } from '@proj-airi/stage-ui/types/character'
+ import { Button, FieldInput } from '@proj-airi/ui'
+ import {
+   DialogContent,
+@@ -12,9 +14,6 @@ import {
+ import { safeParse } from 'valibot'
+ import { computed, reactive, ref, watch } from 'vue'
+
+-import { useCharacterStore } from '../../../../stores/characters'
+-import { CreateCharacterSchema } from '../../../../types/character'
+-
+ interface Props {
+   modelValue: boolean
+   character?: Character
+diff --git a/apps/stage-web/src/pages/settings/characters/components/CharacterItem.vue b/apps/stage-web/src/pages/settings/characters/components/CharacterItem.vue
+index 8d45805c..15f1567c 100644
+--- a/apps/stage-web/src/pages/settings/characters/components/CharacterItem.vue
++++ b/apps/stage-web/src/pages/settings/characters/components/CharacterItem.vue
+@@ -1,5 +1,5 @@
+ <script setup lang="ts">
+-import type { Character } from '../../../../types/character'
++import type { Character } from '@proj-airi/stage-ui/types/character'
+
+ import { CursorFloating } from '@proj-airi/stage-ui/components'
+ import { computed } from 'vue'
+diff --git a/apps/stage-web/src/pages/settings/characters/index.vue b/apps/stage-web/src/pages/settings/characters/index.vue
+index fdad32af..5933fa0b 100644
+--- a/apps/stage-web/src/pages/settings/characters/index.vue
++++ b/apps/stage-web/src/pages/settings/characters/index.vue
+@@ -1,6 +1,7 @@
+ <script setup lang="ts">
+-import type { Character } from '../../../types/character'
++import type { Character } from '@proj-airi/stage-ui/types/character'
+
++import { useCharacterStore } from '@proj-airi/stage-ui/stores/characters'
+ import { Button, FieldInput } from '@proj-airi/ui'
+ import { storeToRefs } from 'pinia'
+ import { computed, onMounted, ref } from 'vue'
+@@ -8,8 +9,6 @@ import { computed, onMounted, ref } from 'vue'
+ import CharacterDialog from './components/CharacterDialog.vue'
+ import CharacterItem from './components/CharacterItem.vue'
+
+-import { useCharacterStore } from '../../../stores/characters'
+-
+ const characterStore = useCharacterStore()
+ const { characters, isLoading } = storeToRefs(characterStore)
+
+diff --git a/packages/stage-layouts/package.json b/packages/stage-layouts/package.json
+index d4250d04..bf4da934 100644
+--- a/packages/stage-layouts/package.json
++++ b/packages/stage-layouts/package.json
+@@ -55,7 +55,8 @@
+     "unspeech": "catalog:xsai",
+     "vue": "^3.5.25",
+     "vue-i18n": "^11.2.2",
+-    "vue-router": "^4.6.4"
++    "vue-router": "^4.6.4",
++    "vue-sonner": "catalog:"
+   },
+   "devDependencies": {
+     "@nekopaw/tempora": "catalog:",
+diff --git a/packages/stage-layouts/src/components/Layouts/HeaderAvatar.vue b/packages/stage-layouts/src/components/Layouts/HeaderAvatar.vue
+index 2abe0a63..566f2713 100644
+--- a/packages/stage-layouts/src/components/Layouts/HeaderAvatar.vue
++++ b/packages/stage-layouts/src/components/Layouts/HeaderAvatar.vue
+@@ -1,13 +1,12 @@
+ <script setup lang="ts">
++import { listSessions, signOut } from '@proj-airi/stage-ui/libs/auth'
++import { useAuthStore } from '@proj-airi/stage-ui/stores/auth'
+ import { onClickOutside } from '@vueuse/core'
+ import { storeToRefs } from 'pinia'
+ import { computed, ref } from 'vue'
+ import { RouterLink } from 'vue-router'
+ import { toast } from 'vue-sonner'
+
+-import { listSessions, signOut } from '../../libs/auth'
+-import { useAuthStore } from '../../stores/auth'
+-
+ const authStore = useAuthStore()
+ const { isAuthenticated, user } = storeToRefs(authStore)
+
+diff --git a/packages/stage-ui/package.json b/packages/stage-ui/package.json
+index 7330a246..c1a0190a 100644
+--- a/packages/stage-ui/package.json
++++ b/packages/stage-ui/package.json
+@@ -102,11 +102,13 @@
+     "@xsai/tool": "catalog:",
+     "@xsai/utils-chat": "catalog:",
+     "animejs": "^4.2.2",
++    "better-auth": "catalog:",
+     "culori": "^4.0.2",
+     "date-fns": "^4.1.0",
+     "dompurify": "^3.3.1",
+     "es-toolkit": "catalog:",
+     "gpuu": "^1.0.6",
++    "hono": "catalog:",
+     "html2canvas": "^1.4.1",
+     "jszip": "^3.10.1",
+     "localforage": "^1.10.0",
+@@ -132,6 +134,7 @@
+     "unist-builder": "^4.0.0",
+     "unspeech": "catalog:xsai",
+     "uuid": "^13.0.0",
++    "valibot": "catalog:",
+     "vaul-vue": "^0.4.1",
+     "vue-i18n": "^11.2.2",
+     "vue-router": "^4.6.4",
+diff --git a/apps/stage-web/src/composables/api.ts b/packages/stage-ui/src/composables/api.ts
+similarity index 80%
+rename from apps/stage-web/src/composables/api.ts
+rename to packages/stage-ui/src/composables/api.ts
+index 83f87013..1e384a7c 100644
+--- a/apps/stage-web/src/composables/api.ts
++++ b/packages/stage-ui/src/composables/api.ts
+@@ -1,9 +1,9 @@
+-import type { AppType } from '../../../server/src/app'
++import type { AppType } from '../../../../apps/server/src/app'
+
++import { useAuthStore } from '@proj-airi/stage-ui/stores/auth'
+ import { hc } from 'hono/client'
+
+ import { SERVER_URL } from '../libs/auth'
+-import { useAuthStore } from '../stores/auth'
+
+ export const client = hc<AppType>(SERVER_URL, {
+   fetch: (input: RequestInfo | URL, init?: RequestInit) => {
+diff --git a/apps/stage-web/src/libs/auth.ts b/packages/stage-ui/src/libs/auth.ts
+similarity index 100%
+rename from apps/stage-web/src/libs/auth.ts
+rename to packages/stage-ui/src/libs/auth.ts
+diff --git a/apps/stage-web/src/stores/auth.ts b/packages/stage-ui/src/stores/auth.ts
+similarity index 100%
+rename from apps/stage-web/src/stores/auth.ts
+rename to packages/stage-ui/src/stores/auth.ts
+diff --git a/apps/stage-web/src/stores/characters.ts b/packages/stage-ui/src/stores/characters.ts
+similarity index 100%
+rename from apps/stage-web/src/stores/characters.ts
+rename to packages/stage-ui/src/stores/characters.ts
+diff --git a/apps/stage-web/src/types/character.ts b/packages/stage-ui/src/types/character.ts
+similarity index 100%
+rename from apps/stage-web/src/types/character.ts
+rename to packages/stage-ui/src/types/character.ts
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index c2b54545..69ade972 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -78,6 +78,9 @@ catalogs:
+     '@xsai/utils-chat':
+       specifier: 0.4.0-beta.13
+       version: 0.4.0-beta.13
++    better-auth:
++      specifier: ^1.4.9
++      version: 1.4.9
+     builder-util-runtime:
+       specifier: ^9.3.1
+       version: 9.3.1
+@@ -91,7 +94,7 @@ catalogs:
+       specifier: ^1.43.0
+       version: 1.43.0
+     hono:
+-      specifier: ^4.10.8
++      specifier: 4.11.3
+       version: 4.11.3
+     injeca:
+       specifier: ^0.1.5
+@@ -124,11 +127,14 @@ catalogs:
+       specifier: ^1.2.4
+       version: 1.2.4
+     valibot:
+-      specifier: ^1.2.0
++      specifier: 1.2.0
+       version: 1.2.0
+     vite-plugin-mkcert:
+       specifier: ^1.17.9
+       version: 1.17.9
++    vue-sonner:
++      specifier: ^2.0.9
++      version: 2.0.9
+     xsschema:
+       specifier: ^0.4.0-beta.12
+       version: 0.4.0-beta.13
+@@ -1933,6 +1939,9 @@ importers:
+       vue-router:
+         specifier: ^4.6.4
+         version: 4.6.4(vue@3.5.25(typescript@5.9.3))
++      vue-sonner:
++        specifier: 'catalog:'
++        version: 2.0.9
+     devDependencies:
+       '@nekopaw/tempora':
+         specifier: 'catalog:'
+@@ -2235,6 +2244,9 @@ importers:
+       animejs:
+         specifier: ^4.2.2
+         version: 4.2.2
++      better-auth:
++        specifier: 'catalog:'
++        version: 1.4.9(@prisma/client@5.22.0)(better-sqlite3@12.5.0)(drizzle-kit@0.31.8)(drizzle-orm@0.45.1(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7))(pg@8.16.3)(react@19.2.3)(vitest@4.0.16)(vue@3.5.25(typescript@5.9.3))
+       culori:
+         specifier: ^4.0.2
+         version: 4.0.2
+@@ -2250,6 +2262,9 @@ importers:
+       gpuu:
+         specifier: ^1.0.6
+         version: 1.0.6
++      hono:
++        specifier: 'catalog:'
++        version: 4.11.3
+       html2canvas:
+         specifier: ^1.4.1
+         version: 1.4.1
+@@ -2325,6 +2340,9 @@ importers:
+       uuid:
+         specifier: ^13.0.0
+         version: 13.0.0
++      valibot:
++        specifier: 'catalog:'
++        version: 1.2.0(typescript@5.9.3)
+       vaul-vue:
+         specifier: ^0.4.1
+         version: 0.4.1(reka-ui@2.7.0(typescript@5.9.3)(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3))
+@@ -2766,7 +2784,7 @@ importers:
+         version: 66.5.11
+       '@wxt-dev/module-vue':
+         specifier: ^1.0.3
+-        version: 1.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
++        version: 1.0.3(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+       vue-tsc:
+         specifier: ^3.1.8
+         version: 3.2.1(typescript@5.9.3)
+@@ -21909,12 +21927,6 @@ snapshots:
+       vite: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+       vue: 3.5.25(typescript@5.9.3)
+
+-  '@vitejs/plugin-vue@6.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))':
+-    dependencies:
+-      '@rolldown/pluginutils': 1.0.0-beta.53
+-      vite: 8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-      vue: 3.5.25(typescript@5.9.3)
+-
+   '@vitest/browser-playwright@4.0.16(bufferutil@4.1.0)(playwright@1.57.0)(utf-8-validate@5.0.10)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)':
+     dependencies:
+       '@vitest/browser': 4.0.16(bufferutil@4.1.0)(utf-8-validate@5.0.10)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)
+@@ -22660,9 +22672,9 @@ snapshots:
+       '@types/filesystem': 0.0.36
+       '@types/har-format': 1.2.16
+
+-  '@wxt-dev/module-vue@1.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
++  '@wxt-dev/module-vue@1.0.3(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
+     dependencies:
+-      '@vitejs/plugin-vue': 6.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
++      '@vitejs/plugin-vue': 6.0.3(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
+       wxt: 0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+     transitivePeerDependencies:
+       - vite
+diff --git a/pnpm-workspace.yaml b/pnpm-workspace.yaml
+index 7b34c530..f2af4c98 100644
+--- a/pnpm-workspace.yaml
++++ b/pnpm-workspace.yaml
+@@ -1,7 +1,3 @@
+-catalogMode: prefer
+-
+-shellEmulator: true
+-
+ packages:
+   - packages/**
+   - plugins/**
+@@ -11,19 +7,6 @@ packages:
+   - apps/**
+   - '!**/dist/**'
+
+-overrides:
+-  array-flatten: npm:@nolyfill/array-flatten@^1.0.44
+-  axios: npm:feaxios@^0.0.23
+-  is-core-module: npm:@nolyfill/is-core-module@^1.0.39
+-  isarray: npm:@nolyfill/isarray@^1.0.44
+-  safe-buffer: npm:@nolyfill/safe-buffer@^1.0.44
+-  safer-buffer: npm:@nolyfill/safer-buffer@^1.0.44
+-  side-channel: npm:@nolyfill/side-channel@^1.0.44
+-  string.prototype.matchall: npm:@nolyfill/string.prototype.matchall@^1.0.44
+-
+-patchedDependencies:
+-  srvx@0.9.8: patches/srvx@0.9.8.patch
+-
+ catalog:
+   '@capacitor/cli': ^8.0.0
+   '@capacitor/core': ^8.0.0
+@@ -49,11 +32,12 @@ catalog:
+   '@xsai/stream-text': ^0.4.0-beta.13
+   '@xsai/tool': ^0.4.0-beta.13
+   '@xsai/utils-chat': 0.4.0-beta.13
++  better-auth: ^1.4.9
+   builder-util-runtime: ^9.3.1
+   drizzle-valibot: ^0.4.2
+   embla-carousel-vue: ^8.6.0
+   es-toolkit: ^1.43.0
+-  hono: ^4.10.8
++  hono: 4.11.3
+   injeca: ^0.1.5
+   is-network-error: ^1.3.0
+   nano-staged: ^0.9.0
+@@ -64,11 +48,14 @@ catalog:
+   tsx: ^4.21.0
+   uncrypto: ^0.1.3
+   unplugin-info: ^1.2.4
+-  valibot: ^1.2.0
++  valibot: 1.2.0
+   vite-plugin-mkcert: ^1.17.9
++  vue-sonner: ^2.0.9
+   xsschema: ^0.4.0-beta.12
+   zod: ^4.2.1
+
++catalogMode: prefer
++
+ catalogs:
+   rolldown-vite:
+     vite: npm:rolldown-vite@^7.2.11
+@@ -104,3 +91,18 @@ onlyBuiltDependencies:
+   - spawn-sync
+   - utf-8-validate
+   - vue-demi
++
++overrides:
++  array-flatten: npm:@nolyfill/array-flatten@^1.0.44
++  axios: npm:feaxios@^0.0.23
++  is-core-module: npm:@nolyfill/is-core-module@^1.0.39
++  isarray: npm:@nolyfill/isarray@^1.0.44
++  safe-buffer: npm:@nolyfill/safe-buffer@^1.0.44
++  safer-buffer: npm:@nolyfill/safer-buffer@^1.0.44
++  side-channel: npm:@nolyfill/side-channel@^1.0.44
++  string.prototype.matchall: npm:@nolyfill/string.prototype.matchall@^1.0.44
++
++patchedDependencies:
++  srvx@0.9.8: patches/srvx@0.9.8.patch
++
++shellEmulator: true

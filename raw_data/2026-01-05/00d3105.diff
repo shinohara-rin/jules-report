@@ -1,0 +1,216 @@
+commit 00d31057197c4ccf532f76b3a8caa19e7a2db175
+Author: Makito <i@maki.to>
+Date:   Sun Jan 4 23:58:03 2026 +0900
+
+    refactor(apps/*,docs): unify PostHog config (#875)
+
+    * refactor(apps/*,docs): unify PostHog config
+
+    * [autofix.ci] apply automated fixes
+
+    * refactor: remove ImportMeta and keep ImportMetaEnv only
+
+    ---------
+
+    Co-authored-by: autofix-ci[bot] <114827586+autofix-ci[bot]@users.noreply.github.com>
+
+diff --git a/apps/stage-pocket/src/modules/posthog.ts b/apps/stage-pocket/src/modules/posthog.ts
+index af8a46f8..dd6b87d9 100644
+--- a/apps/stage-pocket/src/modules/posthog.ts
++++ b/apps/stage-pocket/src/modules/posthog.ts
+@@ -1,6 +1,8 @@
+ import posthog from 'posthog-js'
+
+-posthog.init('phc_pzjziJjrVZpa9SqnQqq0QEKvkmuCPH7GDTA6TbRTEf9', {
+-  api_host: 'https://us.i.posthog.com',
+-  person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
++import { DEFAULT_POSTHOG_CONFIG, POSTHOG_PROJECT_KEY_POCKET } from '../../../../posthog.config'
++
++posthog.init(POSTHOG_PROJECT_KEY_POCKET, {
++  ...DEFAULT_POSTHOG_CONFIG,
++  // Project-specific config...
+ })
+diff --git a/apps/stage-pocket/vite-env.d.ts b/apps/stage-pocket/vite-env.d.ts
+index 0a764626..529f0abf 100644
+--- a/apps/stage-pocket/vite-env.d.ts
++++ b/apps/stage-pocket/vite-env.d.ts
+@@ -1,9 +1,8 @@
++/// <reference types="vite/client" />
++/// <reference types="../../vite-env.d.ts" />
++
+ interface ImportMetaEnv {
+   readonly VITE_APP_TARGET_HUGGINGFACE_SPACE: boolean
+   readonly VITE_PLATFORM: 'ios' | 'android' | 'web'
+   // more env variables...
+ }
+-
+-interface ImportMeta {
+-  readonly env: ImportMetaEnv
+-}
+diff --git a/apps/stage-tamagotchi/src/renderer/modules/posthog.ts b/apps/stage-tamagotchi/src/renderer/modules/posthog.ts
+index c27aecdd..1ae0c0d3 100644
+--- a/apps/stage-tamagotchi/src/renderer/modules/posthog.ts
++++ b/apps/stage-tamagotchi/src/renderer/modules/posthog.ts
+@@ -1,6 +1,8 @@
+ import posthog from 'posthog-js'
+
+-posthog.init('phc_rljw376z5gt6vXJlc3sTr7hFbXodciY9THEQXIRnW53', {
+-  api_host: 'https://us.i.posthog.com',
+-  person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
++import { DEFAULT_POSTHOG_CONFIG, POSTHOG_PROJECT_KEY_DESKTOP } from '../../../../../posthog.config'
++
++posthog.init(POSTHOG_PROJECT_KEY_DESKTOP, {
++  ...DEFAULT_POSTHOG_CONFIG,
++  // Project-specific config...
+ })
+diff --git a/apps/stage-tamagotchi/vite-env.d.ts b/apps/stage-tamagotchi/vite-env.d.ts
+new file mode 100644
+index 00000000..6f1818c5
+--- /dev/null
++++ b/apps/stage-tamagotchi/vite-env.d.ts
+@@ -0,0 +1,6 @@
++/// <reference types="vite/client" />
++/// <reference types="../../vite-env.d.ts" />
++
++interface ImportMetaEnv {
++  // Env variables...
++}
+diff --git a/apps/stage-web/src/modules/posthog.ts b/apps/stage-web/src/modules/posthog.ts
+index af8a46f8..f9d8a81b 100644
+--- a/apps/stage-web/src/modules/posthog.ts
++++ b/apps/stage-web/src/modules/posthog.ts
+@@ -1,6 +1,8 @@
+ import posthog from 'posthog-js'
+
+-posthog.init('phc_pzjziJjrVZpa9SqnQqq0QEKvkmuCPH7GDTA6TbRTEf9', {
+-  api_host: 'https://us.i.posthog.com',
+-  person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
++import { DEFAULT_POSTHOG_CONFIG, POSTHOG_PROJECT_KEY_WEB } from '../../../../posthog.config'
++
++posthog.init(POSTHOG_PROJECT_KEY_WEB, {
++  ...DEFAULT_POSTHOG_CONFIG,
++  // Project-specific config...
+ })
+diff --git a/apps/stage-web/vite-env.d.ts b/apps/stage-web/vite-env.d.ts
+index 03b4499b..7938100e 100644
+--- a/apps/stage-web/vite-env.d.ts
++++ b/apps/stage-web/vite-env.d.ts
+@@ -1,8 +1,7 @@
++/// <reference types="vite/client" />
++/// <reference types="../../vite-env.d.ts" />
++
+ interface ImportMetaEnv {
+   readonly VITE_APP_TARGET_HUGGINGFACE_SPACE: boolean
+   // more env variables...
+ }
+-
+-interface ImportMeta {
+-  readonly env: ImportMetaEnv
+-}
+diff --git a/docs/.vitepress/modules/posthog.ts b/docs/.vitepress/modules/posthog.ts
+index af8a46f8..8c12f2a8 100644
+--- a/docs/.vitepress/modules/posthog.ts
++++ b/docs/.vitepress/modules/posthog.ts
+@@ -1,6 +1,8 @@
+ import posthog from 'posthog-js'
+
+-posthog.init('phc_pzjziJjrVZpa9SqnQqq0QEKvkmuCPH7GDTA6TbRTEf9', {
+-  api_host: 'https://us.i.posthog.com',
+-  person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
++import { DEFAULT_POSTHOG_CONFIG, POSTHOG_PROJECT_KEY_DOCS } from '../../../posthog.config'
++
++posthog.init(POSTHOG_PROJECT_KEY_DOCS, {
++  ...DEFAULT_POSTHOG_CONFIG,
++  // Project-specific config...
+ })
+diff --git a/docs/vite-env.d.ts b/docs/vite-env.d.ts
+new file mode 100644
+index 00000000..86b99fbb
+--- /dev/null
++++ b/docs/vite-env.d.ts
+@@ -0,0 +1,6 @@
++/// <reference types="vite/client" />
++/// <reference types="../vite-env.d.ts" />
++
++interface ImportMetaEnv {
++  // Env variables...
++}
+diff --git a/package.json b/package.json
+index faee9273..386d627f 100644
+--- a/package.json
++++ b/package.json
+@@ -58,6 +58,7 @@
+     "eslint-plugin-oxlint": "^1.35.0",
+     "nano-staged": "catalog:",
+     "oxlint": "^1.35.0",
++    "posthog-js": "catalog:",
+     "publint": "^0.3.16",
+     "rollup": "^4.54.0",
+     "simple-git-hooks": "^2.13.1",
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index cba77452..7ae2325b 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -209,6 +209,9 @@ importers:
+       oxlint:
+         specifier: ^1.35.0
+         version: 1.36.0
++      posthog-js:
++        specifier: 'catalog:'
++        version: 1.306.1
+       publint:
+         specifier: ^0.3.16
+         version: 0.3.16
+diff --git a/posthog.config.ts b/posthog.config.ts
+new file mode 100644
+index 00000000..82f9f792
+--- /dev/null
++++ b/posthog.config.ts
+@@ -0,0 +1,29 @@
++/// <reference types="vite/client" />
++
++import type { PostHogConfig } from 'posthog-js'
++
++// These PostHog project API keys are considered public and are safe
++// to be stored here as clear text.
++
++export const POSTHOG_PROJECT_KEY_WEB
++  = import.meta.env.VITE_POSTHOG_PROJECT_KEY_WEB
++    ?? 'phc_pzjziJjrVZpa9SqnQqq0QEKvkmuCPH7GDTA6TbRTEf9' // cspell:disable-line
++
++export const POSTHOG_PROJECT_KEY_DESKTOP
++  = import.meta.env.VITE_POSTHOG_PROJECT_KEY_DESKTOP
++    ?? 'phc_rljw376z5gt6vXJlc3sTr7hFbXodciY9THEQXIRnW53'// cspell:disable-line
++
++// FIXME: Using the same key for 'web' for now.
++export const POSTHOG_PROJECT_KEY_POCKET
++  = import.meta.env.VITE_POSTHOG_PROJECT_KEY_POCKET
++    ?? 'phc_pzjziJjrVZpa9SqnQqq0QEKvkmuCPH7GDTA6TbRTEf9' // cspell:disable-line
++
++// FIXME: Using the same key for 'web' for now.
++export const POSTHOG_PROJECT_KEY_DOCS
++  = import.meta.env.VITE_POSTHOG_PROJECT_KEY_DOCS
++    ?? 'phc_pzjziJjrVZpa9SqnQqq0QEKvkmuCPH7GDTA6TbRTEf9' // cspell:disable-line
++
++export const DEFAULT_POSTHOG_CONFIG = {
++  api_host: 'https://us.i.posthog.com',
++  person_profiles: 'identified_only', // or 'always' to create profiles for anonymous users as well
++} as const satisfies Partial<PostHogConfig>
+diff --git a/vite-env.d.ts b/vite-env.d.ts
+new file mode 100644
+index 00000000..5ffa92c9
+--- /dev/null
++++ b/vite-env.d.ts
+@@ -0,0 +1,12 @@
++/// <reference types="vite/client" />
++
++interface ImportMetaEnv {
++  readonly VITE_POSTHOG_PROJECT_KEY_WEB?: string
++  readonly VITE_POSTHOG_PROJECT_KEY_DESKTOP?: string
++  readonly VITE_POSTHOG_PROJECT_KEY_POCKET?: string
++  readonly VITE_POSTHOG_PROJECT_KEY_DOCS?: string
++}
++
++interface ImportMeta {
++  readonly env: ImportMetaEnv
++}

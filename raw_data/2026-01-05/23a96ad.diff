@@ -1,0 +1,20 @@
+commit 23a96ad7b5454c54318ff3ad9afdf1b058ae1a05
+Author: Neko Ayaka <neko@ayaka.moe>
+Date:   Mon Jan 5 17:51:25 2026 +0800
+
+    fix(stage-tamagotchi): missing config for app auto updater
+
+diff --git a/apps/stage-tamagotchi/dev-app-update.yml b/apps/stage-tamagotchi/dev-app-update.yml
+index 03ae20e3..35378e1a 100644
+--- a/apps/stage-tamagotchi/dev-app-update.yml
++++ b/apps/stage-tamagotchi/dev-app-update.yml
+@@ -1,3 +1,6 @@
+-provider: generic
+-url: https://example.com/auto-updates
+-updaterCacheDirName: stage-tamagotchi-electron-updater
++provider: github
++owner: moeru-ai
++repo: airi
++updaterCacheDirName: electron-app-updater
++allowPrerelease: true
++channel: nightly
