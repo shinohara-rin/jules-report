@@ -1,0 +1,12 @@
+commit d57c066bf4c693c344f4a9ba56271c11b6c69341
+Author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+Date:   Mon Jan 5 14:43:09 2026 +0000
+
+    chore(nix): update assets hash
+
+diff --git a/nix/assets-hash.txt b/nix/assets-hash.txt
+index a3538236..e69de29b 100644
+--- a/nix/assets-hash.txt
++++ b/nix/assets-hash.txt
+@@ -1 +0,0 @@
+-sha256-3rW39/L+VHWslw+bAPS/bMSkYNepxYMhQbds3kbA5uo=

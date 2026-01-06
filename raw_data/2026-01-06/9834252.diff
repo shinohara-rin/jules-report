@@ -1,0 +1,30 @@
+commit 9834252d2b8ddd9873c870a03919c85928a71f35
+Author: Neko Ayaka <neko@ayaka.moe>
+Date:   Tue Jan 6 03:27:24 2026 +0800
+
+    fix(server): patches should be copied
+
+diff --git a/apps/server/Dockerfile b/apps/server/Dockerfile
+index a920707d..83860f1e 100644
+--- a/apps/server/Dockerfile
++++ b/apps/server/Dockerfile
+@@ -5,6 +5,7 @@ WORKDIR /app
+ RUN corepack enable
+
+ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
++COPY patches ./
+ COPY apps/server apps/server
+
+ RUN --mount=type=cache,id=pnpm-store,target=/root/.pnpm-store \
+diff --git a/apps/server/production/railway/Dockerfile b/apps/server/production/railway/Dockerfile
+index 88db5e04..4b912c04 100644
+--- a/apps/server/production/railway/Dockerfile
++++ b/apps/server/production/railway/Dockerfile
+@@ -5,6 +5,7 @@ WORKDIR /app
+ RUN corepack enable
+
+ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
++COPY patches ./
+ COPY apps/server apps/server
+
+ # https://docs.railway.com/guides/dockerfiles#cache-mounts

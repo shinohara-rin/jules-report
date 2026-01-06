@@ -1,0 +1,2195 @@
+commit ad086535e5d60dafa6d60cfc419aa3242eab20d8
+Author: akuuma <1919892171@qq.com>
+Date:   Tue Jan 6 15:32:20 2026 +0800
+
+    feat(satori-bot): integrate Satori Protocol Adapter (#873)
+
+
+    ---------
+
+    Co-authored-by: gemini-code-assist[bot] <176961590+gemini-code-assist[bot]@users.noreply.github.com>
+    Co-authored-by: Hoshino-Yumetsuki <hoshino-yumetsuki@outlook.com>
+    Co-authored-by: Neko <neko@ayaka.moe>
+
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index e3676092..125133ef 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -2817,7 +2817,7 @@ importers:
+         version: 66.5.11
+       '@wxt-dev/module-vue':
+         specifier: ^1.0.3
+-        version: 1.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
++        version: 1.0.3(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+       vue-tsc:
+         specifier: ^3.1.8
+         version: 3.2.1(typescript@5.9.3)
+@@ -2897,8 +2897,8 @@ importers:
+         specifier: ^5.0.1
+         version: 5.0.1
+       minecraft-data:
+-        specifier: ^3.102.3
+-        version: 3.102.3
++        specifier: ^3.101.0
++        version: 3.101.0
+       mineflayer:
+         specifier: ^4.33.0
+         version: 4.33.0(encoding@0.1.13)
+@@ -2954,6 +2954,55 @@ importers:
+         specifier: ^3.25.1
+         version: 3.25.1(zod@4.2.1)
+
++  services/satori-bot:
++    dependencies:
++      '@guiiai/logg':
++        specifier: 'catalog:'
++        version: 1.2.11
++      '@moeru/std':
++        specifier: 'catalog:'
++        version: 0.1.0-beta.14
++      '@velin-dev/core':
++        specifier: ^0.3.4
++        version: 0.3.4(typescript@5.9.3)
++      '@xsai/generate-text':
++        specifier: 'catalog:'
++        version: 0.4.0-beta.13
++      '@xsai/shared-chat':
++        specifier: 'catalog:'
++        version: 0.4.0-beta.13
++      '@xsai/utils-chat':
++        specifier: 'catalog:'
++        version: 0.4.0-beta.13
++      best-effort-json-parser:
++        specifier: ^1.2.1
++        version: 1.2.1
++      es-toolkit:
++        specifier: ^1.43.0
++        version: 1.43.0
++      lowdb:
++        specifier: ^7.0.1
++        version: 7.0.1
++      nanoid:
++        specifier: ^5.1.6
++        version: 5.1.6
++      ws:
++        specifier: ^8.18.0
++        version: 8.18.3(bufferutil@4.1.0)(utf-8-validate@5.0.10)
++    devDependencies:
++      '@types/node':
++        specifier: ^22.10.2
++        version: 22.19.3
++      '@types/ws':
++        specifier: ^8.5.13
++        version: 8.18.1
++      tsx:
++        specifier: ^4.21.0
++        version: 4.21.0
++      typescript:
++        specifier: ^5.7.2
++        version: 5.9.3
++
+   services/telegram-bot:
+     dependencies:
+       '@dotenvx/dotenvx':
+@@ -12442,6 +12491,10 @@ packages:
+   longest-streak@3.1.0:
+     resolution: {integrity: sha512-9Ri+o0JYgehTaVBBDoMqIl8GXtbWg711O3srftcHhZ0dqnETqLaoIK0x17fUw9rFSlK/0NlsKe0Ahhyl5pXE2g==}
+
++  lowdb@7.0.1:
++    resolution: {integrity: sha512-neJAj8GwF0e8EpycYIDFqEPcx9Qz4GUho20jWFR7YiFeXzF1YMLdxB36PypcTSPMA+4+LvgyMacYhlr18Zlymw==}
++    engines: {node: '>=18'}
++
+   lower-case@2.0.2:
+     resolution: {integrity: sha512-7fm3l3NAF9WfN6W3JOmf5drwpVqX78JtoGJ3A6W0a6ZnldM41w2fV5D490psKFTpMds8TJse/eHLFFsNHHjHgg==}
+
+@@ -12787,8 +12840,8 @@ packages:
+   minecraft-data@2.221.0:
+     resolution: {integrity: sha512-0AhqzbIKb6WqPSF6qBevaPryeWOz545hLxt6q+gfJF8YIQX/YfkyX/nXWhl+pSIS2rTBcQ0RJkRCtTeRzQwHDA==}
+
+-  minecraft-data@3.102.3:
+-    resolution: {integrity: sha512-JxUPTUlamQ04GSK7YI3657BRurHLBRAhsmPb4gajd4z/p6t3LJh4l0HWIyNHRpJbQiUCIjn+mhos5oB+yqH0mQ==}
++  minecraft-data@3.101.0:
++    resolution: {integrity: sha512-9kD2sbI9BvjQtN/ZlMkCdgaLJIHPXDGruMEJ0DOO29RB9sVDmSBLjDkH9PyRmlAye/WZlqk/1/b54vWq6ObzxQ==}
+
+   minecraft-folder-path@1.2.0:
+     resolution: {integrity: sha512-qaUSbKWoOsH9brn0JQuBhxNAzTDMwrOXorwuRxdJKKKDYvZhtml+6GVCUrY5HRiEsieBEjCUnhVpDuQiKsiFaw==}
+@@ -14612,6 +14665,10 @@ packages:
+     resolution: {integrity: sha512-UhDfHmA92YAlNnCfhmq0VeNL5bDbiZGg7sZ2IvPsXubGkiNa9EC+tUTsjBRsYUAz87btI6/1wf4XoVvQ3uRnmQ==}
+     engines: {node: '>=18'}
+
++  steno@4.0.2:
++    resolution: {integrity: sha512-yhPIQXjrlt1xv7dyPQg2P17URmXbuM5pdGkpiMB3RenprfiBlvK415Lctfe0eshk90oA7/tNq7WEiMK8RSP39A==}
++    engines: {node: '>=18'}
++
+   store2@2.14.4:
+     resolution: {integrity: sha512-srTItn1GOvyvOycgxjAnPA63FZNwy0PTyUBFMHRM+hVFltAeoh0LmNBz9SZqUS9mMqGk8rfyWyXn3GH5ReJ8Zw==}
+
+@@ -21969,12 +22026,6 @@ snapshots:
+       vite: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+       vue: 3.5.25(typescript@5.9.3)
+
+-  '@vitejs/plugin-vue@6.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))':
+-    dependencies:
+-      '@rolldown/pluginutils': 1.0.0-beta.53
+-      vite: 8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-      vue: 3.5.25(typescript@5.9.3)
+-
+   '@vitest/browser-playwright@4.0.16(bufferutil@4.1.0)(playwright@1.57.0)(utf-8-validate@5.0.10)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)':
+     dependencies:
+       '@vitest/browser': 4.0.16(bufferutil@4.1.0)(utf-8-validate@5.0.10)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)
+@@ -22720,9 +22771,9 @@ snapshots:
+       '@types/filesystem': 0.0.36
+       '@types/har-format': 1.2.16
+
+-  '@wxt-dev/module-vue@1.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
++  '@wxt-dev/module-vue@1.0.3(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
+     dependencies:
+-      '@vitejs/plugin-vue': 6.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
++      '@vitejs/plugin-vue': 6.0.3(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
+       wxt: 0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+     transitivePeerDependencies:
+       - vite
+@@ -26726,6 +26777,10 @@ snapshots:
+
+   longest-streak@3.1.0: {}
+
++  lowdb@7.0.1:
++    dependencies:
++      steno: 4.0.2
++
+   lower-case@2.0.2:
+     dependencies:
+       tslib: 2.8.1
+@@ -27254,7 +27309,7 @@ snapshots:
+
+   minecraft-data@2.221.0: {}
+
+-  minecraft-data@3.102.3: {}
++  minecraft-data@3.101.0: {}
+
+   minecraft-folder-path@1.2.0: {}
+
+@@ -27267,7 +27322,7 @@ snapshots:
+       debug: 4.4.3
+       endian-toggle: 0.0.0
+       lodash.merge: 4.6.2
+-      minecraft-data: 3.102.3
++      minecraft-data: 3.101.0
+       minecraft-folder-path: 1.2.0
+       node-fetch: 2.7.0(encoding@0.1.13)
+       node-rsa: 0.4.2
+@@ -27285,7 +27340,7 @@ snapshots:
+
+   mineflayer-armor-manager@2.0.1(mineflayer@4.33.0(encoding@0.1.13)):
+     dependencies:
+-      minecraft-data: 3.102.3
++      minecraft-data: 3.101.0
+       mineflayer: 4.33.0(encoding@0.1.13)
+
+   mineflayer-auto-eat@5.0.3(encoding@0.1.13):
+@@ -27307,7 +27362,7 @@ snapshots:
+
+   mineflayer-pathfinder@2.4.5:
+     dependencies:
+-      minecraft-data: 3.102.3
++      minecraft-data: 3.101.0
+       prismarine-block: 1.22.0
+       prismarine-entity: 2.5.0
+       prismarine-item: 1.17.0
+@@ -27370,12 +27425,12 @@ snapshots:
+
+   mineflayer@4.33.0(encoding@0.1.13):
+     dependencies:
+-      minecraft-data: 3.102.3
++      minecraft-data: 3.101.0
+       minecraft-protocol: 1.62.0(encoding@0.1.13)
+-      prismarine-biome: 1.3.0(minecraft-data@3.102.3)(prismarine-registry@1.11.0)
++      prismarine-biome: 1.3.0(minecraft-data@3.101.0)(prismarine-registry@1.11.0)
+       prismarine-block: 1.22.0
+       prismarine-chat: 1.12.0
+-      prismarine-chunk: 1.39.0(minecraft-data@3.102.3)
++      prismarine-chunk: 1.39.0(minecraft-data@3.101.0)
+       prismarine-entity: 2.5.0
+       prismarine-item: 1.17.0
+       prismarine-nbt: 2.8.0
+@@ -28432,15 +28487,15 @@ snapshots:
+       minecraft-data: 2.221.0
+       prismarine-registry: 1.11.0
+
+-  prismarine-biome@1.3.0(minecraft-data@3.102.3)(prismarine-registry@1.11.0):
++  prismarine-biome@1.3.0(minecraft-data@3.101.0)(prismarine-registry@1.11.0):
+     dependencies:
+-      minecraft-data: 3.102.3
++      minecraft-data: 3.101.0
+       prismarine-registry: 1.11.0
+
+   prismarine-block@1.22.0:
+     dependencies:
+-      minecraft-data: 3.102.3
+-      prismarine-biome: 1.3.0(minecraft-data@3.102.3)(prismarine-registry@1.11.0)
++      minecraft-data: 3.101.0
++      prismarine-biome: 1.3.0(minecraft-data@3.101.0)(prismarine-registry@1.11.0)
+       prismarine-chat: 1.12.0
+       prismarine-item: 1.17.0
+       prismarine-nbt: 2.8.0
+@@ -28465,9 +28520,9 @@ snapshots:
+     transitivePeerDependencies:
+       - minecraft-data
+
+-  prismarine-chunk@1.39.0(minecraft-data@3.102.3):
++  prismarine-chunk@1.39.0(minecraft-data@3.101.0):
+     dependencies:
+-      prismarine-biome: 1.3.0(minecraft-data@3.102.3)(prismarine-registry@1.11.0)
++      prismarine-biome: 1.3.0(minecraft-data@3.101.0)(prismarine-registry@1.11.0)
+       prismarine-block: 1.22.0
+       prismarine-nbt: 2.8.0
+       prismarine-registry: 1.11.0
+@@ -28500,7 +28555,7 @@ snapshots:
+
+   prismarine-physics@1.10.0:
+     dependencies:
+-      minecraft-data: 3.102.3
++      minecraft-data: 3.101.0
+       prismarine-nbt: 2.8.0
+       vec3: 0.1.10
+
+@@ -28518,7 +28573,7 @@ snapshots:
+
+   prismarine-registry@1.11.0:
+     dependencies:
+-      minecraft-data: 3.102.3
++      minecraft-data: 3.101.0
+       prismarine-block: 1.22.0
+       prismarine-nbt: 2.8.0
+
+@@ -28527,9 +28582,9 @@ snapshots:
+       '@tweenjs/tween.js': 23.1.3
+       compression: 1.8.1
+       express: 4.22.1
+-      minecraft-data: 3.102.3
++      minecraft-data: 3.101.0
+       prismarine-block: 1.22.0
+-      prismarine-chunk: 1.39.0(minecraft-data@3.102.3)
++      prismarine-chunk: 1.39.0(minecraft-data@3.101.0)
+       prismarine-world: 3.6.3
+       socket.io: 4.8.3(bufferutil@4.1.0)(utf-8-validate@5.0.10)
+       socket.io-client: 4.8.3(bufferutil@4.1.0)(utf-8-validate@5.0.10)
+@@ -29567,6 +29622,8 @@ snapshots:
+
+   stdin-discarder@0.2.2: {}
+
++  steno@4.0.2: {}
++
+   store2@2.14.4: {}
+
+   streamx@2.23.0:
+diff --git a/pnpm-workspace.yaml b/pnpm-workspace.yaml
+index 30930510..08d92062 100644
+--- a/pnpm-workspace.yaml
++++ b/pnpm-workspace.yaml
+@@ -1,3 +1,6 @@
++catalogMode: prefer
++
++shellEmulator: true
+ packages:
+   - packages/**
+   - plugins/**
+@@ -7,6 +10,18 @@ packages:
+   - apps/**
+   - '!**/dist/**'
+
++overrides:
++  array-flatten: npm:@nolyfill/array-flatten@^1.0.44
++  axios: npm:feaxios@^0.0.23
++  is-core-module: npm:@nolyfill/is-core-module@^1.0.39
++  isarray: npm:@nolyfill/isarray@^1.0.44
++  safe-buffer: npm:@nolyfill/safe-buffer@^1.0.44
++  safer-buffer: npm:@nolyfill/safer-buffer@^1.0.44
++  side-channel: npm:@nolyfill/side-channel@^1.0.44
++  string.prototype.matchall: npm:@nolyfill/string.prototype.matchall@^1.0.44
++
++patchedDependencies:
++  srvx@0.9.8: patches/srvx@0.9.8.patch
+ catalog:
+   '@capacitor/cli': ^8.0.0
+   '@capacitor/core': ^8.0.0
+@@ -57,8 +72,6 @@ catalog:
+   xsschema: 0.4.0-beta.13
+   zod: ^4.2.1
+
+-catalogMode: prefer
+-
+ catalogs:
+   rolldown-vite:
+     vite: npm:rolldown-vite@^7.2.11
+@@ -94,18 +107,3 @@ onlyBuiltDependencies:
+   - spawn-sync
+   - utf-8-validate
+   - vue-demi
+-
+-overrides:
+-  array-flatten: npm:@nolyfill/array-flatten@^1.0.44
+-  axios: npm:feaxios@^0.0.23
+-  is-core-module: npm:@nolyfill/is-core-module@^1.0.39
+-  isarray: npm:@nolyfill/isarray@^1.0.44
+-  safe-buffer: npm:@nolyfill/safe-buffer@^1.0.44
+-  safer-buffer: npm:@nolyfill/safer-buffer@^1.0.44
+-  side-channel: npm:@nolyfill/side-channel@^1.0.44
+-  string.prototype.matchall: npm:@nolyfill/string.prototype.matchall@^1.0.44
+-
+-patchedDependencies:
+-  srvx@0.9.8: patches/srvx@0.9.8.patch
+-
+-shellEmulator: true
+diff --git a/services/minecraft/package.json b/services/minecraft/package.json
+index bb68febd..2c446454 100644
+--- a/services/minecraft/package.json
++++ b/services/minecraft/package.json
+@@ -18,7 +18,7 @@
+     "awilix": "^12.0.5",
+     "es-toolkit": "^1.43.0",
+     "eventemitter3": "^5.0.1",
+-    "minecraft-data": "^3.102.3",
++    "minecraft-data": "^3.101.0",
+     "mineflayer": "^4.33.0",
+     "mineflayer-armor-manager": "^2.0.1",
+     "mineflayer-auto-eat": "^5.0.3",
+diff --git a/services/satori-bot/.env b/services/satori-bot/.env
+new file mode 100644
+index 00000000..2a3f0b5e
+--- /dev/null
++++ b/services/satori-bot/.env
+@@ -0,0 +1,11 @@
++# Satori Configuration
++SATORI_WS_URL=ws://localhost:5140/satori/v1/events
++SATORI_API_BASE_URL=http://localhost:5140/satori/v1
++SATORI_TOKEN=your_satori_token_here
++
++# LLM Configuration
++LLM_API_KEY=your_api_key_here
++LLM_API_BASE_URL=https://api.openai.com/v1
++LLM_MODEL=gpt-4
++LLM_RESPONSE_LANGUAGE=English
++LLM_OLLAMA_DISABLE_THINK=false
+diff --git a/services/satori-bot/README.md b/services/satori-bot/README.md
+new file mode 100644
+index 00000000..b3de8d4d
+--- /dev/null
++++ b/services/satori-bot/README.md
+@@ -0,0 +1,120 @@
++# AIRI Satori Bot
++
++一个基于 Satori 协议的 AI 聊天机器人，可以通过 Koishi 连接到多个聊天平台（QQ、Telegram、Discord、飞书等）。
++
++## 架构说明
++
++本项目采用**独立架构**，参考了 Telegram Bot 的实现模式
++
++## 前置要求
++
++1. **Koishi 实例**：需要一个运行中的 Koishi 实例，并启用 Satori 服务
++2. **LLM API**：OpenAI API 或兼容的 API（如 Ollama、vLLM 等）
++3. **Node.js**: >= 18.0.0
++4. **pnpm**: >= 8.0.0
++
++## 安装
++
++```bash
++# 在项目根目录
++pnpm install
++```
++
++## 配置
++
++复制 `.env` 文件并修改配置：
++
++```bash
++# 在 services/satori-bot 目录
++cp .env .env.local
++```
++
++编辑 `.env.local`：
++
++```env
++# Satori Configuration
++SATORI_WS_URL=ws://localhost:5140/satori/v1/events
++SATORI_API_BASE_URL=http://localhost:5140/satori/v1
++SATORI_TOKEN=your_satori_token_here
++
++# LLM Configuration
++LLM_API_KEY=your_api_key_here
++LLM_API_BASE_URL=https://api.openai.com/v1
++LLM_MODEL=gpt-4
++LLM_RESPONSE_LANGUAGE=简体中文
++LLM_OLLAMA_DISABLE_THINK=false
++```
++
++### 配置说明
++
++#### Satori 配置
++
++- `SATORI_WS_URL`: Satori WebSocket 地址（Koishi 默认：`ws://localhost:5140/satori/v1/events`）
++- `SATORI_API_BASE_URL`: Satori HTTP API 地址（Koishi 默认：`http://localhost:5140/satori/v1`）
++- `SATORI_TOKEN`: Satori 认证令牌（在 Koishi 配置中获取，如果为空 请留空，如：`SATORI_TOKEN=`）
++
++**重要**: Koishi 的 Satori 服务默认路由是 `/satori/v1`，因此完整的 API 路径会自动拼接，例如：
++- 发送消息: `http://localhost:5140/satori/v1/message.create`
++- 获取消息: `http://localhost:5140/satori/v1/message.get`
++
++#### LLM 配置
++
++- `LLM_API_KEY`: LLM API 密钥
++- `LLM_API_BASE_URL`: LLM API 地址
++- `LLM_MODEL`: 使用的模型名称
++- `LLM_RESPONSE_LANGUAGE`: 回复语言（默认：简体中文）
++- `LLM_OLLAMA_DISABLE_THINK`: 是否禁用 Ollama 的思考模式
++
++## 使用
++
++### 开发模式
++
++```bash
++# 在项目根目录
++pnpm --filter @proj-airi/satori-bot dev
++```
++
++### 生产模式
++
++```bash
++# 在项目根目录
++pnpm --filter @proj-airi/satori-bot start
++```
++
++### 类型检查
++
++```bash
++# 在项目根目录
++pnpm --filter @proj-airi/satori-bot typecheck
++```
++
++## 常见问题
++
++### 1. 如何配置 Koishi？
++
++在 Koishi 中启用 `server-satori`，配置项保持默认即可，无需改动。
++
++### 2. 如何自定义 AI 人格？
++
++可以编辑以下文件：
++
++- `services\satori-bot\src\prompts\personality-v1.velin.md`
++- `services\satori-bot\src\prompts\system-action-gen-v1.velin.md`
++
++### 3. 数据库文件在哪里？
++
++`services/satori-bot/data/db.json`
++
++## 贡献
++
++欢迎提交 Issue 和 Pull Request！
++
++## 许可证
++
++MIT License
++
++## 相关链接
++
++- [AIRI 项目](https://github.com/moeru-ai/airi)
++- [Satori 协议文档](https://satori.chat/)
++- [Koishi 文档](https://koishi.chat/)
+diff --git a/services/satori-bot/data/.gitkeep b/services/satori-bot/data/.gitkeep
+new file mode 100644
+index 00000000..8d1c8b69
+--- /dev/null
++++ b/services/satori-bot/data/.gitkeep
+@@ -0,0 +1 @@
++
+diff --git a/services/satori-bot/data/db.json b/services/satori-bot/data/db.json
+new file mode 100644
+index 00000000..2a1e6f8b
+--- /dev/null
++++ b/services/satori-bot/data/db.json
+@@ -0,0 +1,4 @@
++{
++  "channels": [],
++  "messages": []
++}
+diff --git a/services/satori-bot/package.json b/services/satori-bot/package.json
+new file mode 100644
+index 00000000..7d6ae64c
+--- /dev/null
++++ b/services/satori-bot/package.json
+@@ -0,0 +1,41 @@
++{
++  "name": "@proj-airi/satori-bot",
++  "type": "module",
++  "private": true,
++  "description": "Satori protocol adapter for AIRI - Connect to multiple chat platforms via Satori",
++  "author": {
++    "name": "Moeru AI Project AIRI Team",
++    "email": "airi@moeru.ai",
++    "url": "https://github.com/moeru-ai"
++  },
++  "license": "MIT",
++  "repository": {
++    "type": "git",
++    "url": "https://github.com/moeru-ai/airi.git",
++    "directory": "services/satori-bot"
++  },
++  "scripts": {
++    "start": "tsx --env-file=.env --env-file-if-exists=.env.local src/index.ts",
++    "dev": "tsx watch --env-file=.env --env-file-if-exists=.env.local src/index.ts",
++    "typecheck": "tsc --noEmit"
++  },
++  "dependencies": {
++    "@guiiai/logg": "catalog:",
++    "@moeru/std": "catalog:",
++    "@velin-dev/core": "^0.3.4",
++    "@xsai/generate-text": "catalog:",
++    "@xsai/shared-chat": "catalog:",
++    "@xsai/utils-chat": "catalog:",
++    "best-effort-json-parser": "^1.2.1",
++    "es-toolkit": "^1.43.0",
++    "lowdb": "^7.0.1",
++    "nanoid": "^5.1.6",
++    "ws": "^8.18.0"
++  },
++  "devDependencies": {
++    "@types/node": "^22.10.2",
++    "@types/ws": "^8.5.13",
++    "tsx": "^4.21.0",
++    "typescript": "^5.7.2"
++  }
++}
+diff --git a/services/satori-bot/src/actions/read-unread-messages.ts b/services/satori-bot/src/actions/read-unread-messages.ts
+new file mode 100644
+index 00000000..1f7fc0a5
+--- /dev/null
++++ b/services/satori-bot/src/actions/read-unread-messages.ts
+@@ -0,0 +1,52 @@
++import type { BotContext, ChatContext, ReadUnreadMessagesAction } from '../types/bot'
++import type { SatoriMessage } from '../types/satori'
++
++import { useLogg } from '@guiiai/logg'
++
++export async function readUnreadMessages(
++  botContext: BotContext,
++  chatContext: ChatContext,
++  action: ReadUnreadMessagesAction,
++): Promise<{ result: string } | undefined> {
++  const logger = useLogg('readUnreadMessages').useGlobalConfig()
++
++  if (Object.keys(botContext.unreadMessages).length === 0) {
++    logger.log('No unread messages - clearing unread messages')
++    botContext.unreadMessages = {}
++    return undefined
++  }
++
++  if (!action.channelId) {
++    logger.warn('No channel ID provided - clearing all unread messages')
++    return undefined
++  }
++
++  let unreadMessagesForThisChannel: SatoriMessage[] | undefined = botContext.unreadMessages[action.channelId]
++
++  if (!Array.isArray(unreadMessagesForThisChannel)) {
++    logger.log('Unread messages for channel is not an array - converting to array')
++    unreadMessagesForThisChannel = []
++  }
++
++  if (unreadMessagesForThisChannel.length === 0) {
++    logger.log('No unread messages for channel - deleting')
++    delete botContext.unreadMessages[action.channelId]
++    return undefined
++  }
++
++  // Format messages for LLM context
++  const formattedMessages = unreadMessagesForThisChannel.map((msg) => {
++    const userName = msg.user?.name || msg.user?.id || 'Unknown'
++    const content = msg.content || '[No content]'
++    return `[${userName}]: ${content}`
++  }).join('\n')
++
++  // Clear the unread messages for this channel
++  delete botContext.unreadMessages[action.channelId]
++
++  logger.log(`Read ${unreadMessagesForThisChannel.length} unread messages from channel ${action.channelId}`)
++
++  return {
++    result: `AIRI System: Read ${unreadMessagesForThisChannel.length} unread messages from channel ${action.channelId}:\n${formattedMessages}`,
++  }
++}
+diff --git a/services/satori-bot/src/actions/send-message.ts b/services/satori-bot/src/actions/send-message.ts
+new file mode 100644
+index 00000000..38b3fc2d
+--- /dev/null
++++ b/services/satori-bot/src/actions/send-message.ts
+@@ -0,0 +1,50 @@
++import type { SatoriClient } from '../client/satori-client'
++import type { BotContext, ChatContext } from '../types/bot'
++
++import { useLogg } from '@guiiai/logg'
++
++import { recordMessage } from '../db'
++
++export async function sendMessage(
++  botContext: BotContext,
++  chatContext: ChatContext,
++  satoriClient: SatoriClient,
++  content: string,
++  channelId: string,
++  _abortController: AbortController,
++) {
++  const logger = useLogg('sendMessage').useGlobalConfig()
++
++  try {
++    // Check if we should abort due to new messages
++    if (botContext.unreadMessages[channelId] && botContext.unreadMessages[channelId].length > 0) {
++      logger.log(`Not sending message to ${channelId} - new messages arrived`)
++      return
++    }
++
++    // Send the message
++    logger.withField('channelId', channelId).withField('content', content).log('Sending message')
++
++    await satoriClient.sendMessage(chatContext.platform, chatContext.selfId, channelId, content)
++
++    // Record the message in database
++    await recordMessage(channelId, 'bot', 'AIRI', content)
++
++    // Add to chat context as assistant message
++    chatContext.messages.push({
++      role: 'assistant',
++      content,
++    })
++
++    logger.log('Message sent successfully')
++  }
++  catch (err) {
++    if ((err as Error).name === 'AbortError') {
++      logger.log('Message sending was aborted')
++      return
++    }
++
++    logger.withError(err as Error).log('Failed to send message')
++    throw err
++  }
++}
+diff --git a/services/satori-bot/src/bot/index.ts b/services/satori-bot/src/bot/index.ts
+new file mode 100644
+index 00000000..98fc08dc
+--- /dev/null
++++ b/services/satori-bot/src/bot/index.ts
+@@ -0,0 +1,363 @@
++import type { Logg } from '@guiiai/logg'
++
++import type { SatoriClient } from '../client/satori-client'
++import type { Action, BotContext, ChatContext } from '../types/bot'
++import type { SatoriMessage } from '../types/satori'
++
++import { readUnreadMessages } from '../actions/read-unread-messages'
++import { sendMessage } from '../actions/send-message'
++import { listChannels, recordChannel, recordMessage } from '../db'
++import { imagineAnAction } from '../llm/actions'
++
++async function dispatchAction(
++  ctx: BotContext,
++  satoriClient: SatoriClient,
++  action: Action,
++  abortController: AbortController,
++  chatCtx?: ChatContext,
++): Promise<(() => Promise<any>) | undefined> {
++  // If action generation failed, don't proceed
++  if (!action || !action.action) {
++    ctx.logger.withField('action', action).log('No valid action returned.')
++    if (chatCtx) {
++      chatCtx.messages.push({
++        role: 'user',
++        content: 'AIRI System: No valid action returned.',
++      })
++      return () => handleLoopStep(ctx, satoriClient, chatCtx)
++    }
++    return undefined
++  }
++
++  switch (action.action) {
++    case 'list_channels': {
++      if (chatCtx) {
++        const channels = await listChannels()
++        const channelList = channels.map(c => `ID:${c.id}, Name:${c.name}, Platform:${c.platform}`).join('\n')
++        chatCtx.actions.push({
++          action,
++          result: `AIRI System: List of channels:\n${channelList}`,
++        })
++      }
++      return () => handleLoopStep(ctx, satoriClient, chatCtx)
++    }
++
++    case 'send_message': {
++      const chatCtx = await ensureChatContext(ctx, action.channelId)
++      chatCtx.actions.push({
++        action,
++        result: `AIRI System: Sending message to channel ${action.channelId}: ${action.content}`,
++      })
++      await sendMessage(ctx, chatCtx, satoriClient, action.content, action.channelId, abortController)
++      return () => handleLoopStep(ctx, satoriClient, chatCtx)
++    }
++
++    case 'read_unread_messages': {
++      const chatCtx = await ensureChatContext(ctx, action.channelId)
++      const res = await readUnreadMessages(ctx, chatCtx, action)
++      if (res?.result) {
++        ctx.logger.log('Messages read')
++        chatCtx.actions.push({ action, result: res.result })
++        return () => handleLoopStep(ctx, satoriClient, chatCtx)
++      }
++      return undefined
++    }
++
++    case 'continue':
++      if (chatCtx) {
++        chatCtx.actions.push({
++          action,
++          result: 'AIRI System: Acknowledged, will now continue until next tick.',
++        })
++      }
++      return undefined
++
++    case 'break':
++      if (chatCtx) {
++        chatCtx.messages = []
++        chatCtx.actions = []
++        chatCtx.actions.push({
++          action,
++          result: 'AIRI System: Acknowledged, will now break, and clear out all existing memories, messages, actions.',
++        })
++      }
++      return undefined
++
++    case 'sleep':
++      await new Promise(resolve => setTimeout(resolve, 30 * 1000))
++      if (chatCtx) {
++        chatCtx.actions.push({
++          action,
++          result: 'AIRI System: Sleeping for 30 seconds as requested...',
++        })
++      }
++      return () => handleLoopStep(ctx, satoriClient, chatCtx)
++
++    default:
++      if (chatCtx) {
++        chatCtx.messages.push({
++          role: 'user',
++          content: `AIRI System: The action ${(action as any).action} hasn't been implemented yet by developer.`,
++        })
++      }
++      return () => handleLoopStep(ctx, satoriClient, chatCtx)
++  }
++}
++
++async function handleLoopStep(
++  ctx: BotContext,
++  satoriClient: SatoriClient,
++  chatCtx: ChatContext,
++  incomingMessage?: SatoriMessage,
++): Promise<(() => Promise<any>) | undefined> {
++  ctx.currentProcessingStartTime = Date.now()
++
++  if (chatCtx?.currentAbortController) {
++    chatCtx.currentAbortController.abort()
++  }
++
++  const currentController = new AbortController()
++  if (chatCtx) {
++    chatCtx.currentAbortController = currentController
++
++    // Track message processing state
++    if (chatCtx.channelId && !ctx.lastInteractedChannelIds.includes(chatCtx.channelId)) {
++      ctx.lastInteractedChannelIds.push(chatCtx.channelId)
++    }
++    if (ctx.lastInteractedChannelIds.length > 5) {
++      ctx.lastInteractedChannelIds = ctx.lastInteractedChannelIds.slice(-5)
++    }
++
++    // Manage context size
++    if (chatCtx.messages == null) {
++      chatCtx.messages = []
++    }
++    if (chatCtx.messages.length > 20) {
++      const length = chatCtx.messages.length
++      chatCtx.messages = chatCtx.messages.slice(-5)
++      chatCtx.messages.push({
++        role: 'user',
++        content: `AIRI System: Approaching to system context limit, reducing... memory..., reduced from ${length} to ${chatCtx.messages.length}, history may be lost.`,
++      })
++    }
++
++    if (chatCtx.actions == null) {
++      chatCtx.actions = []
++    }
++    if (chatCtx.actions.length > 50) {
++      const length = chatCtx.actions.length
++      chatCtx.actions = chatCtx.actions.slice(-20)
++      chatCtx.messages.push({
++        role: 'user',
++        content: `AIRI System: Approaching to system context limit, reducing... memory..., reduced from ${length} to ${chatCtx.actions.length}, history of actions may be lost.`,
++      })
++    }
++  }
++
++  try {
++    const action = await imagineAnAction(
++      currentController,
++      chatCtx?.messages || [],
++      chatCtx?.actions || [],
++      {
++        unreadMessages: ctx.unreadMessages,
++        incomingMessages: incomingMessage ? [incomingMessage] : [],
++      },
++    )
++    return await dispatchAction(ctx, satoriClient, action, currentController, chatCtx)
++  }
++  catch (err) {
++    if ((err as Error).name === 'AbortError') {
++      ctx.logger.log('Operation was aborted due to interruption')
++      return undefined
++    }
++
++    ctx.logger.withError(err as Error).log('Error occurred')
++    return undefined
++  }
++  finally {
++    if (chatCtx && chatCtx.currentAbortController === currentController) {
++      chatCtx.currentAbortController = undefined
++      ctx.currentProcessingStartTime = undefined
++    }
++  }
++}
++
++async function loopIterationForChannel(
++  bot: BotContext,
++  satoriClient: SatoriClient,
++  chatContext: ChatContext,
++  incomingMessage: SatoriMessage,
++) {
++  let result = await handleLoopStep(bot, satoriClient, chatContext, incomingMessage)
++
++  while (typeof result === 'function') {
++    result = await result()
++  }
++
++  return result
++}
++
++async function loopIterationPeriodicForExistingChannels(ctx: BotContext, satoriClient: SatoriClient) {
++  // Only process channels with unread messages to avoid unnecessary LLM calls
++  const channelsWithUnread = Object.keys(ctx.unreadMessages).filter(
++    channelId => ctx.unreadMessages[channelId]?.length > 0,
++  )
++
++  if (channelsWithUnread.length === 0) {
++    ctx.logger.log('No channels with unread messages, skipping periodic check')
++    return
++  }
++
++  ctx.logger.withField('channelCount', channelsWithUnread.length).log('Processing channels with unread messages')
++
++  // Process channels sequentially to avoid overwhelming the LLM API
++  for (const channelId of channelsWithUnread) {
++    const chatCtx = await ensureChatContext(ctx, channelId)
++
++    try {
++      const action = await imagineAnAction(
++        chatCtx.currentAbortController,
++        chatCtx.messages,
++        chatCtx.actions,
++        { unreadMessages: ctx.unreadMessages },
++      )
++      let result = await dispatchAction(ctx, satoriClient, action, chatCtx.currentAbortController, chatCtx)
++
++      while (typeof result === 'function') {
++        result = await result()
++      }
++    }
++    catch (err) {
++      ctx.logger.withError(err as Error).withField('channelId', channelId).log('Error processing channel in periodic loop')
++      // Continue to next channel instead of breaking the entire loop
++    }
++  }
++}
++
++function loopPeriodic(botCtx: BotContext, satoriClient: SatoriClient) {
++  setTimeout(async () => {
++    try {
++      await loopIterationPeriodicForExistingChannels(botCtx, satoriClient)
++    }
++    catch (err) {
++      if ((err as Error).name === 'AbortError') {
++        botCtx.logger.log('main loop was aborted - restarting loop')
++      }
++      else {
++        botCtx.logger.withError(err as Error).log('error in main loop')
++      }
++    }
++    finally {
++      loopPeriodic(botCtx, satoriClient)
++    }
++  }, 60 * 1000)
++}
++
++export function createBotContext(logger: Logg): BotContext {
++  const botSelf: BotContext = {
++    messageQueue: [],
++    unreadMessages: {},
++    processedIds: new Set(),
++    logger,
++    processing: false,
++    lastInteractedChannelIds: [],
++    chats: new Map<string, ChatContext>(),
++  }
++
++  return botSelf
++}
++
++export async function onMessageArrival(
++  botContext: BotContext,
++  satoriClient: SatoriClient,
++  chatCtx: ChatContext,
++) {
++  if (botContext.processing) {
++    return
++  }
++  botContext.processing = true
++
++  try {
++    while (botContext.messageQueue.length > 0) {
++      const nextMsg = botContext.messageQueue[0]
++
++      if (nextMsg.status === 'ready') {
++        // Record channel (use chatCtx.channelId which is already correctly set)
++        await recordChannel(
++          chatCtx.channelId,
++          nextMsg.message.channel?.name || chatCtx.channelId,
++          chatCtx.platform,
++          chatCtx.selfId,
++        )
++
++        // Record message
++        if (nextMsg.message.user && nextMsg.message.content) {
++          await recordMessage(
++            chatCtx.channelId,
++            nextMsg.message.user.id,
++            nextMsg.message.user.name || nextMsg.message.user.id,
++            nextMsg.message.content,
++          )
++        }
++
++        let unreadMessagesForThisChannel = botContext.unreadMessages[chatCtx.channelId]
++
++        if (unreadMessagesForThisChannel == null) {
++          botContext.logger.withField('channelId', chatCtx.channelId).log('unread messages for this channel is null - creating empty array')
++          unreadMessagesForThisChannel = []
++        }
++        if (!Array.isArray(unreadMessagesForThisChannel)) {
++          botContext.logger.withField('channelId', chatCtx.channelId).log('unread messages for this channel is not an array - converting to array')
++          unreadMessagesForThisChannel = []
++        }
++
++        unreadMessagesForThisChannel.push(nextMsg.message)
++
++        if (unreadMessagesForThisChannel.length > 100) {
++          unreadMessagesForThisChannel = unreadMessagesForThisChannel.slice(-100)
++        }
++
++        botContext.unreadMessages[chatCtx.channelId] = unreadMessagesForThisChannel
++        botContext.logger.withField('channelId', chatCtx.channelId).log('message queue processed, triggering immediate reaction')
++
++        // Trigger immediate processing
++        await loopIterationForChannel(botContext, satoriClient, chatCtx, nextMsg.message)
++        botContext.messageQueue.shift()
++      }
++    }
++  }
++  catch (err) {
++    botContext.logger.withError(err as Error).log('Error occurred')
++  }
++  finally {
++    botContext.processing = false
++  }
++}
++
++export async function ensureChatContext(botCtx: BotContext, channelId: string): Promise<ChatContext> {
++  if (botCtx.chats.has(channelId)) {
++    return botCtx.chats.get(channelId)!
++  }
++
++  // Try to get channel info from database
++  const channels = await listChannels()
++  const channelInfo = channels.find(c => c.id === channelId)
++
++  const newChatContext: ChatContext = {
++    channelId,
++    platform: channelInfo?.platform || '',
++    selfId: channelInfo?.selfId || '',
++    currentTask: undefined,
++    currentAbortController: undefined,
++    messages: [],
++    actions: [],
++  }
++
++  botCtx.chats.set(channelId, newChatContext)
++  return newChatContext
++}
++
++export function startPeriodicLoop(botCtx: BotContext, satoriClient: SatoriClient) {
++  loopPeriodic(botCtx, satoriClient)
++}
+diff --git a/services/satori-bot/src/client/satori-api.ts b/services/satori-bot/src/client/satori-api.ts
+new file mode 100644
+index 00000000..b22b2a9b
+--- /dev/null
++++ b/services/satori-bot/src/client/satori-api.ts
+@@ -0,0 +1,95 @@
++import type { SatoriMessageCreateRequest, SatoriMessageCreateResponse } from '../types/satori'
++
++import { useLogg } from '@guiiai/logg'
++
++const log = useLogg('SatoriAPI')
++
++export interface SatoriAPIConfig {
++  baseUrl: string
++  token?: string
++  platform: string
++  selfId: string
++}
++
++export class SatoriAPI {
++  private config: SatoriAPIConfig
++
++  constructor(config: SatoriAPIConfig) {
++    this.config = config
++  }
++
++  private getHeaders(): Record<string, string> {
++    const headers: Record<string, string> = {
++      'Content-Type': 'application/json',
++      'Satori-Platform': this.config.platform,
++      'Satori-User-ID': this.config.selfId,
++    }
++
++    if (this.config.token) {
++      headers.Authorization = `Bearer ${this.config.token}`
++    }
++
++    return headers
++  }
++
++  private async request<T>(
++    endpoint: string,
++    body?: any,
++  ): Promise<T> {
++    const url = `${this.config.baseUrl}${endpoint}`
++
++    try {
++      const response = await fetch(url, {
++        method: 'POST',
++        headers: this.getHeaders(),
++        body: body ? JSON.stringify(body) : undefined,
++      })
++
++      if (!response.ok) {
++        const errorText = await response.text()
++        throw new Error(`HTTP ${response.status}: ${errorText}`)
++      }
++
++      return await response.json() as T
++    }
++    catch (error) {
++      log.withError(error as Error).error(`Failed to call ${endpoint}`)
++      throw error
++    }
++  }
++
++  async sendMessage(
++    channelId: string,
++    content: string,
++  ): Promise<SatoriMessageCreateResponse[]> {
++    const body: SatoriMessageCreateRequest = {
++      channel_id: channelId,
++      content,
++    }
++
++    log.log(`Sending message to channel ${channelId}: ${content}`)
++    return await this.request<SatoriMessageCreateResponse[]>('/message.create', body)
++  }
++
++  async getMessage(channelId: string, messageId: string): Promise<any> {
++    return await this.request('/message.get', {
++      channel_id: channelId,
++      message_id: messageId,
++    })
++  }
++
++  async deleteMessage(channelId: string, messageId: string): Promise<void> {
++    await this.request('/message.delete', {
++      channel_id: channelId,
++      message_id: messageId,
++    })
++  }
++
++  async updateMessage(channelId: string, messageId: string, content: string): Promise<void> {
++    await this.request('/message.update', {
++      channel_id: channelId,
++      message_id: messageId,
++      content,
++    })
++  }
++}
+diff --git a/services/satori-bot/src/client/satori-client.ts b/services/satori-bot/src/client/satori-client.ts
+new file mode 100644
+index 00000000..4e662374
+--- /dev/null
++++ b/services/satori-bot/src/client/satori-client.ts
+@@ -0,0 +1,284 @@
++import type { SatoriEvent, SatoriIdentifyBody, SatoriReadyBody, SatoriSignal } from '../types/satori'
++
++import WebSocket from 'ws'
++
++import { useLogg } from '@guiiai/logg'
++
++import { SatoriOpcode } from '../types/satori'
++import { SatoriAPI } from './satori-api'
++
++const log = useLogg('SatoriClient')
++
++export interface SatoriClientConfig {
++  url: string
++  token?: string
++  apiBaseUrl?: string
++}
++
++export class SatoriClient {
++  private ws?: WebSocket
++  private config: SatoriClientConfig
++  private connected = false
++  private lastSequenceNumber = 0
++  private heartbeatInterval?: NodeJS.Timeout
++  private reconnectTimeout?: NodeJS.Timeout
++  private shouldReconnect = true
++  private apiClients = new Map<string, SatoriAPI>()
++
++  // Event handlers
++  private eventHandlers = new Map<string, Set<(event: SatoriEvent) => void | Promise<void>>>()
++  private readyHandler?: (logins: SatoriReadyBody) => void | Promise<void>
++
++  constructor(config: SatoriClientConfig) {
++    this.config = config
++  }
++
++  async connect(): Promise<void> {
++    if (this.connected) {
++      log.warn('Already connected to Satori server')
++      return
++    }
++
++    return new Promise((resolve, reject) => {
++      try {
++        log.log(`Connecting to Satori server: ${this.config.url}`)
++        this.ws = new WebSocket(this.config.url)
++
++        this.ws.on('open', () => {
++          log.log('WebSocket connection established')
++          this.connected = true
++          this.sendIdentify()
++          this.startHeartbeat()
++          resolve()
++        })
++
++        this.ws.on('message', (data: WebSocket.Data) => {
++          void this.handleMessage(data)
++        })
++
++        this.ws.on('close', (code, reason) => {
++          log.log(`WebSocket closed: ${code} - ${reason.toString()}`)
++          this.handleDisconnect()
++        })
++
++        this.ws.on('error', (error) => {
++          log.withError(error).error('WebSocket error')
++          if (!this.connected) {
++            reject(error)
++          }
++        })
++      }
++      catch (error) {
++        log.withError(error as Error).error('Failed to create WebSocket connection')
++        reject(error)
++      }
++    })
++  }
++
++  private sendIdentify(): void {
++    const body: SatoriIdentifyBody = {
++      token: this.config.token,
++      sn: this.lastSequenceNumber,
++    }
++
++    this.sendSignal({
++      op: SatoriOpcode.IDENTIFY,
++      body,
++    })
++
++    log.log('Sent IDENTIFY signal')
++  }
++
++  private startHeartbeat(): void {
++    // Send PING every 10 seconds
++    this.heartbeatInterval = setInterval(() => {
++      if (this.connected) {
++        this.sendSignal({ op: SatoriOpcode.PING })
++      }
++    }, 10000)
++  }
++
++  private stopHeartbeat(): void {
++    if (this.heartbeatInterval) {
++      clearInterval(this.heartbeatInterval)
++      this.heartbeatInterval = undefined
++    }
++  }
++
++  private async handleMessage(data: WebSocket.Data): Promise<void> {
++    try {
++      const signal = JSON.parse(data.toString()) as SatoriSignal
++
++      switch (signal.op) {
++        case SatoriOpcode.READY: {
++          const readyBody = signal.body as SatoriReadyBody
++          log.log('Received READY signal')
++
++          // Initialize API clients for each login
++          this.initializeAPIClients(readyBody)
++
++          if (this.readyHandler) {
++            await this.readyHandler(readyBody)
++          }
++          break
++        }
++
++        case SatoriOpcode.EVENT: {
++          const event = signal.body as SatoriEvent
++          this.lastSequenceNumber = event.id
++          await this.handleEvent(event)
++          break
++        }
++
++        case SatoriOpcode.PONG: {
++          // Heartbeat response received
++          break
++        }
++
++        case SatoriOpcode.META: {
++          log.log('Received META signal:', signal.body)
++          break
++        }
++
++        default:
++          log.warn('Unknown opcode received:', signal.op)
++      }
++    }
++    catch (error) {
++      log.withError(error as Error).error('Failed to handle message')
++    }
++  }
++
++  private async handleEvent(event: SatoriEvent): Promise<void> {
++    log.log(`Received event: ${event.type}`)
++
++    const handlers = this.eventHandlers.get(event.type)
++    if (handlers && handlers.size > 0) {
++      const promises: Promise<void>[] = []
++      for (const handler of handlers) {
++        promises.push(Promise.resolve(handler(event)))
++      }
++      await Promise.allSettled(promises)
++    }
++
++    // Also trigger wildcard handlers
++    const wildcardHandlers = this.eventHandlers.get('*')
++    if (wildcardHandlers && wildcardHandlers.size > 0) {
++      const promises: Promise<void>[] = []
++      for (const handler of wildcardHandlers) {
++        promises.push(Promise.resolve(handler(event)))
++      }
++      await Promise.allSettled(promises)
++    }
++  }
++
++  private handleDisconnect(): void {
++    this.connected = false
++    this.stopHeartbeat()
++
++    if (this.shouldReconnect) {
++      log.log('Attempting to reconnect in 5 seconds...')
++      this.reconnectTimeout = setTimeout(() => {
++        void this.connect()
++      }, 5000)
++    }
++  }
++
++  private sendSignal(signal: SatoriSignal): void {
++    if (this.ws && this.connected) {
++      this.ws.send(JSON.stringify(signal))
++    }
++    else {
++      log.warn('Cannot send signal: not connected')
++    }
++  }
++
++  private initializeAPIClients(ready: SatoriReadyBody): void {
++    const apiBaseUrl = this.config.apiBaseUrl || this.config.url.replace('/v1/events', '').replace('ws://', 'http://').replace('wss://', 'https://')
++
++    for (const login of ready.logins) {
++      if (login.platform && login.self_id) {
++        const key = `${login.platform}:${login.self_id}`
++        this.apiClients.set(key, new SatoriAPI({
++          baseUrl: apiBaseUrl,
++          token: this.config.token,
++          platform: login.platform,
++          selfId: login.self_id,
++        }))
++        log.log(`Initialized API client for ${key}`)
++      }
++    }
++  }
++
++  // Public API for sending messages
++  async sendMessage(platform: string, selfId: string, channelId: string, content: string): Promise<void> {
++    const key = `${platform}:${selfId}`
++    const api = this.apiClients.get(key)
++
++    if (!api) {
++      log.error(`No API client found for ${key}`)
++      return
++    }
++
++    try {
++      await api.sendMessage(channelId, content)
++      log.log(`Message sent to channel ${channelId}`)
++    }
++    catch (error) {
++      log.withError(error as Error).error('Failed to send message')
++    }
++  }
++
++  // Event subscription
++  on(eventType: string, handler: (event: SatoriEvent) => void | Promise<void>): void {
++    let handlers = this.eventHandlers.get(eventType)
++    if (!handlers) {
++      handlers = new Set()
++      this.eventHandlers.set(eventType, handlers)
++    }
++    handlers.add(handler)
++  }
++
++  off(eventType: string, handler?: (event: SatoriEvent) => void | Promise<void>): void {
++    const handlers = this.eventHandlers.get(eventType)
++    if (!handlers) {
++      return
++    }
++
++    if (handler) {
++      handlers.delete(handler)
++      if (handlers.size === 0) {
++        this.eventHandlers.delete(eventType)
++      }
++    }
++    else {
++      this.eventHandlers.delete(eventType)
++    }
++  }
++
++  onReady(handler: (logins: SatoriReadyBody) => void | Promise<void>): void {
++    this.readyHandler = handler
++  }
++
++  disconnect(): void {
++    this.shouldReconnect = false
++    this.stopHeartbeat()
++
++    if (this.reconnectTimeout) {
++      clearTimeout(this.reconnectTimeout)
++      this.reconnectTimeout = undefined
++    }
++
++    if (this.ws) {
++      this.ws.close()
++      this.ws = undefined
++    }
++
++    this.connected = false
++    log.log('Disconnected from Satori server')
++  }
++
++  isConnected(): boolean {
++    return this.connected
++  }
++}
+diff --git a/services/satori-bot/src/db/index.ts b/services/satori-bot/src/db/index.ts
+new file mode 100644
+index 00000000..825283a6
+--- /dev/null
++++ b/services/satori-bot/src/db/index.ts
+@@ -0,0 +1,90 @@
++import { join } from 'node:path'
++import { fileURLToPath } from 'node:url'
++
++import { Low } from 'lowdb'
++import { JSONFile } from 'lowdb/node'
++
++const __dirname = fileURLToPath(new URL('.', import.meta.url))
++
++interface Channel {
++  id: string
++  name: string
++  platform: string
++  selfId: string
++}
++
++interface Message {
++  id: string
++  channelId: string
++  userId: string
++  userName: string
++  content: string
++  timestamp: number
++}
++
++interface Database {
++  channels: Channel[]
++  messages: Message[]
++}
++
++const defaultData: Database = {
++  channels: [],
++  messages: [],
++}
++
++const file = join(__dirname, '../../data/db.json')
++const adapter = new JSONFile<Database>(file)
++const db = new Low<Database>(adapter, defaultData)
++
++export async function initDb() {
++  await db.read()
++  db.data ||= defaultData
++  await db.write()
++}
++
++export async function recordChannel(id: string, name: string, platform: string, selfId: string) {
++  await db.read()
++
++  // Find existing channel by ID only (platform/selfId may change on restart)
++  const existingIndex = db.data.channels.findIndex(c => c.id === id)
++
++  if (existingIndex >= 0) {
++    // Update existing channel with new platform/selfId
++    db.data.channels[existingIndex] = { id, name, platform, selfId }
++    await db.write()
++  }
++  else {
++    // Create new channel
++    db.data.channels.push({ id, name, platform, selfId })
++    await db.write()
++  }
++}
++
++export async function listChannels(): Promise<Channel[]> {
++  await db.read()
++  return db.data.channels
++}
++
++export async function recordMessage(channelId: string, userId: string, userName: string, content: string) {
++  await db.read()
++
++  const message: Message = {
++    id: `${channelId}-${userId}-${Date.now()}`,
++    channelId,
++    userId,
++    userName,
++    content,
++    timestamp: Date.now(),
++  }
++
++  db.data.messages.push(message)
++
++  // Keep only last 1000 messages
++  if (db.data.messages.length > 1000) {
++    db.data.messages = db.data.messages.slice(-1000)
++  }
++
++  await db.write()
++}
++
++export { db }
+diff --git a/services/satori-bot/src/index.ts b/services/satori-bot/src/index.ts
+new file mode 100644
+index 00000000..1092ff1f
+--- /dev/null
++++ b/services/satori-bot/src/index.ts
+@@ -0,0 +1,100 @@
++import process, { env } from 'node:process'
++
++import { Format, LogLevel, setGlobalFormat, setGlobalLogLevel, useLogg } from '@guiiai/logg'
++
++import { createBotContext, ensureChatContext, onMessageArrival, startPeriodicLoop } from './bot'
++import { SatoriClient } from './client/satori-client'
++import { initDb } from './db'
++
++setGlobalFormat(Format.Pretty)
++setGlobalLogLevel(LogLevel.Debug)
++
++async function main() {
++  const log = useLogg('Main').useGlobalConfig()
++
++  // Initialize database
++  await initDb()
++  log.log('Database initialized')
++
++  // Create Satori client
++  const satoriClient = new SatoriClient({
++    url: env.SATORI_WS_URL || 'ws://localhost:5140/satori/v1/events',
++    token: env.SATORI_TOKEN,
++    apiBaseUrl: env.SATORI_API_BASE_URL,
++  })
++
++  // Create bot context
++  const botContext = createBotContext(log)
++
++  // Set up event handlers
++  satoriClient.onReady((ready) => {
++    log.log('Satori client ready:', ready)
++    log.log(`Connected to ${ready.logins.length} platform(s)`)
++
++    for (const login of ready.logins) {
++      log.log(`- ${login.platform} (${login.self_id}): ${login.status}`)
++    }
++  })
++
++  // Handle message-created events
++  satoriClient.on('message-created', async (event) => {
++    const message = event.message
++    if (!message) {
++      return
++    }
++
++    // Skip bot's own messages
++    if (message.user?.id === event.self_id) {
++      return
++    }
++
++    // Use event.channel.id as primary source, fallback to message.channel.id
++    const channelId = event.channel?.id || message.channel?.id || 'unknown'
++
++    const messageId = `${channelId}-${message.id}`
++    if (botContext.processedIds.has(messageId)) {
++      return
++    }
++
++    botContext.processedIds.add(messageId)
++    log.log(`Received message from ${message.user?.name || message.user?.id} in channel ${channelId}: ${message.content}`)
++
++    // Add to message queue
++    botContext.messageQueue.push({
++      message,
++      status: 'ready',
++    })
++
++    // Get or create chat context
++    const chatCtx = await ensureChatContext(botContext, channelId)
++
++    // Set platform and selfId if not set
++    if (!chatCtx.platform) {
++      chatCtx.platform = event.platform
++    }
++    if (!chatCtx.selfId) {
++      chatCtx.selfId = event.self_id
++    }
++
++    // Process message
++    await onMessageArrival(botContext, satoriClient, chatCtx)
++  })
++
++  // Connect to Satori server
++  await satoriClient.connect()
++  log.log('Connected to Satori server')
++
++  // Start periodic loop
++  startPeriodicLoop(botContext, satoriClient)
++  log.log('Periodic loop started')
++}
++
++process.on('unhandledRejection', (err) => {
++  const log = useLogg('UnhandledRejection').useGlobalConfig()
++  log
++    .withError(err as Error)
++    .withField('cause', (err as any).cause)
++    .error('Unhandled rejection')
++})
++
++main().catch(console.error)
+diff --git a/services/satori-bot/src/llm/actions.ts b/services/satori-bot/src/llm/actions.ts
+new file mode 100644
+index 00000000..2cd967a6
+--- /dev/null
++++ b/services/satori-bot/src/llm/actions.ts
+@@ -0,0 +1,129 @@
++import type { GenerateTextOptions } from '@xsai/generate-text'
++import type { Message as LLMMessage } from '@xsai/shared-chat'
++
++import type { Action } from '../types/bot'
++import type { SatoriMessage } from '../types/satori'
++
++import { env } from 'node:process'
++
++import { useLogg } from '@guiiai/logg'
++import { generateText } from '@xsai/generate-text'
++import { message } from '@xsai/utils-chat'
++import { parse } from 'best-effort-json-parser'
++
++import { personality, systemPrompt } from '../prompts'
++
++export async function imagineAnAction(
++  currentAbortController: AbortController | undefined,
++  messages: LLMMessage[],
++  actions: { action: Action, result: unknown }[],
++  globalStates: {
++    unreadMessages: Record<string, SatoriMessage[]>
++    incomingMessages?: SatoriMessage[]
++  },
++): Promise<Action | undefined> {
++  const logger = useLogg('imagineAnAction').useGlobalConfig()
++
++  let responseText = ''
++
++  const requestMessages = message.messages(
++    message.system(
++      [
++        await systemPrompt(),
++        await personality(),
++      ].join('\n\n'),
++    ),
++    ...messages,
++    message.user(
++      [
++        globalStates?.incomingMessages?.length > 0
++          ? `Incoming messages:\n${globalStates.incomingMessages.filter(Boolean).map(msg => `- [${msg.channel?.name || msg.channel?.id}] ${msg.user?.name || msg.user?.id}: ${msg.content}`).join('\n')}`
++          : '',
++        'History actions:',
++        actions.map(a => `- Action: ${JSON.stringify(a.action)}, Result: ${JSON.stringify(a.result)}`).join('\n'),
++        `Currently, it's ${new Date()} on the server that hosts you.`,
++        `You have total ${Object.values(globalStates.unreadMessages).reduce((acc, cur) => acc + cur.length, 0)} unread messages.`,
++        'Unread messages count are:',
++        Object.entries(globalStates.unreadMessages).map(([key, value]) => `Channel ID:${key}, Unread message count:${value.length}`).join('\n'),
++        'Based on the context, what do you want to do? Choose a right action from the listing of the tools you want to take next.',
++        'Respond with the action and parameters you choose in JSON only, without any explanation and markups.',
++      ].filter(Boolean).join('\n\n'),
++    ),
++  )
++
++  try {
++    // Validate API configuration
++    if (!env.LLM_API_KEY) {
++      throw new Error('LLM_API_KEY is not configured. Please set it in your .env.local file.')
++    }
++    if (!env.LLM_API_BASE_URL) {
++      throw new Error('LLM_API_BASE_URL is not configured. Please set it in your .env.local file.')
++    }
++    if (!env.LLM_MODEL) {
++      throw new Error('LLM_MODEL is not configured. Please set it in your .env.local file.')
++    }
++
++    const req = {
++      apiKey: env.LLM_API_KEY,
++      baseURL: env.LLM_API_BASE_URL,
++      model: env.LLM_MODEL,
++      messages: requestMessages,
++      abortSignal: currentAbortController?.signal,
++    } satisfies GenerateTextOptions
++
++    if (env.LLM_OLLAMA_DISABLE_THINK) {
++      (req as Record<string, unknown>).think = false
++    }
++
++    const res = await generateText(req)
++    res.text = res.text.replace(/<think>[\s\S]*?<\/think>/, '').trim()
++
++    if (!res.text) {
++      throw new Error('No response text')
++    }
++
++    logger.withFields({
++      response: res.text,
++      unreadMessages: Object.fromEntries(Object.entries(globalStates.unreadMessages).map(([key, value]) => [key, value.length])),
++      now: new Date().toLocaleString(),
++      totalTokens: res.usage.total_tokens,
++      promptTokens: res.usage.prompt_tokens,
++      completion_tokens: res.usage.completion_tokens,
++    }).log('Generated action')
++
++    responseText = res.text
++      .replace(/^```(?:json)?\s*/m, '')
++      .replace(/\s*```\s*$/m, '')
++      .trim()
++
++    const parsed = parse(responseText) as any
++
++    // 如果 LLM 返回的 JSON 有 parameters 包装层，需要展开
++    if (parsed.parameters && typeof parsed.parameters === 'object') {
++      const { parameters, ...rest } = parsed
++      const action = { ...rest, ...parameters } as Action
++      return action
++    }
++
++    return parsed as Action
++  }
++  catch (err) {
++    const error = err as Error
++
++    // Check for API key errors
++    if (error.message?.includes('API Key') || error.message?.includes('API key')) {
++      logger.error('❌ LLM API Key Error: Please check your .env.local file and ensure LLM_API_KEY is set correctly.')
++      logger.error(`   Current LLM_API_BASE_URL: ${env.LLM_API_BASE_URL}`)
++      logger.error(`   Current LLM_MODEL: ${env.LLM_MODEL}`)
++    }
++    else if (error.message?.includes('LLM_')) {
++      // Configuration error
++      logger.error(`❌ Configuration Error: ${error.message}`)
++    }
++    else {
++      logger.withError(error).log('Failed to generate action')
++    }
++
++    throw err
++  }
++}
+diff --git a/services/satori-bot/src/prompts/index.ts b/services/satori-bot/src/prompts/index.ts
+new file mode 100644
+index 00000000..8566767e
+--- /dev/null
++++ b/services/satori-bot/src/prompts/index.ts
+@@ -0,0 +1,9 @@
++import { velin } from '../utils/velin'
++
++export async function personality() {
++  return await (velin('personality-v1.velin.md', import.meta.url))()
++}
++
++export async function systemPrompt() {
++  return await (velin('system-action-gen-v1.velin.md', import.meta.url))()
++}
+diff --git a/services/satori-bot/src/prompts/personality-v1.velin.md b/services/satori-bot/src/prompts/personality-v1.velin.md
+new file mode 100644
+index 00000000..9b52e682
+--- /dev/null
++++ b/services/satori-bot/src/prompts/personality-v1.velin.md
+@@ -0,0 +1,9 @@
++Your name is AIRI, an AI assistant designed to interact naturally with users across multiple chat platforms.
++
++You are friendly, helpful, and conversational. You can:
++- Understand context from previous messages
++- Respond appropriately to different situations
++- Express yourself naturally in the user's language
++- Be concise when appropriate, detailed when needed
++
++You are NOT overly formal or robotic. You communicate like a real person would in a chat conversation.
+diff --git a/services/satori-bot/src/prompts/system-action-gen-v1.velin.md b/services/satori-bot/src/prompts/system-action-gen-v1.velin.md
+new file mode 100644
+index 00000000..9f332217
+--- /dev/null
++++ b/services/satori-bot/src/prompts/system-action-gen-v1.velin.md
+@@ -0,0 +1,54 @@
++You are an AI agent that can perform actions through a structured action system. Your responses must be in JSON format containing an action to execute.
++
++## Available Actions
++
++**1. send_message** - Send a message to a specific channel. Use this when you want to reply to users or send information.
++
++Parameters:
++- `channelId`: The ID of the channel to send the message to
++- `content`: The message content to send
++
++**2. read_unread_messages** - Read all unread messages from a specific channel. Use this when you need to catch up on conversation history.
++
++Parameters:
++- `channelId`: The ID of the channel to read messages from
++
++## Response Format
++
++You must respond with a JSON object in this exact format:
++
++```json
++{
++  "action": "action_name",
++  "parameters": {
++    "param1": "value1",
++    "param2": "value2"
++  },
++  "reasoning": "Brief explanation of why you chose this action"
++}
++```
++
++## Guidelines
++
++1. **Choose the most appropriate action** based on the current context and user messages
++2. **Provide clear reasoning** for your action choice
++3. **Use correct parameter values** - ensure channel IDs and content are accurate
++4. **Respond in the same language as the user** when generating message content
++5. **Be concise but informative** in your messages
++6. **Consider conversation context** when deciding whether to read messages or respond
++
++## Example Scenarios
++
++**Scenario 1: User asks a question**
++- Action: `send_message`
++- Reasoning: User expects a direct response
++
++**Scenario 2: You notice unread messages**
++- Action: `read_unread_messages`
++- Reasoning: Need to understand conversation context before responding
++
++**Scenario 3: Continuing a conversation**
++- Action: `send_message`
++- Reasoning: Already have context, can respond directly
++
++Remember: Always output valid JSON. Your entire response should be parseable as JSON.
+diff --git a/services/satori-bot/src/types/bot.ts b/services/satori-bot/src/types/bot.ts
+new file mode 100644
+index 00000000..a39c73df
+--- /dev/null
++++ b/services/satori-bot/src/types/bot.ts
+@@ -0,0 +1,70 @@
++import type { Logg } from '@guiiai/logg'
++import type { Message as LLMMessage } from '@xsai/shared-chat'
++
++import type { CancellablePromise } from '../utils/promise'
++import type { SatoriMessage } from './satori'
++
++export interface PendingMessage {
++  message: SatoriMessage
++  status: 'pending' | 'ready'
++}
++
++export interface BotContext {
++  logger: Logg
++  messageQueue: PendingMessage[]
++  unreadMessages: Record<string, SatoriMessage[]> // channelId -> messages
++  processedIds: Set<string>
++  processing: boolean
++  lastInteractedChannelIds: string[]
++  currentProcessingStartTime?: number
++  chats: Map<string, ChatContext>
++}
++
++export interface ChatContext {
++  channelId: string
++  platform: string
++  selfId: string
++
++  currentTask?: CancellablePromise<void>
++  currentAbortController?: AbortController
++
++  messages: LLMMessage[]
++  actions: { action: Action, result: unknown }[]
++}
++
++// Action types
++export interface ContinueAction {
++  action: 'continue'
++}
++
++export interface BreakAction {
++  action: 'break'
++}
++
++export interface SleepAction {
++  action: 'sleep'
++  seconds?: number
++}
++
++export interface ListChannelsAction {
++  action: 'list_channels'
++}
++
++export interface SendMessageAction {
++  action: 'send_message'
++  content: string
++  channelId: string
++}
++
++export interface ReadUnreadMessagesAction {
++  action: 'read_unread_messages'
++  channelId: string
++}
++
++export type Action
++  = | ContinueAction
++    | BreakAction
++    | SleepAction
++    | ListChannelsAction
++    | SendMessageAction
++    | ReadUnreadMessagesAction
+diff --git a/services/satori-bot/src/types/satori.ts b/services/satori-bot/src/types/satori.ts
+new file mode 100644
+index 00000000..03f9343c
+--- /dev/null
++++ b/services/satori-bot/src/types/satori.ts
+@@ -0,0 +1,160 @@
++/**
++ * Satori Protocol Type Definitions
++ * Based on Satori Protocol v1 specification
++ */
++
++// Opcode for WebSocket signaling
++export enum SatoriOpcode {
++  EVENT = 0, // 接收事件
++  PING = 1, // 发送心跳
++  PONG = 2, // 接收心跳回复
++  IDENTIFY = 3, // 发送鉴权
++  READY = 4, // 接收鉴权成功
++  META = 5, // 接收元信息更新
++}
++
++// WebSocket Signal Structure
++export interface SatoriSignal<T = any> {
++  op: SatoriOpcode
++  body?: T
++}
++
++// IDENTIFY signal body
++export interface SatoriIdentifyBody {
++  token?: string
++  sn?: number
++}
++
++// READY signal body
++export interface SatoriReadyBody {
++  logins: SatoriLogin[]
++  proxy_urls: string[]
++}
++
++// META signal body
++export interface SatoriMetaBody {
++  proxy_urls: string[]
++}
++
++// User resource
++export interface SatoriUser {
++  id: string
++  name?: string
++  nick?: string
++  avatar?: string
++  is_bot?: boolean
++}
++
++// Channel resource
++export interface SatoriChannel {
++  id: string
++  type: number
++  name?: string
++  parent_id?: string
++}
++
++// Guild resource
++export interface SatoriGuild {
++  id: string
++  name?: string
++  avatar?: string
++}
++
++// Guild Member resource
++export interface SatoriGuildMember {
++  user?: SatoriUser
++  nick?: string
++  avatar?: string
++  joined_at?: number
++}
++
++// Guild Role resource
++export interface SatoriGuildRole {
++  id: string
++  name?: string
++}
++
++// Message resource
++export interface SatoriMessage {
++  id: string
++  content: string
++  channel?: SatoriChannel
++  guild?: SatoriGuild
++  member?: SatoriGuildMember
++  user?: SatoriUser
++  created_at?: number
++  updated_at?: number
++}
++
++// Login resource
++export interface SatoriLogin {
++  user?: SatoriUser
++  self_id?: string
++  platform?: string
++  status: number
++  features?: string[]
++  proxy_urls?: string[]
++}
++
++// Interaction Argv
++export interface SatoriArgv {
++  name: string
++  arguments: any[]
++  options: Record<string, any>
++}
++
++// Interaction Button
++export interface SatoriButton {
++  id: string
++}
++
++// Event structure
++export interface SatoriEvent {
++  id: number
++  type: string
++  platform: string
++  self_id: string
++  timestamp: number
++  argv?: SatoriArgv
++  button?: SatoriButton
++  channel?: SatoriChannel
++  guild?: SatoriGuild
++  login?: SatoriLogin
++  member?: SatoriGuildMember
++  message?: SatoriMessage
++  operator?: SatoriUser
++  role?: SatoriGuildRole
++  user?: SatoriUser
++  _type?: string
++  _data?: Record<string, any>
++}
++
++// API Request/Response types
++export interface SatoriMessageCreateRequest {
++  channel_id: string
++  content: string
++}
++
++export interface SatoriMessageCreateResponse {
++  id: string
++  content: string
++  channel?: SatoriChannel
++  guild?: SatoriGuild
++  member?: SatoriGuildMember
++  user?: SatoriUser
++  created_at?: number
++  updated_at?: number
++}
++
++// Paginated list
++export interface SatoriList<T> {
++  data: T[]
++  next?: string
++}
++
++// Bidirectional paginated list
++export interface SatoriBidiList<T> {
++  data: T[]
++  prev?: string
++  next?: string
++}
+diff --git a/services/satori-bot/src/utils/path.ts b/services/satori-bot/src/utils/path.ts
+new file mode 100644
+index 00000000..1993ab15
+--- /dev/null
++++ b/services/satori-bot/src/utils/path.ts
+@@ -0,0 +1,6 @@
++import { dirname, join } from 'node:path'
++import { fileURLToPath } from 'node:url'
++
++export function relativeOf(path: string, base: string) {
++  return join(dirname(fileURLToPath(base)), path)
++}
+diff --git a/services/satori-bot/src/utils/promise.ts b/services/satori-bot/src/utils/promise.ts
+new file mode 100644
+index 00000000..358c6e1f
+--- /dev/null
++++ b/services/satori-bot/src/utils/promise.ts
+@@ -0,0 +1,18 @@
++export interface CancellablePromise<T> {
++  promise: Promise<T>
++  cancel: () => void
++}
++
++export function cancellable<T>(promise: Promise<T>): CancellablePromise<T> {
++  let cancel: () => void
++
++  const wrappedPromise = new Promise<T>((resolve, reject) => {
++    cancel = () => reject(new Error('CANCELLED'))
++    promise.then(resolve).catch(reject)
++  })
++
++  return {
++    promise: wrappedPromise,
++    cancel: () => cancel?.(),
++  }
++}
+diff --git a/services/satori-bot/src/utils/velin.ts b/services/satori-bot/src/utils/velin.ts
+new file mode 100644
+index 00000000..cd8818db
+--- /dev/null
++++ b/services/satori-bot/src/utils/velin.ts
+@@ -0,0 +1,20 @@
++import { readFile } from 'node:fs/promises'
++
++import { relativeOf } from './path'
++
++export interface VelinModule {
++  render: <P>(data: P) => Promise<string>
++}
++
++export function importVelin(module: string, base: string): VelinModule {
++  return {
++    render: async (_data) => {
++      const content = (await readFile(relativeOf(module, base))).toString('utf-8')
++      return content
++    },
++  }
++}
++
++export function velin<P = undefined>(module: string, base: string): (data?: P) => Promise<string> {
++  return importVelin(module, base).render
++}
+diff --git a/services/satori-bot/tsconfig.json b/services/satori-bot/tsconfig.json
+new file mode 100644
+index 00000000..c36b13b4
+--- /dev/null
++++ b/services/satori-bot/tsconfig.json
+@@ -0,0 +1,21 @@
++{
++  "compilerOptions": {
++    "target": "ESNext",
++    "lib": [
++      "ESNext"
++    ],
++    "module": "ESNext",
++    "moduleResolution": "bundler",
++    "types": [
++      "node"
++    ],
++    "esModuleInterop": true,
++    "forceConsistentCasingInFileNames": true,
++    "isolatedModules": true,
++    "verbatimModuleSyntax": true,
++    "skipLibCheck": true
++  },
++  "include": [
++    "src/**/*.ts"
++  ]
++}

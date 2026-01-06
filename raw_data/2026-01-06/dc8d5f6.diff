@@ -1,0 +1,13 @@
+commit dc8d5f676155a0d109c8aa3603fd58a3e491dfa9
+Author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+Date:   Tue Jan 6 07:38:17 2026 +0000
+
+    chore(nix): update pnpmDeps hash
+
+diff --git a/nix/pnpm-deps-hash.txt b/nix/pnpm-deps-hash.txt
+index d45e29d2..c578efed 100644
+--- a/nix/pnpm-deps-hash.txt
++++ b/nix/pnpm-deps-hash.txt
+@@ -1 +1 @@
+-sha256-+bVZrOtAwghcsxq9oVMjNvaAWbbLTiy5vX94AQPqH20=
++sha256-C1BtrzcjRjrncJT67qfKHnGcOz4SnRXBjHMW1SePs7w=

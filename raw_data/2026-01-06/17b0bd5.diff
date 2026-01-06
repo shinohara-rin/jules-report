@@ -1,0 +1,1578 @@
+commit 17b0bd54b79fe14cb8a4c852e74cda3f9662ae63
+Author: Neko Ayaka <neko@ayaka.moe>
+Date:   Tue Jan 6 02:45:59 2026 +0800
+
+    feat(stage-*): process spark:notify & emitting spark:command
+
+diff --git a/apps/stage-pocket/src/App.vue b/apps/stage-pocket/src/App.vue
+index 81cc4f6d..ada3401f 100644
+--- a/apps/stage-pocket/src/App.vue
++++ b/apps/stage-pocket/src/App.vue
+@@ -1,6 +1,7 @@
+ <script setup lang="ts">
+ import { OnboardingDialog, ToasterRoot } from '@proj-airi/stage-ui/components'
+ import { useSharedAnalyticsStore } from '@proj-airi/stage-ui/stores/analytics'
++import { useCharacterOrchestratorStore } from '@proj-airi/stage-ui/stores/character-orchestrator'
+ import { useDisplayModelsStore } from '@proj-airi/stage-ui/stores/display-models'
+ import { useModsServerChannelStore } from '@proj-airi/stage-ui/stores/mods/api/channel-server'
+ import { useContextBridgeStore } from '@proj-airi/stage-ui/stores/mods/api/context-bridge'
+@@ -24,6 +25,7 @@ const settingsStore = useSettings()
+ const settings = storeToRefs(settingsStore)
+ const onboardingStore = useOnboardingStore()
+ const serverChannelStore = useModsServerChannelStore()
++const characterOrchestratorStore = useCharacterOrchestratorStore()
+ const { shouldShowSetup } = storeToRefs(onboardingStore)
+ const { isDark } = useTheme()
+ const cardStore = useAiriCardStore()
+@@ -72,6 +74,7 @@ onMounted(async () => {
+
+   await serverChannelStore.initialize({ possibleEvents: ['ui:configure'] }).catch(err => console.error('Failed to initialize Mods Server Channel in App.vue:', err))
+   await contextBridgeStore.initialize()
++  characterOrchestratorStore.initialize()
+
+   await displayModelsStore.loadDisplayModelsFromIndexedDB()
+   await settingsStore.initializeStageModel()
+diff --git a/apps/stage-tamagotchi/src/renderer/App.vue b/apps/stage-tamagotchi/src/renderer/App.vue
+index 9cda4b44..0d26d7ac 100644
+--- a/apps/stage-tamagotchi/src/renderer/App.vue
++++ b/apps/stage-tamagotchi/src/renderer/App.vue
+@@ -2,6 +2,7 @@
+ import { defineInvoke, defineInvokeHandler } from '@moeru/eventa'
+ import { themeColorFromValue, useThemeColor } from '@proj-airi/stage-layouts/composables/theme-color'
+ import { useSharedAnalyticsStore } from '@proj-airi/stage-ui/stores/analytics'
++import { useCharacterOrchestratorStore } from '@proj-airi/stage-ui/stores/character-orchestrator'
+ import { useDisplayModelsStore } from '@proj-airi/stage-ui/stores/display-models'
+ import { useModsServerChannelStore } from '@proj-airi/stage-ui/stores/mods/api/channel-server'
+ import { useContextBridgeStore } from '@proj-airi/stage-ui/stores/mods/api/context-bridge'
+@@ -28,6 +29,7 @@ const router = useRouter()
+ const route = useRoute()
+ const cardStore = useAiriCardStore()
+ const serverChannelStore = useModsServerChannelStore()
++const characterOrchestratorStore = useCharacterOrchestratorStore()
+ const analyticsStore = useSharedAnalyticsStore()
+
+ watch(language, () => {
+@@ -50,6 +52,7 @@ onMounted(async () => {
+
+   await serverChannelStore.initialize({ possibleEvents: ['ui:configure'] }).catch(err => console.error('Failed to initialize Mods Server Channel in App.vue:', err))
+   await contextBridgeStore.initialize()
++  characterOrchestratorStore.initialize()
+
+   const context = useElectronEventaContext()
+   const startTrackingCursorPoint = defineInvoke(context.value, electronStartTrackMousePosition)
+diff --git a/apps/stage-tamagotchi/src/renderer/pages/index.vue b/apps/stage-tamagotchi/src/renderer/pages/index.vue
+index 2f472e11..6e21e8ae 100644
+--- a/apps/stage-tamagotchi/src/renderer/pages/index.vue
++++ b/apps/stage-tamagotchi/src/renderer/pages/index.vue
+@@ -13,7 +13,7 @@ import { useConsciousnessStore } from '@proj-airi/stage-ui/stores/modules/consci
+ import { useHearingSpeechInputPipeline } from '@proj-airi/stage-ui/stores/modules/hearing'
+ import { useProvidersStore } from '@proj-airi/stage-ui/stores/providers'
+ import { useSettingsAudioDevice } from '@proj-airi/stage-ui/stores/settings'
+-import { refDebounced, useBroadcastChannel, watchPausable } from '@vueuse/core'
++import { refDebounced, useBroadcastChannel } from '@vueuse/core'
+ import { storeToRefs } from 'pinia'
+ import { computed, onUnmounted, ref, toRef, watch } from 'vue'
+
+@@ -61,7 +61,7 @@ const { fadeOnHoverEnabled } = storeToRefs(useControlsIslandStore())
+
+ watch(componentStateStage, () => isLoading.value = componentStateStage.value !== 'mounted', { immediate: true })
+
+-const { pause, resume } = watchPausable(isTransparent, (transparent) => {
++const { pause, resume } = watch(isTransparent, (transparent) => {
+   shouldFadeOnCursorWithin.value = fadeOnHoverEnabled.value && !transparent
+ }, { immediate: true })
+
+diff --git a/apps/stage-web/src/App.vue b/apps/stage-web/src/App.vue
+index 8d990c21..708b2781 100644
+--- a/apps/stage-web/src/App.vue
++++ b/apps/stage-web/src/App.vue
+@@ -1,6 +1,7 @@
+ <script setup lang="ts">
+ import { OnboardingDialog, ToasterRoot } from '@proj-airi/stage-ui/components'
+ import { useSharedAnalyticsStore } from '@proj-airi/stage-ui/stores/analytics'
++import { useCharacterOrchestratorStore } from '@proj-airi/stage-ui/stores/character-orchestrator'
+ import { useDisplayModelsStore } from '@proj-airi/stage-ui/stores/display-models'
+ import { useModsServerChannelStore } from '@proj-airi/stage-ui/stores/mods/api/channel-server'
+ import { useContextBridgeStore } from '@proj-airi/stage-ui/stores/mods/api/context-bridge'
+@@ -28,6 +29,7 @@ const settingsStore = useSettings()
+ const settings = storeToRefs(settingsStore)
+ const onboardingStore = useOnboardingStore()
+ const serverChannelStore = useModsServerChannelStore()
++const characterOrchestratorStore = useCharacterOrchestratorStore()
+ const { shouldShowSetup } = storeToRefs(onboardingStore)
+ const { isDark } = useTheme()
+ const cardStore = useAiriCardStore()
+@@ -76,6 +78,7 @@ onMounted(async () => {
+
+   await serverChannelStore.initialize({ possibleEvents: ['ui:configure'] }).catch(err => console.error('Failed to initialize Mods Server Channel in App.vue:', err))
+   await contextBridgeStore.initialize()
++  characterOrchestratorStore.initialize()
+
+   await displayModelsStore.loadDisplayModelsFromIndexedDB()
+   await settingsStore.initializeStageModel()
+diff --git a/packages/stage-pages/package.json b/packages/stage-pages/package.json
+index 0a764be3..943f7aea 100644
+--- a/packages/stage-pages/package.json
++++ b/packages/stage-pages/package.json
+@@ -46,6 +46,7 @@
+     "vue": "^3.5.25",
+     "vue-i18n": "^11.2.2",
+     "vue-router": "^4.6.4",
++    "xsschema": "catalog:",
+     "zod": "catalog:"
+   },
+   "devDependencies": {
+diff --git a/packages/stage-ui/package.json b/packages/stage-ui/package.json
+index c1a0190a..471a0a37 100644
+--- a/packages/stage-ui/package.json
++++ b/packages/stage-ui/package.json
+@@ -141,6 +141,7 @@
+     "vue-sonner": "^2.0.9",
+     "xast-util-to-xml": "^4.0.0",
+     "xastscript": "^4.0.0",
++    "xsschema": "catalog:",
+     "zod": "^4.2.1"
+   },
+   "devDependencies": {
+@@ -164,6 +165,7 @@
+     "@iconify-json/svg-spinners": "^1.2.4",
+     "@iconify-json/vscode-icons": "^1.2.37",
+     "@moeru/std": "catalog:",
++    "@pinia/testing": "catalog:",
+     "@proj-airi/lobe-icons": "^1.0.18",
+     "@proj-airi/vite-plugin-warpdrive": "workspace:*",
+     "@types/audioworklet": "catalog:",
+diff --git a/packages/stage-ui/src/stores/character-orchestrator.test.ts b/packages/stage-ui/src/stores/character-orchestrator.test.ts
+new file mode 100644
+index 00000000..9ea8cb46
+--- /dev/null
++++ b/packages/stage-ui/src/stores/character-orchestrator.test.ts
+@@ -0,0 +1,143 @@
++import type { WebSocketBaseEvent, WebSocketEvents } from '@proj-airi/server-sdk'
++import type { Store, StoreDefinition } from 'pinia'
++import type { Mock } from 'vitest'
++import type { UnwrapRef } from 'vue'
++import type z from 'zod'
++
++import type { sparkCommandSchema } from './character-orchestrator'
++import type { StreamEvent } from './llm'
++import type { AiriCard } from './modules'
++
++import { createTestingPinia } from '@pinia/testing'
++import { nanoid } from 'nanoid'
++import { setActivePinia } from 'pinia'
++import { beforeEach, describe, expect, it, vi } from 'vitest'
++
++import { useCharacterStore } from './character'
++import { useCharacterOrchestratorStore } from './character-orchestrator'
++import { useLLM } from './llm'
++import { useAiriCardStore, useConsciousnessStore } from './modules'
++import { useProvidersStore } from './providers'
++
++vi.mock('vue-i18n', () => ({
++  useI18n: () => ({
++    t: (key: string) => key,
++  }),
++}))
++
++function mockedStore<TStoreDef extends () => unknown>(
++  useStore: TStoreDef,
++): TStoreDef extends StoreDefinition<
++  infer Id,
++  infer State,
++  infer Getters,
++  infer Actions
++>
++? Store<
++    Id,
++    State,
++    Record<string, never>,
++    {
++      [K in keyof Actions]: Actions[K] extends (...args: any[]) => any
++        ? // 👇 depends on your testing framework
++        Mock<Actions[K]>
++        : Actions[K]
++    }
++  > & {
++    [K in keyof Getters]: UnwrapRef<Getters[K]>
++  }
++  : ReturnType<TStoreDef> {
++  return useStore() as any
++}
++
++describe('store character-orchestrator', () => {
++  beforeEach(() => {
++    const pinia = createTestingPinia({ createSpy: vi.fn, stubActions: false })
++    setActivePinia(pinia)
++
++    const mockGetProviderInstance = vi.fn()
++    mockedStore(useProvidersStore).getProviderInstance = mockGetProviderInstance
++    mockedStore(useProvidersStore).getProviderInstance.mockResolvedValue({ chat: (_model: string) => ({} as any) })
++
++    const consciousnessStore = useConsciousnessStore(pinia)
++    consciousnessStore.activeProvider = 'mock-provider'
++    consciousnessStore.activeModel = 'mock-model'
++
++    const airiCardStore = useAiriCardStore(pinia)
++    // @ts-expect-error - testing purpose
++    airiCardStore.systemPrompt = 'You are a brave adventurer in Minecraft.'
++    // @ts-expect-error - testing purpose
++    airiCardStore.activeCard = {
++      name: 'Hero',
++      version: '1.0',
++      extensions: {
++        airi: {
++          agents: {},
++          modules: {
++            consciousness: {
++              model: 'mock-model',
++            },
++            speech: {
++              model: 'mock-speech-model',
++              voice_id: 'alloy',
++            },
++          },
++        },
++      },
++    } satisfies AiriCard
++  })
++
++  it('handles immediate spark:notify with reaction and commands', async () => {
++    const mockStream = vi.fn()
++    mockedStore(useLLM).stream = mockStream
++    mockedStore(useLLM).stream.mockImplementation(async (_model: string, _provider: unknown, _messages: unknown, options: any) => {
++      if (options?.tools?.length) {
++        await options.tools[0].execute({ commands: [{
++          destinations: ['minecraft'],
++          intent: 'action',
++          priority: 'critical',
++        }] } satisfies z.infer<typeof sparkCommandSchema>)
++      }
++
++      await options?.onStreamEvent?.({ type: 'text-delta', text: 'Ahhh, got hit by zombie!' } satisfies StreamEvent)
++      await options?.onStreamEvent?.({ type: 'finish' } satisfies StreamEvent)
++    })
++
++    const mockOnSparkNotifyReactionStreamEvent = vi.fn()
++    mockedStore(useCharacterStore).onSparkNotifyReactionStreamEvent = mockOnSparkNotifyReactionStreamEvent
++    const mockOnSparkNotifyReactionStreamEnd = vi.fn()
++    mockedStore(useCharacterStore).onSparkNotifyReactionStreamEnd = mockOnSparkNotifyReactionStreamEnd
++
++    const store = useCharacterOrchestratorStore()
++    const event: WebSocketBaseEvent<'spark:notify', WebSocketEvents['spark:notify']> = {
++      type: 'spark:notify',
++      source: 'minecraft',
++      data: {
++        id: nanoid(),
++        eventId: nanoid(),
++        kind: 'alarm',
++        urgency: 'immediate',
++        headline: 'Hit by zombie',
++        destinations: ['character'],
++      },
++    }
++
++    const result = await store.handleSparkNotify(event)
++
++    expect(result?.commands).toHaveLength(1)
++    expect(result?.commands?.[0].destinations).toEqual([event.source])
++    expect(result?.commands?.[0].parentEventId).toBe(event.data.id)
++    expect(result?.commands?.[0].intent).toBe('action')
++    expect(result?.commands?.[0].priority).toBe('critical')
++
++    expect(mockStream).toBeCalledTimes(1)
++    expect(mockStream.mock.calls).toHaveLength(1)
++    expect(mockStream.mock.calls[0][0]).toEqual('mock-model')
++    expect(mockStream.mock.calls[0][1]).not.toBeNull()
++    expect(mockStream.mock.calls[0][2]).toHaveLength(2)
++    expect(mockStream.mock.calls[0][3]).toHaveProperty('tools')
++
++    expect(mockOnSparkNotifyReactionStreamEvent).toBeCalledWith(event.data.id, 'Ahhh, got hit by zombie!')
++    expect(mockOnSparkNotifyReactionStreamEnd).toBeCalledTimes(1)
++  })
++})
+diff --git a/packages/stage-ui/src/stores/character-orchestrator.ts b/packages/stage-ui/src/stores/character-orchestrator.ts
+new file mode 100644
+index 00000000..88e27f28
+--- /dev/null
++++ b/packages/stage-ui/src/stores/character-orchestrator.ts
+@@ -0,0 +1,230 @@
++import type { WebSocketBaseEvent, WebSocketEvents } from '@proj-airi/server-sdk'
++import type { ChatProvider } from '@xsai-ext/providers/utils'
++import type { Message } from '@xsai/shared-chat'
++
++import type { StreamEvent } from './llm'
++
++import { errorMessageFrom } from '@moeru/std'
++import { tool } from '@xsai/tool'
++import { nanoid } from 'nanoid'
++import { defineStore, storeToRefs } from 'pinia'
++import { ref } from 'vue'
++import { validate } from 'xsschema'
++import { z } from 'zod'
++
++import { useCharacterStore } from './character'
++import { useLLM } from './llm'
++import { useModsServerChannelStore } from './mods/api/channel-server'
++import { useConsciousnessStore } from './modules/consciousness'
++import { useProvidersStore } from './providers'
++
++interface SparkNotifyCommandDraft {
++  destinations: string[]
++  interrupt?: 'force' | 'soft' | false
++  priority?: 'critical' | 'high' | 'normal' | 'low'
++  intent?: 'plan' | 'proposal' | 'action' | 'pause' | 'resume' | 'reroute' | 'context'
++  ack?: string
++  guidance?: WebSocketEvents['spark:command']['guidance']
++  contexts?: WebSocketEvents['spark:command']['contexts']
++}
++
++interface SparkNotifyResponse {
++  reaction?: string
++  commands?: SparkNotifyCommandDraft[]
++}
++
++const SPARK_NOTIFY_INSTRUCTIONS = [
++  'You are processing a spark:notify event for the character.',
++  'Respond with a short, in-character reaction as plain text.',
++  'If you need to instruct sub-agents, call the spark_command tool one or more times.',
++].join('\n')
++
++export const sparkCommandSchema = z.object({
++  commands: z.array(z.object({
++    destinations: z.array(z.string()).min(1),
++    interrupt: z.union([z.literal('force'), z.literal('soft'), z.literal(false)]).optional(),
++    priority: z.enum(['critical', 'high', 'normal', 'low']).optional(),
++    intent: z.enum(['plan', 'proposal', 'action', 'pause', 'resume', 'reroute', 'context']).optional(),
++    ack: z.string().optional(),
++    guidance: z.object({
++      type: z.enum(['proposal', 'instruction', 'memory-recall']),
++      persona: z.record(z.string(), z.enum(['very-high', 'high', 'medium', 'low', 'very-low'])).optional(),
++      options: z.array(z.object({
++        label: z.string(),
++        steps: z.array(z.string()),
++        rationale: z.string().optional(),
++        possibleOutcome: z.array(z.string()).optional(),
++        risk: z.enum(['high', 'medium', 'low', 'none']).optional(),
++        fallback: z.array(z.string()).optional(),
++        triggers: z.array(z.string()).optional(),
++      })),
++    }).optional(),
++    contexts: z.array(z.any()).optional(),
++  })),
++})
++
++export const useCharacterOrchestratorStore = defineStore('character-orchestrator', () => {
++  const { stream } = useLLM()
++  const { activeProvider, activeModel } = storeToRefs(useConsciousnessStore())
++  const providersStore = useProvidersStore()
++  const characterStore = useCharacterStore()
++  const { systemPrompt } = storeToRefs(characterStore)
++  const modsServerChannelStore = useModsServerChannelStore()
++
++  const processing = ref(false)
++  const pendingNotifies = ref<Array<WebSocketBaseEvent<'spark:notify', WebSocketEvents['spark:notify']>>>([])
++
++  async function runNotifyAgent(event: WebSocketBaseEvent<'spark:notify', WebSocketEvents['spark:notify']>) {
++    if (!activeProvider.value || !activeModel.value) {
++      console.warn('Spark notify ignored: missing active provider or model')
++      return undefined
++    }
++
++    const chatProvider = await providersStore.getProviderInstance<ChatProvider>(activeProvider.value)
++    const commandDrafts: SparkNotifyCommandDraft[] = []
++
++    const sparkCommandTool = await tool({
++      name: 'spark_command',
++      description: `Issue a spark:command to sub-agents.`,
++      parameters: sparkCommandSchema,
++      execute: async (payload) => {
++        try {
++          const validated = await validate(sparkCommandSchema, payload)
++          commandDrafts.push(...validated.commands)
++        }
++        catch (error) {
++          return `AIRI System: Error - invalid spark_command parameters: ${errorMessageFrom(error)}`
++        }
++
++        return 'AIRI System: Acknowledged, command fired.'
++      },
++    })
++
++    const systemMessage: Message = {
++      role: 'system',
++      content: [
++        systemPrompt.value,
++        SPARK_NOTIFY_INSTRUCTIONS,
++      ].filter(Boolean).join('\n\n'),
++    }
++
++    const userMessage: Message = {
++      role: 'user',
++      content: JSON.stringify({
++        notify: event.data,
++        source: event.source,
++      }, null, 2),
++    }
++
++    let fullText = ''
++
++    await stream(activeModel.value, chatProvider, [systemMessage, userMessage], {
++      tools: [sparkCommandTool],
++      onStreamEvent: async (streamEvent: StreamEvent) => {
++        if (streamEvent.type === 'text-delta') {
++          characterStore.onSparkNotifyReactionStreamEvent(event.data.id, streamEvent.text)
++
++          fullText += streamEvent.text
++        }
++        if (streamEvent.type === 'finish') {
++          characterStore.onSparkNotifyReactionStreamEnd(event.data.id, fullText)
++        }
++        if (streamEvent.type === 'error') {
++          characterStore.onSparkNotifyReactionStreamEnd(event.data.id, fullText)
++          throw streamEvent.error ?? new Error('Spark notify stream error')
++        }
++      },
++    })
++
++    return {
++      reaction: fullText.trim(),
++      commands: commandDrafts,
++    } satisfies SparkNotifyResponse
++  }
++
++  async function handleSparkNotify(event: WebSocketBaseEvent<'spark:notify', WebSocketEvents['spark:notify']>) {
++    if (event.data.urgency !== 'immediate' && pendingNotifies.value.length > 0) {
++      pendingNotifies.value = [...pendingNotifies.value, event]
++      return undefined
++    }
++    if (processing.value) {
++      pendingNotifies.value = [...pendingNotifies.value, event]
++      return undefined
++    }
++
++    processing.value = true
++
++    try {
++      const response = await runNotifyAgent(event)
++      if (!response)
++        return undefined
++
++      const commands = (response.commands ?? [])
++        .map(command => ({
++          id: nanoid(),
++          eventId: nanoid(),
++          parentEventId: event.data.id,
++          commandId: nanoid(),
++          interrupt: command.interrupt ?? false,
++          priority: command.priority ?? 'normal',
++          intent: command.intent ?? 'action',
++          ack: command.ack,
++          guidance: command.guidance,
++          contexts: command.contexts,
++          destinations: command.destinations ?? [],
++        } satisfies WebSocketEvents['spark:command']))
++        .filter(command => command.destinations.length > 0)
++
++      return {
++        commands,
++      }
++    }
++    finally {
++      processing.value = false
++    }
++  }
++
++  async function handleSparkEmit(_: WebSocketBaseEvent<'spark:emit', WebSocketEvents['spark:emit']>) {
++    // Currently no-op
++    return undefined
++  }
++
++  function initialize() {
++    modsServerChannelStore.onEvent('spark:notify', async (event) => {
++      try {
++        const result = await handleSparkNotify(event)
++        if (!result?.commands?.length)
++          return
++
++        for (const command of result.commands) {
++          modsServerChannelStore.send({
++            type: 'spark:command',
++            data: command,
++          })
++        }
++      }
++      catch (error) {
++        console.warn('Failed to handle spark:notify event:', error)
++      }
++    })
++
++    modsServerChannelStore.onEvent('spark:emit', async (event) => {
++      try {
++        await handleSparkEmit(event)
++      }
++      catch (error) {
++        console.warn('Failed to handle spark:emit event:', error)
++      }
++    })
++  }
++
++  return {
++    processing,
++    pendingNotifies,
++
++    initialize,
++
++    handleSparkNotify,
++    handleSparkEmit,
++  }
++})
+diff --git a/packages/stage-ui/src/stores/character.test.ts b/packages/stage-ui/src/stores/character.test.ts
+new file mode 100644
+index 00000000..b4fa04ef
+--- /dev/null
++++ b/packages/stage-ui/src/stores/character.test.ts
+@@ -0,0 +1,116 @@
++import type { AiriCard } from './modules'
++
++import { createTestingPinia } from '@pinia/testing'
++import { setActivePinia } from 'pinia'
++import { beforeEach, describe, expect, it, vi } from 'vitest'
++
++import { TTS_FLUSH_INSTRUCTION } from '../utils/tts'
++import { useCharacterStore } from './character'
++import { useAiriCardStore } from './modules'
++
++vi.mock('vue-i18n', () => ({
++  useI18n: () => ({
++    t: (key: string) => key,
++  }),
++}))
++
++const enqueueSpy = vi.fn()
++
++vi.mock('../composables/queues', async () => {
++  const { defineStore } = await import('pinia')
++  const { ref } = await import('vue')
++
++  return {
++    usePipelineWorkflowTextSegmentationStore: defineStore('pipelines:workflows:text-segmentation', () => ({
++      textSegmentationQueue: ref({ enqueue: enqueueSpy }),
++    })),
++  }
++})
++
++describe('store character', () => {
++  beforeEach(() => {
++    const pinia = createTestingPinia({ createSpy: vi.fn, stubActions: false })
++    setActivePinia(pinia)
++    enqueueSpy.mockClear()
++
++    const airiCardStore = useAiriCardStore(pinia)
++    // @ts-expect-error - testing purpose
++    airiCardStore.systemPrompt = 'You are a brave adventurer in Minecraft.'
++    // @ts-expect-error - testing purpose
++    airiCardStore.activeCard = {
++      name: 'Hero',
++      version: '1.0',
++      extensions: {
++        airi: {
++          agents: {},
++          modules: {
++            consciousness: {
++              model: 'mock-model',
++            },
++            speech: {
++              model: 'mock-speech-model',
++              voice_id: 'alloy',
++            },
++          },
++        },
++      },
++    } satisfies AiriCard
++  })
++
++  it('exposes name and system prompt from the active card', () => {
++    const store = useCharacterStore()
++
++    expect(store.name).toBe('Hero')
++    expect(store.systemPrompt).toBe('You are a brave adventurer in Minecraft.')
++  })
++
++  it('records reactions and trims to the max size', () => {
++    const store = useCharacterStore()
++
++    for (let index = 0; index < 201; index += 1) {
++      store.recordSparkNotifyReaction('spark-event', `message-${index}`)
++    }
++
++    expect(store.reactions).toHaveLength(200)
++    expect(store.reactions[0]?.message).toBe('message-1')
++    expect(store.reactions[199]?.message).toBe('message-200')
++  })
++
++  it('records streamed reactions when the stream ends', () => {
++    const store = useCharacterStore()
++    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(123456)
++
++    store.onSparkNotifyReactionStreamEvent('spark-1', 'Hello')
++    store.onSparkNotifyReactionStreamEvent('spark-1', ' world')
++    store.onSparkNotifyReactionStreamEnd('spark-1', 'Hello world')
++
++    expect(store.reactions).toHaveLength(1)
++    expect(store.reactions[0]?.message).toBe('Hello world')
++    expect(store.reactions[0]?.sourceEventId).toBe('spark-1')
++    expect(store.reactions[0]?.createdAt).toBe(123456)
++
++    expect(enqueueSpy).toHaveBeenCalledWith({ type: 'literal', value: 'Hello' })
++    expect(enqueueSpy).toHaveBeenCalledWith({ type: 'literal', value: ' world' })
++    expect(enqueueSpy).toHaveBeenCalledWith({ type: 'literal', value: `${TTS_FLUSH_INSTRUCTION}${TTS_FLUSH_INSTRUCTION}` })
++
++    nowSpy.mockRestore()
++  })
++
++  it('ignores stream end when no streaming reaction exists', () => {
++    const store = useCharacterStore()
++
++    store.onSparkNotifyReactionStreamEnd('missing', 'Ignored')
++
++    expect(store.reactions).toHaveLength(0)
++  })
++
++  it('clears reactions', () => {
++    const store = useCharacterStore()
++
++    store.recordSparkNotifyReaction('spark-event', 'Hello')
++    store.recordSparkNotifyReaction('spark-event', 'World')
++    store.clearReactions()
++
++    expect(store.reactions).toHaveLength(0)
++  })
++})
+diff --git a/packages/stage-ui/src/stores/character.ts b/packages/stage-ui/src/stores/character.ts
+new file mode 100644
+index 00000000..cce1e345
+--- /dev/null
++++ b/packages/stage-ui/src/stores/character.ts
+@@ -0,0 +1,100 @@
++import type { TextSegmentationItem } from '../composables/queues'
++
++import { nanoid } from 'nanoid'
++import { defineStore, storeToRefs } from 'pinia'
++import { computed, reactive, ref } from 'vue'
++
++import { usePipelineWorkflowTextSegmentationStore } from '../composables/queues'
++import { TTS_FLUSH_INSTRUCTION } from '../utils/tts'
++import { useAiriCardStore } from './modules'
++
++export interface CharacterSparkNotifyReaction {
++  id: string
++  message: string
++  createdAt: number
++  sourceEventId?: string
++  metadata?: Record<string, unknown>
++}
++
++const MAX_REACTIONS = 200
++
++export const useCharacterStore = defineStore('character', () => {
++  const { activeCard, systemPrompt } = storeToRefs(useAiriCardStore())
++  const textSegmentationStore = usePipelineWorkflowTextSegmentationStore()
++  const { textSegmentationQueue } = storeToRefs(textSegmentationStore)
++
++  const name = computed(() => activeCard.value?.name ?? '')
++  const reactions = ref<CharacterSparkNotifyReaction[]>([])
++  const streamingReactions = ref<Map<string, CharacterSparkNotifyReaction>>(new Map())
++
++  function emitTextOutput(text: string) {
++    textSegmentationQueue.value.enqueue({ type: 'literal', value: text } as TextSegmentationItem)
++  }
++
++  function onSparkNotifyReactionStreamEvent(sparkEventId: string, chunk: string, options?: { metadata?: Record<string, unknown> }) {
++    if (!streamingReactions.value.has(sparkEventId)) {
++      const newReaction = reactive({
++        id: nanoid(),
++        message: '',
++        createdAt: Date.now(),
++        sourceEventId: sparkEventId,
++        metadata: options?.metadata,
++      }) satisfies CharacterSparkNotifyReaction
++
++      streamingReactions.value.set(sparkEventId, newReaction)
++    }
++
++    const reaction = streamingReactions.value.get(sparkEventId)!
++    reaction.message += chunk
++
++    emitTextOutput(chunk)
++  }
++
++  function onSparkNotifyReactionStreamEnd(sparkEventId: string, fullText: string, options?: { metadata?: Record<string, unknown> }) {
++    if (!streamingReactions.value.has(sparkEventId)) {
++      return
++    }
++
++    const reaction = streamingReactions.value.get(sparkEventId)!
++    reaction.message = fullText
++    recordSparkNotifyReaction(sparkEventId, fullText, { metadata: options?.metadata })
++
++    streamingReactions.value.delete(sparkEventId)
++
++    emitTextOutput(`${TTS_FLUSH_INSTRUCTION}${TTS_FLUSH_INSTRUCTION}`)
++  }
++
++  function recordSparkNotifyReaction(sparkEventId: string, message: string, options?: { metadata?: Record<string, unknown> }) {
++    const newReaction = {
++      id: nanoid(),
++      message,
++      createdAt: Date.now(),
++      sourceEventId: sparkEventId,
++      metadata: options?.metadata,
++    } satisfies CharacterSparkNotifyReaction
++
++    reactions.value.push(newReaction)
++
++    // Trim reactions if exceeding max limit
++    if (reactions.value.length > MAX_REACTIONS) {
++      reactions.value.splice(0, reactions.value.length - MAX_REACTIONS)
++    }
++  }
++
++  function clearReactions() {
++    reactions.value = []
++  }
++
++  return {
++    name,
++    reactions,
++    systemPrompt,
++
++    recordSparkNotifyReaction,
++    onSparkNotifyReactionStreamEvent,
++    onSparkNotifyReactionStreamEnd,
++    clearReactions,
++
++    emitTextOutput,
++  }
++})
+diff --git a/packages/stage-ui/src/stores/chat.ts b/packages/stage-ui/src/stores/chat.ts
+index e87c7648..8f6689fb 100644
+--- a/packages/stage-ui/src/stores/chat.ts
++++ b/packages/stage-ui/src/stores/chat.ts
+@@ -14,7 +14,7 @@ import { useLlmmarkerParser } from '../composables/llmmarkerParser'
+ import { useLLM } from '../stores/llm'
+ import { createQueue } from '../utils/queue'
+ import { TTS_FLUSH_INSTRUCTION } from '../utils/tts'
+-import { useAiriCardStore } from './modules'
++import { useCharacterStore } from './character'
+
+ const CHAT_STORAGE_KEY = 'chat/messages/v2'
+ const ACTIVE_SESSION_STORAGE_KEY = 'chat/active-session'
+@@ -23,7 +23,7 @@ export const CHAT_STREAM_CHANNEL_NAME = 'airi-chat-stream'
+
+ export const useChatStore = defineStore('chat', () => {
+   const { stream, discoverToolsCompatibility } = useLLM()
+-  const { systemPrompt } = storeToRefs(useAiriCardStore())
++  const { systemPrompt } = storeToRefs(useCharacterStore())
+   const { trackFirstMessage } = useAnalytics()
+
+   const activeSessionId = useLocalStorage<string>(ACTIVE_SESSION_STORAGE_KEY, 'default')
+diff --git a/packages/stage-ui/src/stores/mods/api/channel-server.ts b/packages/stage-ui/src/stores/mods/api/channel-server.ts
+index 661f4540..dc6693a8 100644
+--- a/packages/stage-ui/src/stores/mods/api/channel-server.ts
++++ b/packages/stage-ui/src/stores/mods/api/channel-server.ts
+@@ -11,6 +11,8 @@ export const useModsServerChannelStore = defineStore('mods:channels:proj-airi:se
+   const client = ref<Client>()
+   const initializing = ref<Promise<void> | null>(null)
+   const pendingSend = ref<Array<WebSocketEvent>>([])
++  const listenersInitialized = ref(false)
++  const listenerDisposers = ref<Array<() => void>>([])
+
+   const basePossibleEvents: Array<keyof WebSocketEvents> = [
+     'context:update',
+@@ -49,12 +51,14 @@ export const useModsServerChannelStore = defineStore('mods:channels:proj-airi:se
+         onError: (error) => {
+           connected.value = false
+           initializing.value = null
++          clearListeners()
+
+           console.warn('WebSocket server connection error:', error)
+         },
+         onClose: () => {
+           connected.value = false
+           initializing.value = null
++          clearListeners()
+
+           console.warn('WebSocket server connection closed')
+         },
+@@ -85,6 +89,19 @@ export const useModsServerChannelStore = defineStore('mods:channels:proj-airi:se
+     }
+   }
+
++  function clearListeners() {
++    for (const disposer of listenerDisposers.value) {
++      try {
++        disposer()
++      }
++      catch (error) {
++        console.warn('Failed to dispose channel listener:', error)
++      }
++    }
++    listenerDisposers.value = []
++    listenersInitialized.value = false
++  }
++
+   function initializeListeners() {
+     if (!client.value)
+       // No-op for now; keep placeholder for future shared listeners.
+@@ -146,6 +163,7 @@ export const useModsServerChannelStore = defineStore('mods:channels:proj-airi:se
+
+   function dispose() {
+     flush()
++    clearListeners()
+
+     client.value?.close()
+     connected.value = false
+diff --git a/packages/stage-ui/src/stores/modules/airi-card.ts b/packages/stage-ui/src/stores/modules/airi-card.ts
+index 68666bc1..37f1b912 100644
+--- a/packages/stage-ui/src/stores/modules/airi-card.ts
++++ b/packages/stage-ui/src/stores/modules/airi-card.ts
+@@ -43,6 +43,7 @@ export interface AiriExtension {
+   agents: {
+     [key: string]: { // example: minecraft
+       prompt: string
++      enabled?: boolean
+     }
+   }
+ }
+diff --git a/packages/stage-ui/src/stores/server.ts b/packages/stage-ui/src/stores/server.ts
+deleted file mode 100644
+index d6408002..00000000
+--- a/packages/stage-ui/src/stores/server.ts
++++ /dev/null
+@@ -1,27 +0,0 @@
+-import { Client } from '@proj-airi/server-sdk'
+-import { defineStore } from 'pinia'
+-import { onMounted, ref } from 'vue'
+-
+-export const useServerStore = defineStore('server', () => {
+-  const server = ref<Client>()
+-
+-  onMounted(() => {
+-    server.value = new Client({
+-      name: 'stage-web',
+-      autoConnect: false,
+-      autoReconnect: true,
+-      onError: (error) => {
+-        console.error(error)
+-      },
+-    })
+-  })
+-
+-  function connect() {
+-    server.value?.connect()
+-  }
+-
+-  return {
+-    server,
+-    connect,
+-  }
+-})
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index cf88ec3d..85fec017 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -36,6 +36,9 @@ catalogs:
+     '@nekopaw/tempora':
+       specifier: 0.4.0-alpha.1
+       version: 0.4.0-alpha.1
++    '@pinia/testing':
++      specifier: ^1.0.3
++      version: 1.0.3
+     '@proj-airi/drizzle-duckdb-wasm':
+       specifier: ^0.4.29
+       version: 0.4.29
+@@ -80,7 +83,7 @@ catalogs:
+       version: 0.4.0-beta.13
+     better-auth:
+       specifier: ^1.4.9
+-      version: 1.4.9
++      version: 1.4.10
+     builder-util-runtime:
+       specifier: ^9.3.1
+       version: 9.3.1
+@@ -136,7 +139,7 @@ catalogs:
+       specifier: ^2.0.9
+       version: 2.0.9
+     xsschema:
+-      specifier: ^0.4.0-beta.12
++      specifier: 0.4.0-beta.13
+       version: 0.4.0-beta.13
+     zod:
+       specifier: ^4.2.1
+@@ -374,7 +377,7 @@ importers:
+         version: 1.19.7(hono@4.11.3)
+       better-auth:
+         specifier: ^1.4.5
+-        version: 1.4.9(@prisma/client@5.22.0)(better-sqlite3@12.5.0)(drizzle-kit@0.31.8)(drizzle-orm@0.44.7(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7))(pg@8.16.3)(react@19.2.3)(vitest@4.0.16)(vue@3.5.25(typescript@5.9.3))
++        version: 1.4.10(@prisma/client@5.22.0)(better-sqlite3@12.5.0)(drizzle-kit@0.31.8)(drizzle-orm@0.44.7(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7))(pg@8.16.3)(react@19.2.3)(vitest@4.0.16)(vue@3.5.25(typescript@5.9.3))
+       drizzle-orm:
+         specifier: ^0.44.7
+         version: 0.44.7(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7)
+@@ -399,7 +402,7 @@ importers:
+     devDependencies:
+       '@better-auth/cli':
+         specifier: ^1.4.5
+-        version: 1.4.9(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.0)(better-call@1.1.7(zod@4.2.1))(drizzle-kit@0.31.8)(jose@6.1.3)(kysely@0.28.9)(magicast@0.5.1)(nanostores@1.1.0)(postgres@3.4.7)(react@19.2.3)(vitest@4.0.16)(vue@3.5.25(typescript@5.9.3))
++        version: 1.4.10(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.0)(better-call@1.1.7(zod@4.2.1))(drizzle-kit@0.31.8)(jose@6.1.3)(kysely@0.28.9)(magicast@0.5.1)(nanostores@1.1.0)(postgres@3.4.7)(react@19.2.3)(vitest@4.0.16)(vue@3.5.25(typescript@5.9.3))
+       drizzle-kit:
+         specifier: ^0.31.7
+         version: 0.31.8
+@@ -682,7 +685,7 @@ importers:
+         version: 1.0.18
+       '@proj-airi/unplugin-fetch':
+         specifier: ^0.2.1
+-        version: 0.2.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
++        version: 0.2.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+       '@proj-airi/unplugin-live2d-sdk':
+         specifier: ^0.1.6
+         version: 0.1.6(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+@@ -715,7 +718,7 @@ importers:
+         version: 66.5.11
+       '@vitejs/plugin-vue':
+         specifier: ^6.0.3
+-        version: 6.0.3(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
++        version: 6.0.3(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/volar':
+         specifier: ^3.1.1
+         version: 3.1.1(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))(vue@3.5.25(typescript@5.9.3))
+@@ -733,34 +736,34 @@ importers:
+         version: 4.5.1
+       unplugin-info:
+         specifier: ^1.2.4
+-        version: 1.2.4(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rollup@2.79.2)
++        version: 1.2.4(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rollup@2.79.2)
+       unplugin-vue-router:
+         specifier: ^0.19.0
+         version: 0.19.2(@vue/compiler-sfc@3.5.26)(vue-router@4.6.4(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3))
+       unplugin-yaml:
+         specifier: ^3.0.7
+-        version: 3.0.7(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)
++        version: 3.0.7(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)
+       vite:
+         specifier: catalog:rolldown-vite
+-        version: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++        version: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+       vite-bundle-visualizer:
+         specifier: ^1.2.1
+         version: 1.2.1(rolldown@1.0.0-beta.53)(rollup@2.79.2)
+       vite-plugin-mkcert:
+         specifier: 'catalog:'
+-        version: 1.17.9(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
++        version: 1.17.9(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+       vite-plugin-pwa:
+         specifier: ^1.2.0
+-        version: 1.2.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(workbox-build@7.4.0)(workbox-window@7.4.0)
++        version: 1.2.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(workbox-build@7.4.0)(workbox-window@7.4.0)
+       vite-plugin-vue-devtools:
+         specifier: ^8.0.5
+-        version: 8.0.5(@nuxt/kit@3.20.2(magicast@0.5.1))(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
++        version: 8.0.5(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
+       vite-plugin-vue-layouts:
+         specifier: ^0.11.0
+-        version: 0.11.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue-router@4.6.4(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3))
++        version: 0.11.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue-router@4.6.4(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3))
+       vue-macros:
+         specifier: ^3.1.1
+-        version: 3.1.1(@vueuse/core@14.1.0(vue@3.5.25(typescript@5.9.3)))(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))(vue@3.5.25(typescript@5.9.3))
++        version: 3.1.1(@vueuse/core@14.1.0(vue@3.5.25(typescript@5.9.3)))(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))(vue@3.5.25(typescript@5.9.3))
+       vue-tsc:
+         specifier: ^3.1.8
+         version: 3.2.1(typescript@5.9.3)
+@@ -1301,7 +1304,7 @@ importers:
+         version: 4.2.2
+       better-auth:
+         specifier: ^1.4.5
+-        version: 1.4.9(@prisma/client@5.22.0)(better-sqlite3@12.5.0)(drizzle-kit@0.31.8)(drizzle-orm@0.45.1(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7))(pg@8.16.3)(react@19.2.3)(vitest@4.0.16)(vue@3.5.25(typescript@5.9.3))
++        version: 1.4.10(@prisma/client@5.22.0)(better-sqlite3@12.5.0)(drizzle-kit@0.31.8)(drizzle-orm@0.45.1(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7))(pg@8.16.3)(react@19.2.3)(vitest@4.0.16)(vue@3.5.25(typescript@5.9.3))
+       colorjs.io:
+         specifier: ^0.5.2
+         version: 0.5.2
+@@ -2039,6 +2042,9 @@ importers:
+       vue-router:
+         specifier: ^4.6.4
+         version: 4.6.4(vue@3.5.25(typescript@5.9.3))
++      xsschema:
++        specifier: 'catalog:'
++        version: 0.4.0-beta.13(@valibot/to-json-schema@1.0.0-rc.0(valibot@1.2.0(typescript@5.9.3)))(zod-to-json-schema@3.25.1(zod@4.2.1))(zod@4.2.1)
+       zod:
+         specifier: 'catalog:'
+         version: 4.2.1
+@@ -2246,7 +2252,7 @@ importers:
+         version: 4.2.2
+       better-auth:
+         specifier: 'catalog:'
+-        version: 1.4.9(@prisma/client@5.22.0)(better-sqlite3@12.5.0)(drizzle-kit@0.31.8)(drizzle-orm@0.45.1(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7))(pg@8.16.3)(react@19.2.3)(vitest@4.0.16)(vue@3.5.25(typescript@5.9.3))
++        version: 1.4.10(@prisma/client@5.22.0)(better-sqlite3@12.5.0)(drizzle-kit@0.31.8)(drizzle-orm@0.45.1(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7))(pg@8.16.3)(react@19.2.3)(vitest@4.0.16)(vue@3.5.25(typescript@5.9.3))
+       culori:
+         specifier: ^4.0.2
+         version: 4.0.2
+@@ -2361,6 +2367,9 @@ importers:
+       xastscript:
+         specifier: ^4.0.0
+         version: 4.0.0
++      xsschema:
++        specifier: 'catalog:'
++        version: 0.4.0-beta.13(@valibot/to-json-schema@1.0.0-rc.0(valibot@1.2.0(typescript@5.9.3)))(zod-to-json-schema@3.25.1(zod@4.2.1))(zod@4.2.1)
+       zod:
+         specifier: ^4.2.1
+         version: 4.2.1
+@@ -2425,6 +2434,9 @@ importers:
+       '@moeru/std':
+         specifier: 'catalog:'
+         version: 0.1.0-beta.14
++      '@pinia/testing':
++        specifier: 'catalog:'
++        version: 1.0.3(pinia@3.0.4(typescript@5.9.3)(vue@3.5.25(typescript@5.9.3)))
+       '@proj-airi/lobe-icons':
+         specifier: ^1.0.18
+         version: 1.0.18
+@@ -3943,12 +3955,12 @@ packages:
+     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
+     engines: {node: '>=18'}
+
+-  '@better-auth/cli@1.4.9':
+-    resolution: {integrity: sha512-v+lhqO1kZVUYxRvYcjcqivD4fBBDjXFAEarK44UYI3+mCGHeWRzK9v50ENZvgWr75dfRWWsy/bh/bpGJKIJWwQ==}
++  '@better-auth/cli@1.4.10':
++    resolution: {integrity: sha512-pysFWEL4gq2Zn4Q0eH75fz5x8tw5CvwrFAPrpzEskyQOHb/h4UGqtk5RVJ9bhw/O4mXmJttKc06HIp0OuRnu1g==}
+     hasBin: true
+
+-  '@better-auth/core@1.4.9':
+-    resolution: {integrity: sha512-JT2q4NDkQzN22KclUEoZ7qU6tl9HUTfK1ctg2oWlT87SEagkwJcnrUwS9VznL+u9ziOIfY27P0f7/jSnmvLcoQ==}
++  '@better-auth/core@1.4.10':
++    resolution: {integrity: sha512-AThrfb6CpG80wqkanfrbN2/fGOYzhGladHFf3JhaWt/3/Vtf4h084T6PJLrDE7M/vCCGYvDI1DkvP3P1OB2HAg==}
+     peerDependencies:
+       '@better-auth/utils': 0.3.0
+       '@better-fetch/fetch': 1.1.21
+@@ -3957,10 +3969,10 @@ packages:
+       kysely: ^0.28.5
+       nanostores: ^1.0.1
+
+-  '@better-auth/telemetry@1.4.9':
+-    resolution: {integrity: sha512-Tthy1/Gmx+pYlbvRQPBTKfVei8+pJwvH1NZp+5SbhwA6K2EXIaoonx/K6N/AXYs2aKUpyR4/gzqDesDjL7zd6A==}
++  '@better-auth/telemetry@1.4.10':
++    resolution: {integrity: sha512-Dq4XJX6EKsUu0h3jpRagX739p/VMOTcnJYWRrLtDYkqtZFg+sFiFsSWVcfapZoWpRSUGYX9iKwl6nDHn6Ju2oQ==}
+     peerDependencies:
+-      '@better-auth/core': 1.4.9
++      '@better-auth/core': 1.4.10
+
+   '@better-auth/utils@0.3.0':
+     resolution: {integrity: sha512-W+Adw6ZA6mgvnSnhOki270rwJ42t4XzSK6YWGF//BbVXL6SwCLWfyzBc1lN2m/4RM28KubdBKQ4X5VMoLRNPQw==}
+@@ -6696,6 +6708,11 @@ packages:
+     resolution: {integrity: sha512-dfUnCxiN9H4ap84DvD2ubjw+3vUNpstxa0TneY/Paat8a3R4uQZDLSvWjmznAY/DoahqTHl9V46HF/Zs3F29pg==}
+     engines: {node: '>= 10.0.0'}
+
++  '@pinia/testing@1.0.3':
++    resolution: {integrity: sha512-g+qR49GNdI1Z8rZxKrQC3GN+LfnGTNf5Kk8Nz5Cz6mIGva5WRS+ffPXQfzhA0nu6TveWzPNYTjGl4nJqd3Cu9Q==}
++    peerDependencies:
++      pinia: '>=3.0.4'
++
+   '@pinojs/redact@0.4.0':
+     resolution: {integrity: sha512-k2ENnmBugE/rzQfEcdWHcCY+/FM3VLzH9cYEsbdsoqrvzAKRhUZeRNhAZvB8OitQJ1TBed3yqWtdjzS6wJKBwg==}
+
+@@ -9216,8 +9233,8 @@ packages:
+   best-effort-json-parser@1.2.1:
+     resolution: {integrity: sha512-UICSLibQdzS1f+PBsi3u2YE3SsdXcWicHUg3IMvfuaePS2AYnZJdJeKhGv5OM8/mqJwPt79aDrEJ1oa84tELvw==}
+
+-  better-auth@1.4.9:
+-    resolution: {integrity: sha512-usSdjuyTzZwIvM8fjF8YGhPncxV3MAg3dHUO9uPUnf0yklXUSYISiH1+imk6/Z+UBqsscyyPRnbIyjyK97p7YA==}
++  better-auth@1.4.10:
++    resolution: {integrity: sha512-0kqwEBJLe8eyFzbUspRG/htOriCf9uMLlnpe34dlIJGdmDfPuQISd4shShvUrvIVhPxsY1dSTXdXPLpqISYOYg==}
+     peerDependencies:
+       '@lynx-js/react': '*'
+       '@prisma/client': ^5.0.0 || ^6.0.0 || ^7.0.0
+@@ -17409,19 +17426,19 @@ snapshots:
+
+   '@bcoe/v8-coverage@1.0.2': {}
+
+-  '@better-auth/cli@1.4.9(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.0)(better-call@1.1.7(zod@4.2.1))(drizzle-kit@0.31.8)(jose@6.1.3)(kysely@0.28.9)(magicast@0.5.1)(nanostores@1.1.0)(postgres@3.4.7)(react@19.2.3)(vitest@4.0.16)(vue@3.5.25(typescript@5.9.3))':
++  '@better-auth/cli@1.4.10(@better-fetch/fetch@1.1.21)(@opentelemetry/api@1.9.0)(better-call@1.1.7(zod@4.2.1))(drizzle-kit@0.31.8)(jose@6.1.3)(kysely@0.28.9)(magicast@0.5.1)(nanostores@1.1.0)(postgres@3.4.7)(react@19.2.3)(vitest@4.0.16)(vue@3.5.25(typescript@5.9.3))':
+     dependencies:
+       '@babel/core': 7.28.5
+       '@babel/preset-react': 7.28.5(@babel/core@7.28.5)
+       '@babel/preset-typescript': 7.28.5(@babel/core@7.28.5)
+-      '@better-auth/core': 1.4.9(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)
+-      '@better-auth/telemetry': 1.4.9(@better-auth/core@1.4.9(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0))
++      '@better-auth/core': 1.4.10(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)
++      '@better-auth/telemetry': 1.4.10(@better-auth/core@1.4.10(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0))
+       '@better-auth/utils': 0.3.0
+       '@clack/prompts': 0.11.0
+       '@mrleebo/prisma-ast': 0.13.1
+       '@prisma/client': 5.22.0
+       '@types/pg': 8.16.0
+-      better-auth: 1.4.9(@prisma/client@5.22.0)(better-sqlite3@12.5.0)(drizzle-kit@0.31.8)(drizzle-orm@0.33.0(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7)(react@19.2.3))(pg@8.16.3)(react@19.2.3)(vitest@4.0.16)(vue@3.5.25(typescript@5.9.3))
++      better-auth: 1.4.10(@prisma/client@5.22.0)(better-sqlite3@12.5.0)(drizzle-kit@0.31.8)(drizzle-orm@0.33.0(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7)(react@19.2.3))(pg@8.16.3)(react@19.2.3)(vitest@4.0.16)(vue@3.5.25(typescript@5.9.3))
+       better-sqlite3: 12.5.0
+       c12: 3.3.3(magicast@0.5.1)
+       chalk: 5.6.2
+@@ -17479,7 +17496,7 @@ snapshots:
+       - vitest
+       - vue
+
+-  '@better-auth/core@1.4.9(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)':
++  '@better-auth/core@1.4.10(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)':
+     dependencies:
+       '@better-auth/utils': 0.3.0
+       '@better-fetch/fetch': 1.1.21
+@@ -17490,9 +17507,9 @@ snapshots:
+       nanostores: 1.1.0
+       zod: 4.2.1
+
+-  '@better-auth/telemetry@1.4.9(@better-auth/core@1.4.9(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0))':
++  '@better-auth/telemetry@1.4.10(@better-auth/core@1.4.10(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0))':
+     dependencies:
+-      '@better-auth/core': 1.4.9(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)
++      '@better-auth/core': 1.4.10(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)
+       '@better-auth/utils': 0.3.0
+       '@better-fetch/fetch': 1.1.21
+
+@@ -20291,6 +20308,10 @@ snapshots:
+       '@parcel/watcher-win32-ia32': 2.5.1
+       '@parcel/watcher-win32-x64': 2.5.1
+
++  '@pinia/testing@1.0.3(pinia@3.0.4(typescript@5.9.3)(vue@3.5.25(typescript@5.9.3)))':
++    dependencies:
++      pinia: 3.0.4(typescript@5.9.3)(vue@3.5.25(typescript@5.9.3))
++
+   '@pinojs/redact@0.4.0': {}
+
+   '@pixi/app@6.5.10(@pixi/core@6.5.10(@pixi/constants@6.5.10)(@pixi/extensions@6.5.10)(@pixi/math@6.5.10)(@pixi/runner@6.5.10)(@pixi/settings@6.5.10(@pixi/constants@6.5.10))(@pixi/ticker@6.5.10(@pixi/extensions@6.5.10)(@pixi/settings@6.5.10(@pixi/constants@6.5.10)))(@pixi/utils@6.5.10(@pixi/constants@6.5.10)(@pixi/settings@6.5.10(@pixi/constants@6.5.10))))(@pixi/display@6.5.10(@pixi/constants@6.5.10)(@pixi/math@6.5.10)(@pixi/settings@6.5.10(@pixi/constants@6.5.10))(@pixi/utils@6.5.10(@pixi/constants@6.5.10)(@pixi/settings@6.5.10(@pixi/constants@6.5.10))))(@pixi/math@6.5.10)(@pixi/utils@6.5.10(@pixi/constants@6.5.10)(@pixi/settings@6.5.10(@pixi/constants@6.5.10)))':
+@@ -20703,6 +20724,11 @@ snapshots:
+
+   '@proj-airi/unocss-preset-chromatic@1.0.2': {}
+
++  '@proj-airi/unplugin-fetch@0.2.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
++    dependencies:
++      ofetch: 1.5.1
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++
+   '@proj-airi/unplugin-fetch@0.2.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
+     dependencies:
+       ofetch: 1.5.1
+@@ -21909,6 +21935,12 @@ snapshots:
+     dependencies:
+       '@vibrant/types': 4.0.0
+
++  '@vitejs/plugin-vue@6.0.3(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))':
++    dependencies:
++      '@rolldown/pluginutils': 1.0.0-beta.53
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++      vue: 3.5.25(typescript@5.9.3)
++
+   '@vitejs/plugin-vue@6.0.3(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))':
+     dependencies:
+       '@rolldown/pluginutils': 1.0.0-beta.53
+@@ -21927,6 +21959,20 @@ snapshots:
+       vite: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+       vue: 3.5.25(typescript@5.9.3)
+
++  '@vitest/browser-playwright@4.0.16(bufferutil@4.1.0)(playwright@1.57.0)(utf-8-validate@5.0.10)(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)':
++    dependencies:
++      '@vitest/browser': 4.0.16(bufferutil@4.1.0)(utf-8-validate@5.0.10)(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)
++      '@vitest/mocker': 4.0.16(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
++      playwright: 1.57.0
++      tinyrainbow: 3.0.3
++      vitest: 4.0.16(@opentelemetry/api@1.9.0)(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@25.0.1(bufferutil@4.1.0)(utf-8-validate@5.0.10))(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++    transitivePeerDependencies:
++      - bufferutil
++      - msw
++      - utf-8-validate
++      - vite
++    optional: true
++
+   '@vitest/browser-playwright@4.0.16(bufferutil@4.1.0)(playwright@1.57.0)(utf-8-validate@5.0.10)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)':
+     dependencies:
+       '@vitest/browser': 4.0.16(bufferutil@4.1.0)(utf-8-validate@5.0.10)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)
+@@ -21940,6 +21986,24 @@ snapshots:
+       - utf-8-validate
+       - vite
+
++  '@vitest/browser@4.0.16(bufferutil@4.1.0)(utf-8-validate@5.0.10)(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)':
++    dependencies:
++      '@vitest/mocker': 4.0.16(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
++      '@vitest/utils': 4.0.16
++      magic-string: 0.30.21
++      pixelmatch: 7.1.0
++      pngjs: 7.0.0
++      sirv: 3.0.2
++      tinyrainbow: 3.0.3
++      vitest: 4.0.16(@opentelemetry/api@1.9.0)(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@25.0.1(bufferutil@4.1.0)(utf-8-validate@5.0.10))(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++      ws: 8.18.3(bufferutil@4.1.0)(utf-8-validate@5.0.10)
++    transitivePeerDependencies:
++      - bufferutil
++      - msw
++      - utf-8-validate
++      - vite
++    optional: true
++
+   '@vitest/browser@4.0.16(bufferutil@4.1.0)(utf-8-validate@5.0.10)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)':
+     dependencies:
+       '@vitest/mocker': 4.0.16(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+@@ -21996,6 +22060,15 @@ snapshots:
+       chai: 6.2.2
+       tinyrainbow: 3.0.3
+
++  '@vitest/mocker@4.0.16(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
++    dependencies:
++      '@vitest/spy': 4.0.16
++      estree-walker: 3.0.3
++      magic-string: 0.30.21
++    optionalDependencies:
++      vite: 6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++    optional: true
++
+   '@vitest/mocker@4.0.16(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
+     dependencies:
+       '@vitest/spy': 4.0.16
+@@ -22176,6 +22249,15 @@ snapshots:
+     transitivePeerDependencies:
+       - vue
+
++  '@vue-macros/devtools@3.1.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(typescript@5.9.3)':
++    dependencies:
++      sirv: 3.0.2
++      vue: 3.5.25(typescript@5.9.3)
++    optionalDependencies:
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++    transitivePeerDependencies:
++      - typescript
++
+   '@vue-macros/devtools@3.1.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(typescript@5.9.3)':
+     dependencies:
+       sirv: 3.0.2
+@@ -22446,6 +22528,18 @@ snapshots:
+     dependencies:
+       '@vue/devtools-kit': 8.0.5
+
++  '@vue/devtools-core@8.0.5(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))':
++    dependencies:
++      '@vue/devtools-kit': 8.0.5
++      '@vue/devtools-shared': 8.0.5
++      mitt: 3.0.1
++      nanoid: 5.1.6
++      pathe: 2.0.3
++      vite-hot-client: 2.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
++      vue: 3.5.25(typescript@5.9.3)
++    transitivePeerDependencies:
++      - vite
++
+   '@vue/devtools-core@8.0.5(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))':
+     dependencies:
+       '@vue/devtools-kit': 8.0.5
+@@ -23194,10 +23288,10 @@ snapshots:
+
+   best-effort-json-parser@1.2.1: {}
+
+-  better-auth@1.4.9(@prisma/client@5.22.0)(better-sqlite3@12.5.0)(drizzle-kit@0.31.8)(drizzle-orm@0.33.0(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7)(react@19.2.3))(pg@8.16.3)(react@19.2.3)(vitest@4.0.16)(vue@3.5.25(typescript@5.9.3)):
++  better-auth@1.4.10(@prisma/client@5.22.0)(better-sqlite3@12.5.0)(drizzle-kit@0.31.8)(drizzle-orm@0.33.0(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7)(react@19.2.3))(pg@8.16.3)(react@19.2.3)(vitest@4.0.16)(vue@3.5.25(typescript@5.9.3)):
+     dependencies:
+-      '@better-auth/core': 1.4.9(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)
+-      '@better-auth/telemetry': 1.4.9(@better-auth/core@1.4.9(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0))
++      '@better-auth/core': 1.4.10(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)
++      '@better-auth/telemetry': 1.4.10(@better-auth/core@1.4.10(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0))
+       '@better-auth/utils': 0.3.0
+       '@better-fetch/fetch': 1.1.21
+       '@noble/ciphers': 2.1.1
+@@ -23218,10 +23312,10 @@ snapshots:
+       vitest: 4.0.16(@opentelemetry/api@1.9.0)(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@25.0.1(bufferutil@4.1.0)(utf-8-validate@5.0.10))(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+       vue: 3.5.25(typescript@5.9.3)
+
+-  better-auth@1.4.9(@prisma/client@5.22.0)(better-sqlite3@12.5.0)(drizzle-kit@0.31.8)(drizzle-orm@0.44.7(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7))(pg@8.16.3)(react@19.2.3)(vitest@4.0.16)(vue@3.5.25(typescript@5.9.3)):
++  better-auth@1.4.10(@prisma/client@5.22.0)(better-sqlite3@12.5.0)(drizzle-kit@0.31.8)(drizzle-orm@0.44.7(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7))(pg@8.16.3)(react@19.2.3)(vitest@4.0.16)(vue@3.5.25(typescript@5.9.3)):
+     dependencies:
+-      '@better-auth/core': 1.4.9(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)
+-      '@better-auth/telemetry': 1.4.9(@better-auth/core@1.4.9(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0))
++      '@better-auth/core': 1.4.10(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)
++      '@better-auth/telemetry': 1.4.10(@better-auth/core@1.4.10(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0))
+       '@better-auth/utils': 0.3.0
+       '@better-fetch/fetch': 1.1.21
+       '@noble/ciphers': 2.1.1
+@@ -23242,10 +23336,10 @@ snapshots:
+       vitest: 4.0.16(@opentelemetry/api@1.9.0)(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@25.0.1(bufferutil@4.1.0)(utf-8-validate@5.0.10))(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+       vue: 3.5.25(typescript@5.9.3)
+
+-  better-auth@1.4.9(@prisma/client@5.22.0)(better-sqlite3@12.5.0)(drizzle-kit@0.31.8)(drizzle-orm@0.45.1(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7))(pg@8.16.3)(react@19.2.3)(vitest@4.0.16)(vue@3.5.25(typescript@5.9.3)):
++  better-auth@1.4.10(@prisma/client@5.22.0)(better-sqlite3@12.5.0)(drizzle-kit@0.31.8)(drizzle-orm@0.45.1(@opentelemetry/api@1.9.0)(@prisma/client@5.22.0)(@types/pg@8.16.0)(better-sqlite3@12.5.0)(kysely@0.28.9)(pg@8.16.3)(postgres@3.4.7))(pg@8.16.3)(react@19.2.3)(vitest@4.0.16)(vue@3.5.25(typescript@5.9.3)):
+     dependencies:
+-      '@better-auth/core': 1.4.9(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)
+-      '@better-auth/telemetry': 1.4.9(@better-auth/core@1.4.9(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0))
++      '@better-auth/core': 1.4.10(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0)
++      '@better-auth/telemetry': 1.4.10(@better-auth/core@1.4.10(@better-auth/utils@0.3.0)(@better-fetch/fetch@1.1.21)(better-call@1.1.7(zod@4.2.1))(jose@6.1.3)(kysely@0.28.9)(nanostores@1.1.0))
+       '@better-auth/utils': 0.3.0
+       '@better-fetch/fetch': 1.1.21
+       '@noble/ciphers': 2.1.1
+@@ -28982,6 +29076,25 @@ snapshots:
+     transitivePeerDependencies:
+       - oxc-resolver
+
++  rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2):
++    dependencies:
++      '@oxc-project/runtime': 0.101.0
++      fdir: 6.5.0(picomatch@4.0.3)
++      lightningcss: 1.30.2
++      picomatch: 4.0.3
++      postcss: 8.5.6
++      rolldown: 1.0.0-beta.53
++      tinyglobby: 0.2.15
++    optionalDependencies:
++      '@types/node': 24.10.4
++      esbuild: 0.25.12
++      fsevents: 2.3.3
++      jiti: 2.6.1
++      less: 4.5.1
++      terser: 5.44.1
++      tsx: 4.21.0
++      yaml: 2.8.2
++
+   rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2):
+     dependencies:
+       '@oxc-project/runtime': 0.101.0
+@@ -30338,13 +30451,13 @@ snapshots:
+
+   unpipe@1.0.0: {}
+
+-  unplugin-combine@2.1.3(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(unplugin@2.3.11):
++  unplugin-combine@2.1.3(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(unplugin@2.3.11):
+     optionalDependencies:
+-      esbuild: 0.27.2
++      esbuild: 0.25.12
+       rolldown: 1.0.0-beta.53
+       rollup: 2.79.2
+       unplugin: 2.3.11
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+
+   unplugin-combine@2.1.3(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@4.54.0)(unplugin@2.3.11):
+     optionalDependencies:
+@@ -30382,16 +30495,16 @@ snapshots:
+     transitivePeerDependencies:
+       - supports-color
+
+-  unplugin-info@1.2.4(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rollup@2.79.2):
++  unplugin-info@1.2.4(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rollup@2.79.2):
+     dependencies:
+       ci-info: 4.3.1
+       git-url-parse: 16.1.0
+       simple-git: 3.30.0
+       unplugin: 2.3.11
+     optionalDependencies:
+-      esbuild: 0.27.2
++      esbuild: 0.25.12
+       rollup: 2.79.2
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+     transitivePeerDependencies:
+       - supports-color
+
+@@ -30516,16 +30629,16 @@ snapshots:
+       rollup: 4.54.0
+       vite: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+
+-  unplugin-yaml@3.0.7(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2):
++  unplugin-yaml@3.0.7(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2):
+     dependencies:
+       '@rollup/pluginutils': 5.3.0(rollup@2.79.2)
+       unplugin: 2.3.10
+       yaml: 2.8.1
+     optionalDependencies:
+-      esbuild: 0.27.2
++      esbuild: 0.25.12
+       rolldown: 1.0.0-beta.53
+       rollup: 2.79.2
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+
+   unplugin-yaml@3.0.7(esbuild@0.27.2)(rolldown@1.0.0-beta.53)(rollup@4.54.0)(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+     dependencies:
+@@ -30713,6 +30826,12 @@ snapshots:
+       - rollup
+       - supports-color
+
++  vite-dev-rpc@1.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
++    dependencies:
++      birpc: 2.9.0
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++      vite-hot-client: 2.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
++
+   vite-dev-rpc@1.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+     dependencies:
+       birpc: 2.9.0
+@@ -30725,6 +30844,10 @@ snapshots:
+       vite: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+       vite-hot-client: 2.1.0(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+
++  vite-hot-client@2.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
++    dependencies:
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++
+   vite-hot-client@2.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+     dependencies:
+       vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+@@ -30789,6 +30912,21 @@ snapshots:
+     transitivePeerDependencies:
+       - supports-color
+
++  vite-plugin-inspect@11.3.3(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
++    dependencies:
++      ansis: 4.2.0
++      debug: 4.4.3
++      error-stack-parser-es: 1.0.5
++      ohash: 2.0.11
++      open: 10.2.0
++      perfect-debounce: 2.0.0
++      sirv: 3.0.2
++      unplugin-utils: 0.3.1
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++      vite-dev-rpc: 1.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
++    transitivePeerDependencies:
++      - supports-color
++
+   vite-plugin-inspect@11.3.3(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+     dependencies:
+       ansis: 4.2.0
+@@ -30804,12 +30942,23 @@ snapshots:
+     transitivePeerDependencies:
+       - supports-color
+
+-  vite-plugin-mkcert@1.17.9(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
++  vite-plugin-mkcert@1.17.9(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+     dependencies:
+       axios: feaxios@0.0.23
+       debug: 4.4.3
+       picocolors: 1.1.1
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++    transitivePeerDependencies:
++      - supports-color
++
++  vite-plugin-pwa@1.2.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(workbox-build@7.4.0)(workbox-window@7.4.0):
++    dependencies:
++      debug: 4.4.3
++      pretty-bytes: 6.1.1
++      tinyglobby: 0.2.15
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++      workbox-build: 7.4.0
++      workbox-window: 7.4.0
+     transitivePeerDependencies:
+       - supports-color
+
+@@ -30838,6 +30987,35 @@ snapshots:
+       - supports-color
+       - vue
+
++  vite-plugin-vue-devtools@8.0.5(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3)):
++    dependencies:
++      '@vue/devtools-core': 8.0.5(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
++      '@vue/devtools-kit': 8.0.5
++      '@vue/devtools-shared': 8.0.5
++      sirv: 3.0.2
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++      vite-plugin-inspect: 11.3.3(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
++      vite-plugin-vue-inspector: 5.3.2(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
++    transitivePeerDependencies:
++      - '@nuxt/kit'
++      - supports-color
++      - vue
++
++  vite-plugin-vue-inspector@5.3.2(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
++    dependencies:
++      '@babel/core': 7.28.5
++      '@babel/plugin-proposal-decorators': 7.28.0(@babel/core@7.28.5)
++      '@babel/plugin-syntax-import-attributes': 7.27.1(@babel/core@7.28.5)
++      '@babel/plugin-syntax-import-meta': 7.10.4(@babel/core@7.28.5)
++      '@babel/plugin-transform-typescript': 7.28.5(@babel/core@7.28.5)
++      '@vue/babel-plugin-jsx': 1.5.0(@babel/core@7.28.5)
++      '@vue/compiler-dom': 3.5.26
++      kolorist: 1.8.0
++      magic-string: 0.30.21
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++    transitivePeerDependencies:
++      - supports-color
++
+   vite-plugin-vue-inspector@5.3.2(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+     dependencies:
+       '@babel/core': 7.28.5
+@@ -30853,6 +31031,16 @@ snapshots:
+     transitivePeerDependencies:
+       - supports-color
+
++  vite-plugin-vue-layouts@0.11.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue-router@4.6.4(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3)):
++    dependencies:
++      debug: 4.4.3
++      fast-glob: 3.3.3
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++      vue: 3.5.25(typescript@5.9.3)
++      vue-router: 4.6.4(vue@3.5.25(typescript@5.9.3))
++    transitivePeerDependencies:
++      - supports-color
++
+   vite-plugin-vue-layouts@0.11.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue-router@4.6.4(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3)):
+     dependencies:
+       debug: 4.4.3
+@@ -31007,7 +31195,7 @@ snapshots:
+     optionalDependencies:
+       '@opentelemetry/api': 1.9.0
+       '@types/node': 24.10.4
+-      '@vitest/browser-playwright': 4.0.16(bufferutil@4.1.0)(playwright@1.57.0)(utf-8-validate@5.0.10)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)
++      '@vitest/browser-playwright': 4.0.16(bufferutil@4.1.0)(playwright@1.57.0)(utf-8-validate@5.0.10)(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)
+       jsdom: 25.0.1(bufferutil@4.1.0)(utf-8-validate@5.0.10)
+     transitivePeerDependencies:
+       - jiti
+@@ -31054,7 +31242,7 @@ snapshots:
+       '@vue/devtools-api': 6.6.4
+       vue: 3.5.25(typescript@5.9.3)
+
+-  vue-macros@3.1.1(@vueuse/core@14.1.0(vue@3.5.25(typescript@5.9.3)))(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))(vue@3.5.25(typescript@5.9.3)):
++  vue-macros@3.1.1(@vueuse/core@14.1.0(vue@3.5.25(typescript@5.9.3)))(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))(vue@3.5.25(typescript@5.9.3)):
+     dependencies:
+       '@vue-macros/better-define': 3.1.1(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/boolean-prop': 3.1.1(vue@3.5.25(typescript@5.9.3))
+@@ -31069,7 +31257,7 @@ snapshots:
+       '@vue-macros/define-render': 3.1.1(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/define-slots': 3.1.1(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/define-stylex': 3.1.1(vue@3.5.25(typescript@5.9.3))
+-      '@vue-macros/devtools': 3.1.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(typescript@5.9.3)
++      '@vue-macros/devtools': 3.1.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(typescript@5.9.3)
+       '@vue-macros/export-expose': 3.1.1(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/export-props': 3.1.1(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/export-render': 3.1.1(vue@3.5.25(typescript@5.9.3))
+@@ -31086,7 +31274,7 @@ snapshots:
+       '@vue-macros/short-vmodel': 3.1.1(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/volar': 3.1.1(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))(vue@3.5.25(typescript@5.9.3))
+       unplugin: 2.3.11
+-      unplugin-combine: 2.1.3(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(unplugin@2.3.11)
++      unplugin-combine: 2.1.3(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(unplugin@2.3.11)
+       unplugin-vue-define-options: 3.1.1(vue@3.5.25(typescript@5.9.3))
+       vue: 3.5.25(typescript@5.9.3)
+     transitivePeerDependencies:
+diff --git a/pnpm-workspace.yaml b/pnpm-workspace.yaml
+index f2af4c98..b5d6aa5d 100644
+--- a/pnpm-workspace.yaml
++++ b/pnpm-workspace.yaml
+@@ -18,6 +18,7 @@ catalog:
+   '@moeru/eslint-config': 0.1.0-beta.14
+   '@moeru/std': 0.1.0-beta.14
+   '@nekopaw/tempora': 0.4.0-alpha.1
++  '@pinia/testing': ^1.0.3
+   '@proj-airi/drizzle-duckdb-wasm': ^0.4.29
+   '@types/audioworklet': ^0.0.92
+   '@types/splitpanes': ^2.2.6
+@@ -51,7 +52,7 @@ catalog:
+   valibot: 1.2.0
+   vite-plugin-mkcert: ^1.17.9
+   vue-sonner: ^2.0.9
+-  xsschema: ^0.4.0-beta.12
++  xsschema: 0.4.0-beta.13
+   zod: ^4.2.1
+
+ catalogMode: prefer

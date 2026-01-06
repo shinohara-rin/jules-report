@@ -1,0 +1,64 @@
+commit 4f774e6e59950c7378ebd3fbe240d5ceeaf67a9f
+Author: LemonNeko <self@lemonneko.moe>
+Date:   Tue Jan 6 17:53:59 2026 +0800
+
+    chore(stage-pocket): use our own app icon (#891)
+
+diff --git a/apps/stage-pocket/ios/App/App.xcodeproj/project.pbxproj b/apps/stage-pocket/ios/App/App.xcodeproj/project.pbxproj
+index 1882bf6b..32c92350 100644
+--- a/apps/stage-pocket/ios/App/App.xcodeproj/project.pbxproj
++++ b/apps/stage-pocket/ios/App/App.xcodeproj/project.pbxproj
+@@ -301,7 +301,7 @@
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+-				DEVELOPMENT_TEAM = R3M9XV85VN;
++				DEVELOPMENT_TEAM = "";
+				INFOPLIST_FILE = App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+@@ -324,7 +324,7 @@
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+-				DEVELOPMENT_TEAM = R3M9XV85VN;
++				DEVELOPMENT_TEAM = "";
+				INFOPLIST_FILE = App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+diff --git a/apps/stage-pocket/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png b/apps/stage-pocket/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+index adf6ba01..a61c4236 100644
+Binary files a/apps/stage-pocket/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png and b/apps/stage-pocket/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png differ
+diff --git a/apps/stage-pocket/ios/App/CapApp-SPM/Package.swift b/apps/stage-pocket/ios/App/CapApp-SPM/Package.swift
+index a9c5f17c..79763c06 100644
+--- a/apps/stage-pocket/ios/App/CapApp-SPM/Package.swift
++++ b/apps/stage-pocket/ios/App/CapApp-SPM/Package.swift
+@@ -11,14 +11,8 @@ let package = Package(
+             targets: ["CapApp-SPM"])
+     ],
+     dependencies: [
+-        .package(
+-            url: "https://github.com/ionic-team/capacitor-swift-pm.git",
+-            exact: "8.0.0"
+-        ),
+-        .package(
+-            name: "CapacitorLocalNotifications",
+-            path: "../../../../../node_modules/.pnpm/@capacitor+local-notifications@8.0.0_@capacitor+core@8.0.0/node_modules/@capacitor/local-notifications"
+-        )
++        .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.0.0"),
++        .package(name: "CapacitorLocalNotifications", path: "../../../../../node_modules/.pnpm/@capacitor+local-notifications@8.0.0_@capacitor+core@8.0.0/node_modules/@capacitor/local-notifications")
+     ],
+     targets: [
+         .target(
+@@ -26,10 +20,7 @@ let package = Package(
+             dependencies: [
+                 .product(name: "Capacitor", package: "capacitor-swift-pm"),
+                 .product(name: "Cordova", package: "capacitor-swift-pm"),
+-                .product(
+-                    name: "CapacitorLocalNotifications",
+-                    package: "CapacitorLocalNotifications"
+-                )
++                .product(name: "CapacitorLocalNotifications", package: "CapacitorLocalNotifications")
+             ]
+         )
+     ]

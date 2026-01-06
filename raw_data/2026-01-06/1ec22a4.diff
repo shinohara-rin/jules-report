@@ -1,0 +1,114 @@
+commit 1ec22a485510c94316b6c31bda81d5583810f09b
+Author: RainbowBird <git@luoling.moe>
+Date:   Mon Jan 5 18:05:24 2026 +0800
+
+    refactor(sever): app type
+
+diff --git a/apps/server/src/app.ts b/apps/server/src/app.ts
+index 479cbb5a..b76f72cd 100644
+--- a/apps/server/src/app.ts
++++ b/apps/server/src/app.ts
+@@ -55,46 +55,39 @@ async function createApp() {
+   const authInstance = resolved.auth
+
+   const app = new Hono<HonoEnv>()
+-
+-  app.use(
+-    '/api/*',
+-    cors({
+-      origin: origin => getTrustedOrigin(origin),
+-      credentials: true,
+-    }),
+-  )
+-
+-  app.use(honoLogger())
+-
+-  app.use('*', sessionMiddleware(authInstance))
+-
+-  app.get('/session', authGuard, (c) => {
+-    return c.json({
+-      session: c.get('session'),
+-      user: c.get('user')!,
++    .use(
++      '/api/*',
++      cors({
++        origin: origin => getTrustedOrigin(origin),
++        credentials: true,
++      }),
++    )
++    .use(honoLogger())
++    .use('*', sessionMiddleware(authInstance))
++    .get('/session', authGuard, (c) => {
++      return c.json({
++        session: c.get('session'),
++        user: c.get('user')!,
++      })
+     })
+-  })
+-
+-  app.on(['POST', 'GET'], '/api/auth/*', c => authInstance.handler(c.req.raw))
+-
+-  app.route('/api/characters', createCharacterRoutes(resolved.characterService))
+-
+-  app.onError((err, c) => {
+-    if (err instanceof ApiError) {
++    .on(['POST', 'GET'], '/api/auth/*', c => authInstance.handler(c.req.raw))
++    .route('/api/characters', createCharacterRoutes(resolved.characterService))
++    .onError((err, c) => {
++      if (err instanceof ApiError) {
++        return c.json({
++          error: err.errorCode,
++          message: err.message,
++          details: err.details,
++        }, err.statusCode)
++      }
++
++      logger.withError(err).error('Unhandled error')
++      const internalError = createInternalError()
+       return c.json({
+-        error: err.errorCode,
+-        message: err.message,
+-        details: err.details,
+-      }, err.statusCode)
+-    }
+-
+-    logger.withError(err).error('Unhandled error')
+-    const internalError = createInternalError()
+-    return c.json({
+-      error: internalError.errorCode,
+-      message: internalError.message,
+-    }, internalError.statusCode)
+-  })
++        error: internalError.errorCode,
++        message: internalError.message,
++      }, internalError.statusCode)
++    })
+
+   logger.withFields({ port: 3000 }).log('Server started')
+
+diff --git a/apps/server/src/services/auth.ts b/apps/server/src/services/auth.ts
+index 5b370d15..2bcba9dc 100644
+--- a/apps/server/src/services/auth.ts
++++ b/apps/server/src/services/auth.ts
+@@ -9,7 +9,7 @@ import { bearer } from 'better-auth/plugins'
+
+ import * as authSchema from '../schemas/accounts'
+
+-export function createAuth(db: Database, env: Env) {
++export function createAuth(db: Database<typeof authSchema>, env: Env) {
+   return betterAuth({
+     database: drizzleAdapter(db, {
+       provider: 'pg',
+diff --git a/apps/server/src/services/db.ts b/apps/server/src/services/db.ts
+index d6d9dc5b..056bcc90 100644
+--- a/apps/server/src/services/db.ts
++++ b/apps/server/src/services/db.ts
+@@ -2,7 +2,7 @@ import postgres from 'postgres'
+
+ import { drizzle } from 'drizzle-orm/postgres-js'
+
+-export type Database = ReturnType<typeof createDrizzle>
++export type Database<TSchema extends Record<string, unknown>> = ReturnType<typeof createDrizzle<TSchema>>
+
+ export function createDrizzle<TSchema extends Record<string, unknown>>(dsn: string, schema?: TSchema) {
+   return drizzle(postgres(dsn), { schema })
