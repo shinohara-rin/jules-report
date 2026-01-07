@@ -1,0 +1,26 @@
+commit 9fd3005c5a311c2fbcc9463417ac9183b0a71fd2
+Author: Lovehsigure_520 <62863834+Neko-233@users.noreply.github.com>
+Date:   Mon Jan 5 16:34:26 2026 +0800
+
+    fix(docs): remove hardcoded condition in Home.vue (#877)
+
+diff --git a/docs/.vitepress/components/Home.vue b/docs/.vitepress/components/Home.vue
+index 5894b32a..b5e3208b 100644
+--- a/docs/.vitepress/components/Home.vue
++++ b/docs/.vitepress/components/Home.vue
+@@ -113,7 +113,7 @@ watchEffect((onCleanup) => {
+                 <div i-twemoji:jack-o-lantern />Happy Halloween!<div i-twemoji:jack-o-lantern />
+               </div>
+               <div
+-                v-if="true || isBetweenChristmasAndHalfOfJanuary(new Date())"
++                v-if="isBetweenChristmasAndHalfOfJanuary(new Date())"
+                 :class="[
+                   'w-fit',
+                   'flex items-center gap-2',
+diff --git a/nix/assets-hash.txt b/nix/assets-hash.txt
+index e217fe9d..a3538236 100644
+--- a/nix/assets-hash.txt
++++ b/nix/assets-hash.txt
+@@ -1 +1 @@
+-sha256-3rW39/L+VHWslw+bAPS/bMSkYNepxYMhQbds3kbA5uo=
++sha256-3rW39/L+VHWslw+bAPS/bMSkYNepxYMhQbds3kbA5uo=

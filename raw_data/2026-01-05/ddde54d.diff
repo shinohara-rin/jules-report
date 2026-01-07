@@ -1,0 +1,3963 @@
+commit ddde54d22ffd1b81c009505722c5caa189774633
+Author: RainbowBird <rbxin2003@outlook.com>
+Date:   Tue Dec 30 00:46:03 2025 +0800
+
+    feat(stage-ui): character settings page (#847)
+
+diff --git a/apps/server/drizzle/0002_special_fabian_cortez.sql b/apps/server/drizzle/0002_special_fabian_cortez.sql
+new file mode 100644
+index 00000000..e9ed3607
+--- /dev/null
++++ b/apps/server/drizzle/0002_special_fabian_cortez.sql
+@@ -0,0 +1,2 @@
++ALTER TABLE "avatar_model" ADD COLUMN "character_id" text NOT NULL;--> statement-breakpoint
++ALTER TABLE "avatar_model" ADD CONSTRAINT "avatar_model_character_id_characters_id_fk" FOREIGN KEY ("character_id") REFERENCES "public"."characters"("id") ON DELETE cascade ON UPDATE no action;
+\ No newline at end of file
+diff --git a/apps/server/drizzle/0003_flawless_dreaming_celestial.sql b/apps/server/drizzle/0003_flawless_dreaming_celestial.sql
+new file mode 100644
+index 00000000..2372068f
+--- /dev/null
++++ b/apps/server/drizzle/0003_flawless_dreaming_celestial.sql
+@@ -0,0 +1,3 @@
++ALTER TABLE "avatar_model" ADD COLUMN "deleted_at" timestamp;--> statement-breakpoint
++ALTER TABLE "characters" ADD COLUMN "deleted_at" timestamp;--> statement-breakpoint
++ALTER TABLE "character_i18n" ADD COLUMN "deleted_at" timestamp;
+\ No newline at end of file
+diff --git a/apps/server/drizzle/meta/0002_snapshot.json b/apps/server/drizzle/meta/0002_snapshot.json
+new file mode 100644
+index 00000000..089595a0
+--- /dev/null
++++ b/apps/server/drizzle/meta/0002_snapshot.json
+@@ -0,0 +1,1059 @@
++{
++  "id": "271303e7-879f-43ba-89b4-72e2c0bca5d1",
++  "prevId": "8adb8523-37fc-4c77-84f4-3a3f21c0a013",
++  "version": "7",
++  "dialect": "postgresql",
++  "tables": {
++    "public.account": {
++      "name": "account",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "account_id": {
++          "name": "account_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "provider_id": {
++          "name": "provider_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "user_id": {
++          "name": "user_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "access_token": {
++          "name": "access_token",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "refresh_token": {
++          "name": "refresh_token",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "id_token": {
++          "name": "id_token",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "access_token_expires_at": {
++          "name": "access_token_expires_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "refresh_token_expires_at": {
++          "name": "refresh_token_expires_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "scope": {
++          "name": "scope",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "password": {
++          "name": "password",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true
++        }
++      },
++      "indexes": {
++        "account_userId_idx": {
++          "name": "account_userId_idx",
++          "columns": [
++            {
++              "expression": "user_id",
++              "isExpression": false,
++              "asc": true,
++              "nulls": "last"
++            }
++          ],
++          "isUnique": false,
++          "concurrently": false,
++          "method": "btree",
++          "with": {}
++        }
++      },
++      "foreignKeys": {
++        "account_user_id_user_id_fk": {
++          "name": "account_user_id_user_id_fk",
++          "tableFrom": "account",
++          "tableTo": "user",
++          "columnsFrom": [
++            "user_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.session": {
++      "name": "session",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "expires_at": {
++          "name": "expires_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "token": {
++          "name": "token",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "ip_address": {
++          "name": "ip_address",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "user_agent": {
++          "name": "user_agent",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "user_id": {
++          "name": "user_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        }
++      },
++      "indexes": {
++        "session_userId_idx": {
++          "name": "session_userId_idx",
++          "columns": [
++            {
++              "expression": "user_id",
++              "isExpression": false,
++              "asc": true,
++              "nulls": "last"
++            }
++          ],
++          "isUnique": false,
++          "concurrently": false,
++          "method": "btree",
++          "with": {}
++        }
++      },
++      "foreignKeys": {
++        "session_user_id_user_id_fk": {
++          "name": "session_user_id_user_id_fk",
++          "tableFrom": "session",
++          "tableTo": "user",
++          "columnsFrom": [
++            "user_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {
++        "session_token_unique": {
++          "name": "session_token_unique",
++          "nullsNotDistinct": false,
++          "columns": [
++            "token"
++          ]
++        }
++      },
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.user": {
++      "name": "user",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "name": {
++          "name": "name",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "email": {
++          "name": "email",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "email_verified": {
++          "name": "email_verified",
++          "type": "boolean",
++          "primaryKey": false,
++          "notNull": true,
++          "default": false
++        },
++        "image": {
++          "name": "image",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {},
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {
++        "user_email_unique": {
++          "name": "user_email_unique",
++          "nullsNotDistinct": false,
++          "columns": [
++            "email"
++          ]
++        }
++      },
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.verification": {
++      "name": "verification",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "identifier": {
++          "name": "identifier",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "value": {
++          "name": "value",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "expires_at": {
++          "name": "expires_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {
++        "verification_identifier_idx": {
++          "name": "verification_identifier_idx",
++          "columns": [
++            {
++              "expression": "identifier",
++              "isExpression": false,
++              "asc": true,
++              "nulls": "last"
++            }
++          ],
++          "isUnique": false,
++          "concurrently": false,
++          "method": "btree",
++          "with": {}
++        }
++      },
++      "foreignKeys": {},
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.avatar_model": {
++      "name": "avatar_model",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "character_id": {
++          "name": "character_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "name": {
++          "name": "name",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "type": {
++          "name": "type",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "description": {
++          "name": "description",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "config": {
++          "name": "config",
++          "type": "jsonb",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "avatar_model_character_id_characters_id_fk": {
++          "name": "avatar_model_character_id_characters_id_fk",
++          "tableFrom": "avatar_model",
++          "tableTo": "characters",
++          "columnsFrom": [
++            "character_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.characters": {
++      "name": "characters",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "version": {
++          "name": "version",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "cover_url": {
++          "name": "cover_url",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "creator_id": {
++          "name": "creator_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "owner_id": {
++          "name": "owner_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "character_id": {
++          "name": "character_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "characters_creator_id_user_id_fk": {
++          "name": "characters_creator_id_user_id_fk",
++          "tableFrom": "characters",
++          "tableTo": "user",
++          "columnsFrom": [
++            "creator_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        },
++        "characters_owner_id_user_id_fk": {
++          "name": "characters_owner_id_user_id_fk",
++          "tableFrom": "characters",
++          "tableTo": "user",
++          "columnsFrom": [
++            "owner_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.character_capabilities": {
++      "name": "character_capabilities",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "character_id": {
++          "name": "character_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "type": {
++          "name": "type",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "config": {
++          "name": "config",
++          "type": "jsonb",
++          "primaryKey": false,
++          "notNull": true
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "character_capabilities_character_id_characters_id_fk": {
++          "name": "character_capabilities_character_id_characters_id_fk",
++          "tableFrom": "character_capabilities",
++          "tableTo": "characters",
++          "columnsFrom": [
++            "character_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.character_i18n": {
++      "name": "character_i18n",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "character_id": {
++          "name": "character_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "language": {
++          "name": "language",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "name": {
++          "name": "name",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "description": {
++          "name": "description",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "tags": {
++          "name": "tags",
++          "type": "text[]",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "character_i18n_character_id_characters_id_fk": {
++          "name": "character_i18n_character_id_characters_id_fk",
++          "tableFrom": "character_i18n",
++          "tableTo": "characters",
++          "columnsFrom": [
++            "character_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.character_prompts": {
++      "name": "character_prompts",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "character_id": {
++          "name": "character_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "language": {
++          "name": "language",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "type": {
++          "name": "type",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "content": {
++          "name": "content",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "character_prompts_character_id_characters_id_fk": {
++          "name": "character_prompts_character_id_characters_id_fk",
++          "tableFrom": "character_prompts",
++          "tableTo": "characters",
++          "columnsFrom": [
++            "character_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.chat_members": {
++      "name": "chat_members",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "chat_id": {
++          "name": "chat_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "user_id": {
++          "name": "user_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "chat_members_chat_id_chats_id_fk": {
++          "name": "chat_members_chat_id_chats_id_fk",
++          "tableFrom": "chat_members",
++          "tableTo": "chats",
++          "columnsFrom": [
++            "chat_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        },
++        "chat_members_user_id_user_id_fk": {
++          "name": "chat_members_user_id_user_id_fk",
++          "tableFrom": "chat_members",
++          "tableTo": "user",
++          "columnsFrom": [
++            "user_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.chats": {
++      "name": "chats",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "type": {
++          "name": "type",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "deleted_at": {
++          "name": "deleted_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": false
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {},
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.media": {
++      "name": "media",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "url": {
++          "name": "url",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "mime_type": {
++          "name": "mime_type",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "size": {
++          "name": "size",
++          "type": "integer",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {},
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.messages": {
++      "name": "messages",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "chat_id": {
++          "name": "chat_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "sender_id": {
++          "name": "sender_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "content": {
++          "name": "content",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "media_ids": {
++          "name": "media_ids",
++          "type": "text[]",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "sticker_ids": {
++          "name": "sticker_ids",
++          "type": "text[]",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "reply_message_id": {
++          "name": "reply_message_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "forward_from_message_id": {
++          "name": "forward_from_message_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "deleted_at": {
++          "name": "deleted_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": false
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "messages_chat_id_chats_id_fk": {
++          "name": "messages_chat_id_chats_id_fk",
++          "tableFrom": "messages",
++          "tableTo": "chats",
++          "columnsFrom": [
++            "chat_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.sticker_packs": {
++      "name": "sticker_packs",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "name": {
++          "name": "name",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "description": {
++          "name": "description",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {},
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.stickers": {
++      "name": "stickers",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "url": {
++          "name": "url",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {},
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    }
++  },
++  "enums": {},
++  "schemas": {},
++  "sequences": {},
++  "roles": {},
++  "policies": {},
++  "views": {},
++  "_meta": {
++    "columns": {},
++    "schemas": {},
++    "tables": {}
++  }
++}
+\ No newline at end of file
+diff --git a/apps/server/drizzle/meta/0003_snapshot.json b/apps/server/drizzle/meta/0003_snapshot.json
+new file mode 100644
+index 00000000..436c8978
+--- /dev/null
++++ b/apps/server/drizzle/meta/0003_snapshot.json
+@@ -0,0 +1,1077 @@
++{
++  "id": "09d6ae37-aeaa-437d-a912-e6e5d5e4f5e7",
++  "prevId": "271303e7-879f-43ba-89b4-72e2c0bca5d1",
++  "version": "7",
++  "dialect": "postgresql",
++  "tables": {
++    "public.account": {
++      "name": "account",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "account_id": {
++          "name": "account_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "provider_id": {
++          "name": "provider_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "user_id": {
++          "name": "user_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "access_token": {
++          "name": "access_token",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "refresh_token": {
++          "name": "refresh_token",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "id_token": {
++          "name": "id_token",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "access_token_expires_at": {
++          "name": "access_token_expires_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "refresh_token_expires_at": {
++          "name": "refresh_token_expires_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "scope": {
++          "name": "scope",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "password": {
++          "name": "password",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true
++        }
++      },
++      "indexes": {
++        "account_userId_idx": {
++          "name": "account_userId_idx",
++          "columns": [
++            {
++              "expression": "user_id",
++              "isExpression": false,
++              "asc": true,
++              "nulls": "last"
++            }
++          ],
++          "isUnique": false,
++          "concurrently": false,
++          "method": "btree",
++          "with": {}
++        }
++      },
++      "foreignKeys": {
++        "account_user_id_user_id_fk": {
++          "name": "account_user_id_user_id_fk",
++          "tableFrom": "account",
++          "tableTo": "user",
++          "columnsFrom": [
++            "user_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.session": {
++      "name": "session",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "expires_at": {
++          "name": "expires_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "token": {
++          "name": "token",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "ip_address": {
++          "name": "ip_address",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "user_agent": {
++          "name": "user_agent",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "user_id": {
++          "name": "user_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        }
++      },
++      "indexes": {
++        "session_userId_idx": {
++          "name": "session_userId_idx",
++          "columns": [
++            {
++              "expression": "user_id",
++              "isExpression": false,
++              "asc": true,
++              "nulls": "last"
++            }
++          ],
++          "isUnique": false,
++          "concurrently": false,
++          "method": "btree",
++          "with": {}
++        }
++      },
++      "foreignKeys": {
++        "session_user_id_user_id_fk": {
++          "name": "session_user_id_user_id_fk",
++          "tableFrom": "session",
++          "tableTo": "user",
++          "columnsFrom": [
++            "user_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {
++        "session_token_unique": {
++          "name": "session_token_unique",
++          "nullsNotDistinct": false,
++          "columns": [
++            "token"
++          ]
++        }
++      },
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.user": {
++      "name": "user",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "name": {
++          "name": "name",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "email": {
++          "name": "email",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "email_verified": {
++          "name": "email_verified",
++          "type": "boolean",
++          "primaryKey": false,
++          "notNull": true,
++          "default": false
++        },
++        "image": {
++          "name": "image",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {},
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {
++        "user_email_unique": {
++          "name": "user_email_unique",
++          "nullsNotDistinct": false,
++          "columns": [
++            "email"
++          ]
++        }
++      },
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.verification": {
++      "name": "verification",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "identifier": {
++          "name": "identifier",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "value": {
++          "name": "value",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "expires_at": {
++          "name": "expires_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {
++        "verification_identifier_idx": {
++          "name": "verification_identifier_idx",
++          "columns": [
++            {
++              "expression": "identifier",
++              "isExpression": false,
++              "asc": true,
++              "nulls": "last"
++            }
++          ],
++          "isUnique": false,
++          "concurrently": false,
++          "method": "btree",
++          "with": {}
++        }
++      },
++      "foreignKeys": {},
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.avatar_model": {
++      "name": "avatar_model",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "character_id": {
++          "name": "character_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "name": {
++          "name": "name",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "type": {
++          "name": "type",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "description": {
++          "name": "description",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "config": {
++          "name": "config",
++          "type": "jsonb",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "deleted_at": {
++          "name": "deleted_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": false
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "avatar_model_character_id_characters_id_fk": {
++          "name": "avatar_model_character_id_characters_id_fk",
++          "tableFrom": "avatar_model",
++          "tableTo": "characters",
++          "columnsFrom": [
++            "character_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.characters": {
++      "name": "characters",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "version": {
++          "name": "version",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "cover_url": {
++          "name": "cover_url",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "creator_id": {
++          "name": "creator_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "owner_id": {
++          "name": "owner_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "character_id": {
++          "name": "character_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "deleted_at": {
++          "name": "deleted_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": false
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "characters_creator_id_user_id_fk": {
++          "name": "characters_creator_id_user_id_fk",
++          "tableFrom": "characters",
++          "tableTo": "user",
++          "columnsFrom": [
++            "creator_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        },
++        "characters_owner_id_user_id_fk": {
++          "name": "characters_owner_id_user_id_fk",
++          "tableFrom": "characters",
++          "tableTo": "user",
++          "columnsFrom": [
++            "owner_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.character_capabilities": {
++      "name": "character_capabilities",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "character_id": {
++          "name": "character_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "type": {
++          "name": "type",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "config": {
++          "name": "config",
++          "type": "jsonb",
++          "primaryKey": false,
++          "notNull": true
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "character_capabilities_character_id_characters_id_fk": {
++          "name": "character_capabilities_character_id_characters_id_fk",
++          "tableFrom": "character_capabilities",
++          "tableTo": "characters",
++          "columnsFrom": [
++            "character_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.character_i18n": {
++      "name": "character_i18n",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "character_id": {
++          "name": "character_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "language": {
++          "name": "language",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "name": {
++          "name": "name",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "description": {
++          "name": "description",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "tags": {
++          "name": "tags",
++          "type": "text[]",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "deleted_at": {
++          "name": "deleted_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": false
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "character_i18n_character_id_characters_id_fk": {
++          "name": "character_i18n_character_id_characters_id_fk",
++          "tableFrom": "character_i18n",
++          "tableTo": "characters",
++          "columnsFrom": [
++            "character_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.character_prompts": {
++      "name": "character_prompts",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "character_id": {
++          "name": "character_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "language": {
++          "name": "language",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "type": {
++          "name": "type",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "content": {
++          "name": "content",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "character_prompts_character_id_characters_id_fk": {
++          "name": "character_prompts_character_id_characters_id_fk",
++          "tableFrom": "character_prompts",
++          "tableTo": "characters",
++          "columnsFrom": [
++            "character_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.chat_members": {
++      "name": "chat_members",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "chat_id": {
++          "name": "chat_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "user_id": {
++          "name": "user_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "chat_members_chat_id_chats_id_fk": {
++          "name": "chat_members_chat_id_chats_id_fk",
++          "tableFrom": "chat_members",
++          "tableTo": "chats",
++          "columnsFrom": [
++            "chat_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        },
++        "chat_members_user_id_user_id_fk": {
++          "name": "chat_members_user_id_user_id_fk",
++          "tableFrom": "chat_members",
++          "tableTo": "user",
++          "columnsFrom": [
++            "user_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.chats": {
++      "name": "chats",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "type": {
++          "name": "type",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "deleted_at": {
++          "name": "deleted_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": false
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {},
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.media": {
++      "name": "media",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "url": {
++          "name": "url",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "mime_type": {
++          "name": "mime_type",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "size": {
++          "name": "size",
++          "type": "integer",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {},
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.messages": {
++      "name": "messages",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "chat_id": {
++          "name": "chat_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "sender_id": {
++          "name": "sender_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "content": {
++          "name": "content",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "media_ids": {
++          "name": "media_ids",
++          "type": "text[]",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "sticker_ids": {
++          "name": "sticker_ids",
++          "type": "text[]",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "reply_message_id": {
++          "name": "reply_message_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "forward_from_message_id": {
++          "name": "forward_from_message_id",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": false
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "deleted_at": {
++          "name": "deleted_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": false
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {
++        "messages_chat_id_chats_id_fk": {
++          "name": "messages_chat_id_chats_id_fk",
++          "tableFrom": "messages",
++          "tableTo": "chats",
++          "columnsFrom": [
++            "chat_id"
++          ],
++          "columnsTo": [
++            "id"
++          ],
++          "onDelete": "cascade",
++          "onUpdate": "no action"
++        }
++      },
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.sticker_packs": {
++      "name": "sticker_packs",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "name": {
++          "name": "name",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "description": {
++          "name": "description",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {},
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    },
++    "public.stickers": {
++      "name": "stickers",
++      "schema": "",
++      "columns": {
++        "id": {
++          "name": "id",
++          "type": "text",
++          "primaryKey": true,
++          "notNull": true
++        },
++        "url": {
++          "name": "url",
++          "type": "text",
++          "primaryKey": false,
++          "notNull": true
++        },
++        "created_at": {
++          "name": "created_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        },
++        "updated_at": {
++          "name": "updated_at",
++          "type": "timestamp",
++          "primaryKey": false,
++          "notNull": true,
++          "default": "now()"
++        }
++      },
++      "indexes": {},
++      "foreignKeys": {},
++      "compositePrimaryKeys": {},
++      "uniqueConstraints": {},
++      "policies": {},
++      "checkConstraints": {},
++      "isRLSEnabled": false
++    }
++  },
++  "enums": {},
++  "schemas": {},
++  "sequences": {},
++  "roles": {},
++  "policies": {},
++  "views": {},
++  "_meta": {
++    "columns": {},
++    "schemas": {},
++    "tables": {}
++  }
++}
+\ No newline at end of file
+diff --git a/apps/server/drizzle/meta/_journal.json b/apps/server/drizzle/meta/_journal.json
+index 2224d1ff..680f9b4a 100644
+--- a/apps/server/drizzle/meta/_journal.json
++++ b/apps/server/drizzle/meta/_journal.json
+@@ -15,6 +15,20 @@
+       "when": 1766998160836,
+       "tag": "0001_simple_garia",
+       "breakpoints": true
++    },
++    {
++      "idx": 2,
++      "version": "7",
++      "when": 1767024282458,
++      "tag": "0002_special_fabian_cortez",
++      "breakpoints": true
++    },
++    {
++      "idx": 3,
++      "version": "7",
++      "when": 1767025034768,
++      "tag": "0003_flawless_dreaming_celestial",
++      "breakpoints": true
+     }
+   ]
+ }
+diff --git a/apps/server/src/routes/__test__/characters.test.ts b/apps/server/src/routes/__test__/characters.test.ts
+new file mode 100644
+index 00000000..b075ba91
+--- /dev/null
++++ b/apps/server/src/routes/__test__/characters.test.ts
+@@ -0,0 +1,191 @@
++import type { HonoEnv } from '../../types/hono'
++
++import { Hono } from 'hono'
++import { beforeEach, describe, expect, it, vi } from 'vitest'
++
++import { createCharacterRoutes } from '../characters'
++
++describe('characterRoutes', () => {
++  let characterService: any
++  let app: Hono<HonoEnv>
++
++  beforeEach(() => {
++    characterService = {
++      findById: vi.fn(),
++      findByOwnerId: vi.fn(),
++      create: vi.fn(),
++      update: vi.fn(),
++      delete: vi.fn(),
++    }
++    auth = {
++      $Infer: {
++        Session: {
++          user: {},
++          session: {},
++        },
++      },
++    }
++
++    const routes = createCharacterRoutes(characterService)
++    app = new Hono<HonoEnv>()
++
++    app.use('*', async (c, next) => {
++      const user = (c.env as any)?.user
++      if (user) {
++        c.set('user', user)
++      }
++      await next()
++    })
++
++    app.route('/', routes)
++  })
++
++  it('get / should return unauthorized if no user', async () => {
++    const res = await app.request('/')
++    expect(res.status).toBe(401)
++  })
++
++  it('get / should return characters for user', async () => {
++    const mockUser = { id: 'user-1' }
++    const mockChars = [{ id: 'char-1' }]
++    characterService.findByOwnerId.mockResolvedValue(mockChars)
++
++    const res = await app.fetch(new Request('http://localhost/'), { user: mockUser } as any)
++
++    expect(res.status).toBe(200)
++    expect(await res.json()).toEqual(mockChars)
++  })
++
++  it('get /:id should return 404 if not found', async () => {
++    characterService.findById.mockResolvedValue(null)
++    const res = await app.request('/char-1')
++    expect(res.status).toBe(404)
++  })
++
++  it('get /:id should return character', async () => {
++    const mockChar = { id: 'char-1' }
++    characterService.findById.mockResolvedValue(mockChar)
++    const res = await app.request('/char-1')
++    expect(res.status).toBe(200)
++    expect(await res.json()).toEqual(mockChar)
++  })
++
++  it('post / should return unauthorized if no user', async () => {
++    const res = await app.request('/', { method: 'POST' })
++    expect(res.status).toBe(401)
++  })
++
++  it('post / should validate body and create character', async () => {
++    const mockUser = { id: 'user-1' }
++    const payload = {
++      character: { id: 'c1', version: '1', coverUrl: 'url', characterId: 'cid' },
++    }
++    characterService.create.mockResolvedValue({ id: 'new-id' })
++
++    const res = await app.fetch(new Request('http://localhost/', {
++      method: 'POST',
++      body: JSON.stringify(payload),
++      headers: { 'Content-Type': 'application/json' },
++    }), { user: mockUser } as any)
++
++    expect(res.status).toBe(201)
++  })
++
++  it('post / should return 400 on invalid body', async () => {
++    const mockUser = { id: 'user-1' }
++    const res = await app.fetch(new Request('http://localhost/', {
++      method: 'POST',
++      body: JSON.stringify({ invalid: 'data' }),
++      headers: { 'Content-Type': 'application/json' },
++    }), { user: mockUser } as any)
++
++    expect(res.status).toBe(400)
++  })
++
++  it('patch /:id should return unauthorized if no user', async () => {
++    const res = await app.request('/c1', { method: 'PATCH' })
++    expect(res.status).toBe(401)
++  })
++
++  it('patch /:id should return 400 on invalid body', async () => {
++    const mockUser = { id: 'user-1' }
++    const res = await app.fetch(new Request('http://localhost/c1', {
++      method: 'PATCH',
++      body: JSON.stringify({ version: 123 }),
++      headers: { 'Content-Type': 'application/json' },
++    }), { user: mockUser } as any)
++    expect(res.status).toBe(400)
++  })
++
++  it('patch /:id should return 404 if not found', async () => {
++    const mockUser = { id: 'user-1' }
++    characterService.findById.mockResolvedValue(null)
++    const res = await app.fetch(new Request('http://localhost/c1', {
++      method: 'PATCH',
++      body: JSON.stringify({ version: '2' }),
++      headers: { 'Content-Type': 'application/json' },
++    }), { user: mockUser } as any)
++    expect(res.status).toBe(404)
++  })
++
++  it('patch /:id should return 403 if not owner', async () => {
++    const mockUser = { id: 'user-1' }
++    characterService.findById.mockResolvedValue({ id: 'c1', ownerId: 'user-2' })
++    const res = await app.fetch(new Request('http://localhost/c1', {
++      method: 'PATCH',
++      body: JSON.stringify({ version: '2' }),
++      headers: { 'Content-Type': 'application/json' },
++    }), { user: mockUser } as any)
++    expect(res.status).toBe(403)
++  })
++
++  it('patch /:id should update if owner', async () => {
++    const mockUser = { id: 'user-1' }
++    characterService.findById.mockResolvedValue({ id: 'c1', ownerId: 'user-1' })
++    characterService.update.mockResolvedValue({ id: 'c1', version: '2' })
++    const res = await app.fetch(new Request('http://localhost/c1', {
++      method: 'PATCH',
++      body: JSON.stringify({ version: '2' }),
++      headers: { 'Content-Type': 'application/json' },
++    }), { user: mockUser } as any)
++    expect(res.status).toBe(200)
++  })
++
++  it('patch /:id should update with empty body', async () => {
++    const mockUser = { id: 'user-1' }
++    characterService.findById.mockResolvedValue({ id: 'c1', ownerId: 'user-1' })
++    characterService.update.mockResolvedValue({ id: 'c1' })
++    const res = await app.fetch(new Request('http://localhost/c1', {
++      method: 'PATCH',
++      body: JSON.stringify({}),
++      headers: { 'Content-Type': 'application/json' },
++    }), { user: mockUser } as any)
++    expect(res.status).toBe(200)
++  })
++
++  it('delete /:id should return unauthorized if no user', async () => {
++    const res = await app.request('/c1', { method: 'DELETE' })
++    expect(res.status).toBe(401)
++  })
++
++  it('delete /:id should return 404 if not found', async () => {
++    const mockUser = { id: 'user-1' }
++    characterService.findById.mockResolvedValue(null)
++    const res = await app.fetch(new Request('http://localhost/c1', { method: 'DELETE' }), { user: mockUser } as any)
++    expect(res.status).toBe(404)
++  })
++
++  it('delete /:id should return 403 if not owner', async () => {
++    const mockUser = { id: 'user-1' }
++    characterService.findById.mockResolvedValue({ id: 'c1', ownerId: 'user-2' })
++    const res = await app.fetch(new Request('http://localhost/c1', { method: 'DELETE' }), { user: mockUser } as any)
++    expect(res.status).toBe(403)
++  })
++
++  it('delete /:id should delete if owner', async () => {
++    const mockUser = { id: 'user-1' }
++    characterService.findById.mockResolvedValue({ id: 'c1', ownerId: 'user-1' })
++    const res = await app.fetch(new Request('http://localhost/c1', { method: 'DELETE' }), { user: mockUser } as any)
++    expect(res.status).toBe(204)
++  })
++})
+diff --git a/apps/server/src/routes/characters.ts b/apps/server/src/routes/characters.ts
+index 174a96e1..e5485176 100644
+--- a/apps/server/src/routes/characters.ts
++++ b/apps/server/src/routes/characters.ts
+@@ -62,7 +62,7 @@ export function createCharacterRoutes(characterService: CharacterService) {
+       throw createBadRequestError('Invalid Request', 'INVALID_REQUEST', result.issues)
+     }
+
+-    const existing = await characterService.findById(id)
++    const existing = await characterService.findById(id, { withRelations: false })
+     if (!existing)
+       throw createNotFoundError()
+     if (existing.ownerId !== user.id)
+@@ -76,7 +76,7 @@ export function createCharacterRoutes(characterService: CharacterService) {
+     const user = c.get('user')!
+
+     const id = c.req.param('id')
+-    const existing = await characterService.findById(id)
++    const existing = await characterService.findById(id, { withRelations: false })
+     if (!existing)
+       throw createNotFoundError()
+     if (existing.ownerId !== user.id)
+diff --git a/apps/server/src/schemas/characters.ts b/apps/server/src/schemas/characters.ts
+index f44a0bcc..21b63b11 100644
+--- a/apps/server/src/schemas/characters.ts
++++ b/apps/server/src/schemas/characters.ts
+@@ -6,12 +6,13 @@ import type { CharacterCapabilityConfig } from '../types/character-capability'
+ import { relations } from 'drizzle-orm'
+ import { jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+
++import { nanoid } from '../utils/id'
+ import { user } from './accounts'
+
+ export const character = pgTable(
+   'characters',
+   {
+-    id: text('id').primaryKey(),
++    id: text('id').primaryKey().$defaultFn(() => nanoid()),
+     version: text('version').notNull(),
+     coverUrl: text('cover_url').notNull(),
+
+@@ -27,6 +28,7 @@ export const character = pgTable(
+
+     createdAt: timestamp('created_at').defaultNow().notNull(),
+     updatedAt: timestamp('updated_at').defaultNow().notNull(),
++    deletedAt: timestamp('deleted_at'),
+   },
+ )
+
+@@ -36,7 +38,7 @@ export type NewCharacter = InferInsertModel<typeof character>
+ export const avatarModel = pgTable(
+   'avatar_model',
+   {
+-    id: text('id').primaryKey(),
++    id: text('id').primaryKey().$defaultFn(() => nanoid()),
+     characterId: text('character_id').notNull().references(() => character.id, { onDelete: 'cascade' }),
+     name: text('name').notNull(),
+     type: text('type').notNull().$type<keyof AvatarModelConfig>(),
+@@ -46,6 +48,7 @@ export const avatarModel = pgTable(
+     config: jsonb('config').notNull().$type<AvatarModelConfig[keyof AvatarModelConfig]>(),
+     createdAt: timestamp('created_at').defaultNow().notNull(),
+     updatedAt: timestamp('updated_at').defaultNow().notNull(),
++    deletedAt: timestamp('deleted_at'),
+   },
+ )
+
+@@ -55,7 +58,7 @@ export type NewAvatarModel = InferInsertModel<typeof avatarModel>
+ export const characterCapabilities = pgTable(
+   'character_capabilities',
+   {
+-    id: text('id').primaryKey(),
++    id: text('id').primaryKey().$defaultFn(() => nanoid()),
+     characterId: text('character_id').notNull().references(() => character.id, { onDelete: 'cascade' }),
+
+     type: text('type').notNull().$type<keyof CharacterCapabilityConfig>(),
+@@ -70,7 +73,7 @@ export type NewCharacterCapability = InferInsertModel<typeof characterCapabiliti
+ export const characterI18n = pgTable(
+   'character_i18n',
+   {
+-    id: text('id').primaryKey(),
++    id: text('id').primaryKey().$defaultFn(() => nanoid()),
+     characterId: text('character_id').notNull().references(() => character.id, { onDelete: 'cascade' }),
+
+     language: text('language').notNull(),
+@@ -93,6 +96,7 @@ export const characterI18n = pgTable(
+
+     createdAt: timestamp('created_at').defaultNow().notNull(),
+     updatedAt: timestamp('updated_at').defaultNow().notNull(),
++    deletedAt: timestamp('deleted_at'),
+   },
+ )
+
+@@ -104,7 +108,7 @@ type PromptType = 'system' | 'personality' | 'greetings'
+ export const characterPrompts = pgTable(
+   'character_prompts',
+   {
+-    id: text('id').primaryKey(),
++    id: text('id').primaryKey().$defaultFn(() => nanoid()),
+     characterId: text('character_id').notNull().references(() => character.id, { onDelete: 'cascade' }),
+
+     language: text('language').notNull(),
+diff --git a/apps/server/src/schemas/chats.ts b/apps/server/src/schemas/chats.ts
+index aacc6795..5d9db9aa 100644
+--- a/apps/server/src/schemas/chats.ts
++++ b/apps/server/src/schemas/chats.ts
+@@ -1,11 +1,12 @@
+ import { integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+
++import { nanoid } from '../utils/id'
+ import { user } from './accounts'
+
+ export const media = pgTable(
+   'media',
+   {
+-    id: text('id').primaryKey(),
++    id: text('id').primaryKey().$defaultFn(() => nanoid()),
+     url: text('url').notNull(),
+     mimeType: text('mime_type').notNull(),
+     size: integer('size').notNull(),
+@@ -17,7 +18,7 @@ export const media = pgTable(
+ export const stickers = pgTable(
+   'stickers',
+   {
+-    id: text('id').primaryKey(),
++    id: text('id').primaryKey().$defaultFn(() => nanoid()),
+     url: text('url').notNull(),
+     createdAt: timestamp('created_at').defaultNow().notNull(),
+     updatedAt: timestamp('updated_at').defaultNow().notNull(),
+@@ -27,7 +28,7 @@ export const stickers = pgTable(
+ export const stickerPacks = pgTable(
+   'sticker_packs',
+   {
+-    id: text('id').primaryKey(),
++    id: text('id').primaryKey().$defaultFn(() => nanoid()),
+     name: text('name').notNull(),
+     description: text('description').notNull(),
+     createdAt: timestamp('created_at').defaultNow().notNull(),
+@@ -40,7 +41,7 @@ type ChatType = 'private' | 'bot' | 'group' | 'channel'
+ export const chats = pgTable(
+   'chats',
+   {
+-    id: text('id').primaryKey(),
++    id: text('id').primaryKey().$defaultFn(() => nanoid()),
+
+     type: text('type').notNull().$type<ChatType>(),
+
+@@ -53,7 +54,7 @@ export const chats = pgTable(
+ export const chatMembers = pgTable(
+   'chat_members',
+   {
+-    id: text('id').primaryKey(),
++    id: text('id').primaryKey().$defaultFn(() => nanoid()),
+     chatId: text('chat_id').notNull().references(() => chats.id, { onDelete: 'cascade' }),
+     userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+   },
+@@ -62,7 +63,7 @@ export const chatMembers = pgTable(
+ export const messages = pgTable(
+   'messages',
+   {
+-    id: text('id').primaryKey(),
++    id: text('id').primaryKey().$defaultFn(() => nanoid()),
+
+     chatId: text('chat_id').notNull().references(() => chats.id, { onDelete: 'cascade' }),
+     senderId: text('sender_id').notNull(),
+diff --git a/apps/server/src/services/__test__/characters.test.ts b/apps/server/src/services/__test__/characters.test.ts
+new file mode 100644
+index 00000000..4e0330a0
+--- /dev/null
++++ b/apps/server/src/services/__test__/characters.test.ts
+@@ -0,0 +1,156 @@
++import { beforeEach, describe, expect, it, vi } from 'vitest'
++
++import { createCharacterService } from '../characters'
++
++import * as schema from '../../schemas/characters'
++
++describe('characterService', () => {
++  let db: any
++  let service: ReturnType<typeof createCharacterService>
++
++  beforeEach(() => {
++    db = {
++      query: {
++        character: {
++          findFirst: vi.fn(),
++          findMany: vi.fn(),
++        },
++      },
++      insert: vi.fn(() => ({
++        values: vi.fn(() => ({
++          returning: vi.fn(),
++        })),
++      })),
++      update: vi.fn(() => ({
++        set: vi.fn(() => ({
++          where: vi.fn(() => ({
++            returning: vi.fn(),
++          })),
++        })),
++      })),
++      delete: vi.fn(() => ({
++        where: vi.fn(() => ({
++          returning: vi.fn(),
++        })),
++      })),
++      transaction: vi.fn(async (cb: any) => {
++        const tx = {
++          insert: vi.fn(() => ({
++            values: vi.fn(() => ({
++              returning: vi.fn(),
++            })),
++          })),
++        }
++        return await cb(tx)
++      }),
++    }
++    service = createCharacterService(db)
++  })
++
++  it('findById should return a character with relations', async () => {
++    const mockChar = { id: '1', name: 'Test' }
++    db.query.character.findFirst.mockResolvedValue(mockChar)
++
++    const result = await service.findById('1')
++    expect(result).toEqual(mockChar)
++    expect(db.query.character.findFirst).toHaveBeenCalledWith(expect.objectContaining({
++      where: expect.any(Object),
++      with: {
++        capabilities: true,
++        avatarModels: true,
++        i18n: true,
++        prompts: true,
++      },
++    }))
++  })
++
++  it('findByOwnerId should return user characters', async () => {
++    const mockChars = [{ id: '1' }]
++    db.query.character.findMany.mockResolvedValue(mockChars)
++
++    const result = await service.findByOwnerId('user-1')
++    expect(result).toEqual(mockChars)
++    expect(db.query.character.findMany).toHaveBeenCalledWith(expect.objectContaining({
++      where: expect.any(Object),
++      with: { i18n: true },
++    }))
++  })
++
++  it('create should handle full character creation in transaction', async () => {
++    const characterData = { id: 'char-1', name: 'Test' } as any
++    const insertedChar = { id: 'char-1' }
++
++    db.transaction.mockImplementation(async (cb: any) => {
++      const tx = {
++        insert: vi.fn(() => ({
++          values: vi.fn(() => ({
++            returning: vi.fn().mockResolvedValue([insertedChar]),
++          })),
++        })),
++      }
++      return await cb(tx)
++    })
++
++    const result = await service.create({
++      character: characterData,
++      capabilities: [{ id: 'cap-1', type: 'llm', config: {} } as any],
++    })
++
++    expect(result).toEqual(insertedChar)
++    expect(db.transaction).toHaveBeenCalled()
++  })
++
++  it('create should handle all optional relations', async () => {
++    const characterData = { id: 'char-1' } as any
++    const insertedChar = { id: 'char-1' }
++
++    db.transaction.mockImplementation(async (cb: any) => {
++      const tx = {
++        insert: vi.fn(() => ({
++          values: vi.fn(() => ({
++            returning: vi.fn().mockResolvedValue([insertedChar]),
++          })),
++        })),
++      }
++      return await cb(tx)
++    })
++
++    await service.create({
++      character: characterData,
++      avatarModels: [{ id: 'am-1' } as any],
++      i18n: [{ id: 'i18n-1' } as any],
++      prompts: [{ id: 'p-1' } as any],
++    })
++
++    expect(db.transaction).toHaveBeenCalled()
++  })
++
++  it('update should update character and updatedAt', async () => {
++    const updateData = { version: '2.0' }
++    const mockReturning = [{ id: '1', ...updateData }]
++
++    // Setup nested mocks for update chain
++    const returningMock = vi.fn().mockResolvedValue(mockReturning)
++    const whereMock = vi.fn(() => ({ returning: returningMock }))
++    const setMock = vi.fn(() => ({ where: whereMock }))
++    db.update.mockReturnValue({ set: setMock })
++
++    const result = await service.update('1', updateData)
++    expect(result).toEqual(mockReturning)
++    expect(setMock).toHaveBeenCalledWith(expect.objectContaining({
++      ...updateData,
++      updatedAt: expect.any(Date),
++    }))
++  })
++
++  it('delete should remove character', async () => {
++    const mockReturning = [{ id: '1' }]
++    const returningMock = vi.fn().mockResolvedValue(mockReturning)
++    const whereMock = vi.fn(() => ({ returning: returningMock }))
++    db.delete.mockReturnValue({ where: whereMock })
++
++    const result = await service.delete('1')
++    expect(result).toEqual(mockReturning)
++    expect(db.delete).toHaveBeenCalledWith(schema.character)
++  })
++})
+diff --git a/apps/server/src/services/characters.ts b/apps/server/src/services/characters.ts
+index 2207c816..167b23d2 100644
+--- a/apps/server/src/services/characters.ts
++++ b/apps/server/src/services/characters.ts
+@@ -1,29 +1,38 @@
+ import type * as fullSchema from '../schemas'
+ import type { Database } from './db'
+
+-import { eq } from 'drizzle-orm'
++import { and, eq, isNull } from 'drizzle-orm'
+
+ import * as schema from '../schemas/characters'
+
+ export function createCharacterService(db: Database<typeof fullSchema>) {
+   return {
+-    async findById(id: string) {
++    async findById(id: string, options: { withRelations?: boolean } = { withRelations: true }) {
+       return await db.query.character.findFirst({
+-        where: eq(schema.character.id, id),
+-        with: {
+-          capabilities: true,
+-          avatarModels: true,
+-          i18n: true,
+-          prompts: true,
+-        },
++        where: and(
++          eq(schema.character.id, id),
++          isNull(schema.character.deletedAt),
++        ),
++        with: options.withRelations
++          ? {
++              capabilities: true,
++              avatarModels: true,
++              i18n: true,
++              prompts: true,
++            }
++          : undefined,
+       })
+     },
+
+     async findByOwnerId(ownerId: string) {
+       return await db.query.character.findMany({
+-        where: eq(schema.character.ownerId, ownerId),
++        where: and(
++          eq(schema.character.ownerId, ownerId),
++          isNull(schema.character.deletedAt),
++        ),
+         with: {
+           i18n: true,
++          capabilities: true,
+         },
+       })
+     },
+@@ -69,13 +78,20 @@ export function createCharacterService(db: Database<typeof fullSchema>) {
+     async update(id: string, data: Partial<schema.NewCharacter>) {
+       return await db.update(schema.character)
+         .set({ ...data, updatedAt: new Date() })
+-        .where(eq(schema.character.id, id))
++        .where(and(
++          eq(schema.character.id, id),
++          isNull(schema.character.deletedAt),
++        ))
+         .returning()
+     },
+
+     async delete(id: string) {
+-      return await db.delete(schema.character)
+-        .where(eq(schema.character.id, id))
++      return await db.update(schema.character)
++        .set({ deletedAt: new Date() })
++        .where(and(
++          eq(schema.character.id, id),
++          isNull(schema.character.deletedAt),
++        ))
+         .returning()
+     },
+   }
+diff --git a/apps/server/src/services/db.ts b/apps/server/src/services/db.ts
+index 66dba9f9..d46b6bc7 100644
+--- a/apps/server/src/services/db.ts
++++ b/apps/server/src/services/db.ts
+@@ -2,7 +2,7 @@ import postgres from 'postgres'
+
+ import { drizzle } from 'drizzle-orm/postgres-js'
+
+-export type Database<TSchema extends Record<string, unknown> = Record<string, unknown>> = ReturnType<typeof createDrizzle<TSchema>>
++export type Database<TSchema extends Record<string, unknown> = Record<string, never>> = ReturnType<typeof createDrizzle<TSchema>>
+
+ export function createDrizzle<TSchema extends Record<string, unknown>>(dsn: string, schema?: TSchema) {
+   return drizzle(postgres(dsn), { schema })
+diff --git a/apps/server/src/utils/id.ts b/apps/server/src/utils/id.ts
+new file mode 100644
+index 00000000..dad63186
+--- /dev/null
++++ b/apps/server/src/utils/id.ts
+@@ -0,0 +1,12 @@
++/**
++ * Simple nanoid implementation to avoid dependencies
++ */
++export function nanoid(size = 21): string {
++  const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz-'
++  let id = ''
++  const bytes = crypto.getRandomValues(new Uint8Array(size))
++  for (let i = 0; i < size; i++) {
++    id += alphabet[bytes[i] % alphabet.length]
++  }
++  return id
++}
+diff --git a/apps/stage-web/package.json b/apps/stage-web/package.json
+index 843863b1..1e8e22b6 100644
+--- a/apps/stage-web/package.json
++++ b/apps/stage-web/package.json
+@@ -63,6 +63,7 @@
+     "drizzle-kit": "^0.31.8",
+     "drizzle-orm": "^0.45.1",
+     "gpuu": "^1.0.6",
++    "hono": "catalog:",
+     "html2canvas": "^1.4.1",
+     "jszip": "^3.10.1",
+     "localforage": "^1.10.0",
+diff --git a/apps/stage-web/src/composables/api.ts b/apps/stage-web/src/composables/api.ts
+index 6be12202..3591e22b 100644
+--- a/apps/stage-web/src/composables/api.ts
++++ b/apps/stage-web/src/composables/api.ts
+@@ -1,16 +1,21 @@
+-import { ofetch } from 'ofetch'
++import type { AppType } from '../../../server/src/app'
++
++import { hc } from 'hono/client'
+
+ import { useAuthStore } from '../stores/auth'
+ import { API_SERVER_URL } from './auth'
+
+-export function doRequest(url: string, options: RequestInit = {}) {
+-  const authStore = useAuthStore()
+-  return ofetch(url, {
+-    baseURL: API_SERVER_URL,
+-    ...options,
+-    headers: {
+-      ...options.headers,
+-      Authorization: `Bearer ${authStore.authToken}`,
+-    },
+-  })
+-}
++export const client = hc<AppType>(API_SERVER_URL, {
++  fetch: (input: RequestInfo | URL, init?: RequestInit) => {
++    const authStore = useAuthStore()
++    const headers = new Headers(init?.headers)
++    if (authStore.authToken) {
++      headers.set('Authorization', `Bearer ${authStore.authToken}`)
++    }
++    return fetch(input, {
++      ...init,
++      headers,
++      credentials: 'include', // Send cookies with request (for sessions, etc)
++    })
++  },
++})
+diff --git a/apps/stage-web/src/pages/settings/characters/components/CharacterCreate.vue b/apps/stage-web/src/pages/settings/characters/components/CharacterCreate.vue
+new file mode 100644
+index 00000000..8d3fc275
+--- /dev/null
++++ b/apps/stage-web/src/pages/settings/characters/components/CharacterCreate.vue
+@@ -0,0 +1,22 @@
++<script setup lang="ts">
++import { useI18n } from 'vue-i18n'
++
++const { t } = useI18n()
++</script>
++
++<template>
++  <div
++    relative
++    class="min-h-[120px] flex flex-col cursor-pointer items-center justify-center border-neutral-200 rounded-xl bg-white/60 p-6 dark:border-neutral-700 hover:border-primary-300 dark:bg-black/30 hover:bg-white/80 dark:hover:border-primary-700 dark:hover:bg-black/40"
++    border="solid 2"
++    transition="all duration-300"
++    cursor-pointer opacity-95
++    hover="scale-100 opacity-100 shadow-md dark:shadow-lg"
++  >
++    <div i-solar:add-square-line-duotone mb-4 text-5xl text="neutral-400 dark:neutral-500" />
++    <p font-medium text="neutral-600 dark:neutral-300">
++      Create New Character
++    </p>
++  </div>
++</template>
++
+diff --git a/apps/stage-web/src/pages/settings/characters/components/CharacterDialog.vue b/apps/stage-web/src/pages/settings/characters/components/CharacterDialog.vue
+new file mode 100644
+index 00000000..cf620605
+--- /dev/null
++++ b/apps/stage-web/src/pages/settings/characters/components/CharacterDialog.vue
+@@ -0,0 +1,294 @@
++<script setup lang="ts">
++import type { Character, CreateCharacterPayload } from '../../../../types/character'
++
++import { Button, FieldInput } from '@proj-airi/ui'
++import {
++  DialogContent,
++  DialogOverlay,
++  DialogPortal,
++  DialogRoot,
++  DialogTitle,
++} from 'reka-ui'
++import { safeParse } from 'valibot'
++import { computed, reactive, ref, watch } from 'vue'
++
++import { useCharacterStore } from '../../../../stores/characters'
++import { CreateCharacterSchema } from '../../../../types/character'
++
++interface Props {
++  modelValue: boolean
++  character?: Character
++}
++
++const props = defineProps<Props>()
++const emit = defineEmits<{
++  (e: 'update:modelValue', value: boolean): void
++  (e: 'submit'): void
++}>()
++
++const characterStore = useCharacterStore()
++
++// Form State
++const form = reactive({
++  characterId: '',
++  version: '1.0.0',
++  coverUrl: '',
++  name: '',
++  description: '',
++
++  // Capability: LLM
++  llmModel: '',
++  llmTemperature: 0.7,
++
++  // Capability: TTS
++  ttsVoiceId: '',
++  ttsSpeed: 1.0,
++})
++
++// Initialize form when character prop changes or dialog opens
++watch(() => props.character, (char) => {
++  if (char) {
++    const i18n = char.i18n?.find(i => i.language === 'en') || char.i18n?.[0]
++    const llm = char.capabilities?.find(c => c.type === 'llm')
++    const tts = char.capabilities?.find(c => c.type === 'tts')
++
++    form.characterId = char.characterId
++    form.version = char.version
++    form.coverUrl = char.coverUrl
++    form.name = i18n?.name || ''
++    form.description = i18n?.description || ''
++
++    form.llmModel = llm?.config.llm?.model || ''
++    form.llmTemperature = llm?.config.llm?.temperature || 0.7
++
++    form.ttsVoiceId = tts?.config.tts?.voiceId || ''
++    form.ttsSpeed = tts?.config.tts?.speed || 1.0
++  }
++  else {
++    // Reset defaults
++    form.characterId = ''
++    form.version = '1.0.0'
++    form.coverUrl = ''
++    form.name = ''
++    form.description = ''
++    form.llmModel = 'gpt-4o-mini'
++    form.llmTemperature = 0.7
++    form.ttsVoiceId = ''
++    form.ttsSpeed = 1.0
++  }
++}, { immediate: true })
++
++const errors = ref<Record<string, string>>({})
++const isSubmitting = ref(false)
++
++async function handleSubmit() {
++  errors.value = {}
++  isSubmitting.value = true
++
++  // Construct Payload
++  const payload: CreateCharacterPayload = {
++    character: {
++      characterId: form.characterId,
++      version: form.version,
++      coverUrl: form.coverUrl,
++    },
++    i18n: [{
++      language: 'en',
++      name: form.name,
++      description: form.description,
++      tags: [],
++    }],
++    capabilities: [
++      {
++        type: 'llm',
++        config: {
++          apiKey: '', // TODO: Handle secrets
++          apiBaseUrl: '',
++          llm: {
++            model: form.llmModel,
++            temperature: form.llmTemperature,
++          },
++        },
++      },
++      {
++        type: 'tts',
++        config: {
++          apiKey: '',
++          apiBaseUrl: '',
++          tts: {
++            voiceId: form.ttsVoiceId,
++            speed: form.ttsSpeed,
++            ssml: '',
++            pitch: 1.0,
++          },
++        },
++      },
++    ],
++    avatarModels: [], // TODO: Add avatar model support
++    prompts: [], // TODO: Add prompt support
++  }
++
++  // Validate
++  const result = safeParse(CreateCharacterSchema, payload)
++  if (!result.success) {
++    // Simple error mapping
++    result.issues.forEach((issue) => {
++      const path = issue.path?.map(p => p.key).join('.') || 'global'
++      errors.value[path] = issue.message
++    })
++    isSubmitting.value = false
++    return
++  }
++
++  try {
++    if (props.character) {
++      // TODO: Implement update logic (requires diffing or full replacement strategy on backend)
++      // For now, we only support Create in this dialog fully or partial updates if we map correctly.
++      // Since UpdateCharacterSchema is partial, we'd need a separate flow.
++      // The current store.update takes UpdateCharacterPayload which is limited.
++      // Let's assume Create for now or minimal Update.
++      // Actually, let's just use create for new and warn for edit.
++      await characterStore.update(props.character.id, {
++        characterId: form.characterId,
++        version: form.version,
++        coverUrl: form.coverUrl,
++      })
++      // Capabilities/I18n update not supported in simple UpdateCharacterSchema yet?
++      // Checking types/character.ts: UpdateCharacterSchema only has version, coverUrl, characterId.
++      // So deep update is not supported by the simple endpoint yet?
++      // The plan said "update(id, payload)".
++      // The backend `update` endpoint only updates the `character` table fields.
++      // To update relations, we'd need specific endpoints or a smarter update endpoint.
++      // I will only update basic info for now.
++    }
++    else {
++      await characterStore.create(payload)
++    }
++    emit('submit')
++    emit('update:modelValue', false)
++  }
++  catch (err) {
++    console.error(err)
++    // Handle API errors
++  }
++  finally {
++    isSubmitting.value = false
++  }
++}
++
++// Tab State
++const activeTab = ref('identity')
++const tabs = [
++  { id: 'identity', label: 'Identity', icon: 'i-solar:user-id-bold-duotone' },
++  { id: 'capabilities', label: 'Capabilities', icon: 'i-solar:cpu-bolt-bold-duotone' },
++  // { id: 'models', label: 'Models', icon: 'i-solar:box-minimalistic-bold-duotone' },
++]
++
++const isOpen = computed({
++  get: () => props.modelValue,
++  set: val => emit('update:modelValue', val),
++})
++</script>
++
++<template>
++  <DialogRoot v-model:open="isOpen">
++    <DialogPortal>
++      <DialogOverlay class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" />
++      <DialogContent class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] fixed left-1/2 top-1/2 z-50 max-h-85vh max-w-2xl w-full overflow-hidden rounded-2xl bg-white p-0 shadow-xl -translate-x-1/2 -translate-y-1/2 dark:bg-neutral-900">
++        <div class="h-full flex flex-col">
++          <!-- Header -->
++          <div class="flex items-center justify-between border-b border-neutral-100 p-4 dark:border-neutral-800">
++            <DialogTitle class="text-lg font-semibold">
++              {{ character ? 'Edit Character' : 'Create Character' }}
++            </DialogTitle>
++            <button class="rounded-full p-1 text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800" @click="isOpen = false">
++              <div i-solar:close-circle-bold class="text-xl" />
++            </button>
++          </div>
++
++          <!-- Body -->
++          <div class="flex flex-1 overflow-hidden">
++            <!-- Sidebar / Tabs -->
++            <div class="w-48 bg-neutral-50 p-2 dark:bg-neutral-900/50">
++              <button
++                v-for="tab in tabs"
++                :key="tab.id"
++                class="mb-1 w-full flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
++                :class="activeTab === tab.id ? 'bg-white text-primary-600 shadow-sm dark:bg-neutral-800 dark:text-primary-400' : 'text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800'"
++                @click="activeTab = tab.id"
++              >
++                <div :class="tab.icon" />
++                {{ tab.label }}
++              </button>
++            </div>
++
++            <!-- Content -->
++            <div class="flex-1 overflow-y-auto p-6">
++              <!-- Identity Tab -->
++              <div v-show="activeTab === 'identity'" class="space-y-4">
++                <div class="grid grid-cols-2 gap-4">
++                  <FieldInput v-model="form.characterId" label="Handle ID" placeholder="e.g. airi-core" required />
++                  <FieldInput v-model="form.version" label="Version" placeholder="1.0.0" />
++                </div>
++
++                <FieldInput v-model="form.name" label="Name (EN)" placeholder="Character Name" required />
++                <FieldInput v-model="form.description" label="Description" type="textarea" placeholder="Short description..." />
++                <FieldInput v-model="form.coverUrl" label="Cover URL" placeholder="https://..." />
++              </div>
++
++              <!-- Capabilities Tab -->
++              <div v-show="activeTab === 'capabilities'" class="space-y-6">
++                <div class="space-y-4">
++                  <h3 class="text-sm text-neutral-900 font-semibold dark:text-neutral-100">
++                    LLM Configuration
++                  </h3>
++                  <FieldInput v-model="form.llmModel" label="Model" placeholder="gpt-4o" />
++                  <!-- Use number input for temperature properly -->
++                  <div class="flex flex-col gap-1.5">
++                    <label class="text-sm text-neutral-700 font-medium dark:text-neutral-300">Temperature</label>
++                    <input
++                      v-model.number="form.llmTemperature"
++                      type="number"
++                      step="0.1"
++                      min="0"
++                      max="2"
++                      class="w-full border border-neutral-200 rounded-lg bg-white px-3 py-2 text-sm outline-none dark:border-neutral-700 focus:border-primary-500 dark:bg-neutral-800 focus:ring-2 focus:ring-primary-500/20"
++                    >
++                  </div>
++                </div>
++
++                <div class="space-y-4">
++                  <h3 class="text-sm text-neutral-900 font-semibold dark:text-neutral-100">
++                    TTS Configuration
++                  </h3>
++                  <FieldInput v-model="form.ttsVoiceId" label="Voice ID" placeholder="Voice ID" />
++                  <div class="flex flex-col gap-1.5">
++                    <label class="text-sm text-neutral-700 font-medium dark:text-neutral-300">Speed</label>
++                    <input
++                      v-model.number="form.ttsSpeed"
++                      type="number"
++                      step="0.1"
++                      min="0.5"
++                      max="2"
++                      class="w-full border border-neutral-200 rounded-lg bg-white px-3 py-2 text-sm outline-none dark:border-neutral-700 focus:border-primary-500 dark:bg-neutral-800 focus:ring-2 focus:ring-primary-500/20"
++                    >
++                  </div>
++                </div>
++              </div>
++            </div>
++          </div>
++
++          <!-- Footer -->
++          <div class="flex items-center justify-end gap-2 border-t border-neutral-100 p-4 dark:border-neutral-800">
++            <Button variant="ghost" @click="isOpen = false">
++              Cancel
++            </Button>
++            <Button :loading="isSubmitting" @click="handleSubmit">
++              {{ character ? 'Save Changes' : 'Create' }}
++            </Button>
++          </div>
++        </div>
++      </DialogContent>
++    </DialogPortal>
++  </DialogRoot>
++</template>
+diff --git a/apps/stage-web/src/pages/settings/characters/components/CharacterItem.vue b/apps/stage-web/src/pages/settings/characters/components/CharacterItem.vue
+new file mode 100644
+index 00000000..8d45805c
+--- /dev/null
++++ b/apps/stage-web/src/pages/settings/characters/components/CharacterItem.vue
+@@ -0,0 +1,114 @@
++<script setup lang="ts">
++import type { Character } from '../../../../types/character'
++
++import { CursorFloating } from '@proj-airi/stage-ui/components'
++import { computed } from 'vue'
++
++interface Props {
++  character: Character
++  isActive: boolean
++  isSelected: boolean
++}
++
++const props = defineProps<Props>()
++const emit = defineEmits<{
++  (e: 'select'): void
++  (e: 'activate'): void
++  (e: 'delete'): void
++}>()
++
++const i18n = computed(() => {
++  // TODO: Use current locale
++  if (!props.character.i18n?.length)
++    return undefined
++  return props.character.i18n.find(i => i.language === 'en') || props.character.i18n[0]
++})
++
++const name = computed(() => i18n.value?.name || 'Unknown')
++const description = computed(() => i18n.value?.description || '')
++
++const consciousnessModel = computed(() => {
++  if (!props.character.capabilities)
++    return '-'
++  const cap = props.character.capabilities.find(c => c.type === 'llm')
++  return cap?.config.llm?.model || '-'
++})
++
++const voiceModel = computed(() => {
++  if (!props.character.capabilities)
++    return '-'
++  const cap = props.character.capabilities.find(c => c.type === 'tts')
++  return cap?.config.tts?.voiceId || '-'
++})
++</script>
++
++<template>
++  <CursorFloating
++    class="before:mask-image-[linear-gradient(120deg,white_100%)] before:bg-linear-to-r hover:before:bg-linear-to-r relative min-h-120px flex flex-col cursor-pointer overflow-hidden rounded-xl bg-neutral-200/50 drop-shadow-none transition-all duration-400 ease-in-out before:absolute before:inset-0 before:z-0 before:h-full before:w-25% dark:bg-neutral-800/50 before:from-primary-500/0 before:to-primary-500/0 before:opacity-0 active:drop-shadow-[0px_0px_0px_rgba(220,220,220,0.25)] hover:drop-shadow-[0px_4px_4px_rgba(220,220,220,0.4)] before:transition-all before:duration-400 before:ease-in-out before:content-empty dark:before:from-primary-400/0 hover:before:from-primary-500/20 hover:before:via-primary-500/10 dark:before:to-primary-400/0 hover:before:to-transparent hover:before:opacity-100 dark:hover:drop-shadow-none dark:hover:before:from-primary-400/20 dark:hover:before:via-primary-400/10 dark:hover:before:to-transparent"
++    :class="[
++      isSelected
++        ? 'border-2 border-primary-400 dark:border-primary-600'
++        : 'border-2 border-neutral-100 dark:border-neutral-800/25',
++    ]"
++    @click="emit('select')"
++  >
++    <!-- Card content -->
++    <div
++      class="after:bg-size-10px after:mask-image-[linear-gradient(165deg,white_30%,transparent_50%)] relative flex flex-1 flex-col justify-between gap-3 overflow-hidden rounded-lg bg-white p-5 text-primary-600/80 transition-all duration-400 ease-in-out after:absolute after:inset-0 after:z--2 after:h-full after:w-full dark:bg-neutral-900 dark:text-primary-300/80 after:transition-all after:duration-400 after:ease-in-out after:content-empty after:bg-dotted-[neutral-200/80] dark:after:bg-dotted-[primary-200/20] hover:after:bg-dotted-[primary-300/50]"
++    >
++      <!-- Card header (name and badge) -->
++      <div class="z-1 flex items-start justify-between gap-2">
++        <h3 class="flex-1 truncate text-lg font-normal">
++          {{ name }}
++        </h3>
++        <div v-if="isActive" class="shrink-0 rounded-md bg-primary-100 p-1 text-primary-600 dark:bg-primary-900/40 dark:text-primary-400">
++          <div class="i-solar:check-circle-bold-duotone text-sm" />
++        </div>
++      </div>
++
++      <!-- Card description -->
++      <p v-if="description" class="line-clamp-3 min-h-40px flex-1 text-sm text-neutral-500 dark:text-neutral-400">
++        {{ description }}
++      </p>
++
++      <!-- Card stats -->
++      <div class="z-1 flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
++        <div>v{{ character.version }}</div>
++        <div class="flex items-center gap-1.5">
++          <div class="flex items-center gap-0.5">
++            <div class="i-lucide:ghost text-xs" />
++            <span>{{ consciousnessModel }}</span>
++          </div>
++          <div class="flex items-center gap-0.5">
++            <div class="i-lucide:mic text-xs" />
++            <span>{{ voiceModel }}</span>
++          </div>
++        </div>
++      </div>
++    </div>
++
++    <!-- Card actions -->
++    <div class="flex items-center justify-end px-2 py-1.5">
++      <button
++        class="rounded-lg p-1.5 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-700/50"
++        :disabled="isActive"
++        @click.stop="emit('activate')"
++      >
++        <div
++          :class="[
++            isActive
++              ? 'i-solar:check-circle-bold-duotone text-primary-500 dark:text-primary-400'
++              : 'i-solar:play-circle-broken text-neutral-500 dark:text-neutral-400',
++          ]"
++        />
++      </button>
++
++      <button
++        class="rounded-lg p-1.5 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-700/50"
++        @click.stop="emit('delete')"
++      >
++        <div class="i-solar:trash-bin-trash-linear text-neutral-500 dark:text-neutral-400" />
++      </button>
++    </div>
++  </CursorFloating>
++</template>
+diff --git a/apps/stage-web/src/pages/settings/characters/index.vue b/apps/stage-web/src/pages/settings/characters/index.vue
+new file mode 100644
+index 00000000..4aad84f8
+--- /dev/null
++++ b/apps/stage-web/src/pages/settings/characters/index.vue
+@@ -0,0 +1,134 @@
++<script setup lang="ts">
++import type { Character } from '../../../types/character'
++
++import { Button, FieldInput } from '@proj-airi/ui'
++import { storeToRefs } from 'pinia'
++import { computed, onMounted, ref } from 'vue'
++import { useI18n } from 'vue-i18n'
++
++import CharacterDialog from './components/CharacterDialog.vue'
++import CharacterItem from './components/CharacterItem.vue'
++
++import { useCharacterStore } from '../../../stores/characters'
++
++const { t } = useI18n()
++const characterStore = useCharacterStore()
++const { characters, isLoading } = storeToRefs(characterStore)
++
++// Fetch on mount
++onMounted(() => {
++  characterStore.fetchList().catch(console.error)
++})
++
++// Search
++const searchQuery = ref('')
++const filteredCharacters = computed(() => {
++  const query = searchQuery.value.toLowerCase()
++  return Array.from(characters.value.values()).filter((char) => {
++    const i18n = char.i18n.find(i => i.language === 'en') || char.i18n[0]
++    return i18n?.name.toLowerCase().includes(query) || i18n?.description.toLowerCase().includes(query)
++  })
++})
++
++// Selection / Dialog
++const isDialogOpen = ref(false)
++const selectedCharacter = ref<Character | undefined>(undefined)
++
++function handleCreate() {
++  selectedCharacter.value = undefined
++  isDialogOpen.value = true
++}
++
++function handleEdit(char: Character) {
++  selectedCharacter.value = char
++  isDialogOpen.value = true
++}
++
++function handleDelete(id: string) {
++  if (confirm('Are you sure you want to delete this character?')) {
++    characterStore.remove(id).catch(console.error)
++  }
++}
++
++function handleActivate(char: Character) {
++  // TODO: Implement activation logic (global store for active character)
++  console.log('Activate', char.id)
++}
++</script>
++
++<template>
++  <div class="h-full flex flex-col gap-4 p-4 md:p-6">
++    <!-- Header -->
++    <div class="flex items-center justify-between">
++      <div>
++        <h1 class="text-2xl text-neutral-900 font-bold dark:text-neutral-100">
++          Characters
++        </h1>
++        <p class="mt-1 text-neutral-500 dark:text-neutral-400">
++          Manage your AI characters and their capabilities.
++        </p>
++      </div>
++
++      <div class="flex items-center gap-2">
++        <FieldInput
++          v-model="searchQuery"
++          placeholder="Search..."
++          class="w-64"
++        >
++          <template #prefix>
++            <div class="i-solar:magnifer-linear text-neutral-400" />
++          </template>
++        </FieldInput>
++        <Button @click="handleCreate">
++          <div class="i-solar:add-circle-bold mr-2" />
++          Create New
++        </Button>
++      </div>
++    </div>
++
++    <!-- Content -->
++    <div v-if="isLoading && characters.size === 0" class="flex flex-1 items-center justify-center">
++      <div class="i-svg-spinners:90-ring-with-bg text-4xl text-primary-500" />
++    </div>
++
++    <div
++      v-else
++      class="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 pb-20 lg:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(220px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))] sm:gap-5"
++    >
++      <!-- Create Card (Visual) -->
++      <button
++        class="group relative min-h-120px flex flex-col cursor-pointer items-center justify-center gap-3 overflow-hidden border-2 border-neutral-200 rounded-xl border-dashed bg-neutral-50/50 p-6 transition-all duration-300 dark:border-neutral-800 hover:border-primary-400 dark:bg-neutral-900/20 hover:bg-primary-50/30 dark:hover:border-primary-600 dark:hover:bg-primary-900/10"
++        @click="handleCreate"
++      >
++        <div class="i-solar:add-circle-linear text-5xl text-neutral-300 transition-colors dark:text-neutral-700 group-hover:text-primary-400 dark:group-hover:text-primary-500" />
++        <span class="text-neutral-500 font-medium transition-colors dark:text-neutral-500 group-hover:text-primary-600 dark:group-hover:text-primary-400">
++          Create Character
++        </span>
++      </button>
++
++      <!-- Items -->
++      <CharacterItem
++        v-for="char in filteredCharacters"
++        :key="char.id"
++        :character="char"
++        :is-active="false"
++        :is-selected="selectedCharacter?.id === char.id"
++        @select="handleEdit(char)"
++        @activate="handleActivate(char)"
++        @delete="handleDelete(char.id)"
++      />
++    </div>
++
++    <CharacterDialog
++      v-model="isDialogOpen"
++      :character="selectedCharacter"
++      @submit="characterStore.fetchList()"
++    />
++  </div>
++</template>
++
++<route lang="yaml">
++meta:
++  layout: settings
++  title: Characters
++</route>
+diff --git a/apps/stage-web/src/stores/characters.ts b/apps/stage-web/src/stores/characters.ts
+new file mode 100644
+index 00000000..0037d7a1
+--- /dev/null
++++ b/apps/stage-web/src/stores/characters.ts
+@@ -0,0 +1,147 @@
++import type { Character, CreateCharacterPayload, UpdateCharacterPayload } from '../types/character'
++
++import { defineStore } from 'pinia'
++import { ref } from 'vue'
++
++import { client } from '../composables/api'
++
++export const useCharacterStore = defineStore('characters', () => {
++  const characters = ref<Map<string, Character>>(new Map())
++  const isLoading = ref(false)
++  const error = ref<unknown>(null)
++
++  async function fetchList() {
++    isLoading.value = true
++    error.value = null
++    try {
++      const res = await client.api.characters.$get()
++      if (!res.ok) {
++        throw new Error('Failed to fetch characters')
++      }
++      const data = await res.json()
++
++      characters.value.clear()
++      for (const char of data) {
++        characters.value.set(char.id, char as Character)
++      }
++    }
++    catch (err) {
++      error.value = err
++      throw err
++    }
++    finally {
++      isLoading.value = false
++    }
++  }
++
++  async function fetchById(id: string) {
++    isLoading.value = true
++    error.value = null
++    try {
++      const res = await client.api.characters[':id'].$get({
++        param: { id },
++      })
++      if (!res.ok) {
++        throw new Error('Failed to fetch character')
++      }
++      const data = await res.json()
++
++      characters.value.set(data.id, data as Character)
++      return data
++    }
++    catch (err) {
++      error.value = err
++      throw err
++    }
++    finally {
++      isLoading.value = false
++    }
++  }
++
++  async function create(payload: CreateCharacterPayload) {
++    isLoading.value = true
++    error.value = null
++    try {
++      const res = await client.api.characters.$post({
++        json: payload,
++      })
++      if (!res.ok) {
++        throw new Error('Failed to create character')
++      }
++      const data = await res.json()
++
++      characters.value.set(data.id, data as Character)
++      return data
++    }
++    catch (err) {
++      error.value = err
++      throw err
++    }
++    finally {
++      isLoading.value = false
++    }
++  }
++
++  async function update(id: string, payload: UpdateCharacterPayload) {
++    isLoading.value = true
++    error.value = null
++    try {
++      const res = await client.api.characters[':id'].$patch({
++        param: { id },
++        json: payload,
++      })
++      if (!res.ok) {
++        throw new Error('Failed to update character')
++      }
++      const data = await res.json()
++
++      characters.value.set(data.id, data as Character)
++      return data
++    }
++    catch (err) {
++      error.value = err
++      throw err
++    }
++    finally {
++      isLoading.value = false
++    }
++  }
++
++  async function remove(id: string) {
++    isLoading.value = true
++    error.value = null
++    try {
++      const res = await client.api.characters[':id'].$delete({
++        param: { id },
++      })
++      if (!res.ok) {
++        throw new Error('Failed to delete character')
++      }
++
++      characters.value.delete(id)
++    }
++    catch (err) {
++      error.value = err
++      throw err
++    }
++    finally {
++      isLoading.value = false
++    }
++  }
++
++  function getCharacter(id: string) {
++    return characters.value.get(id)
++  }
++
++  return {
++    characters,
++    isLoading,
++    error,
++    fetchList,
++    fetchById,
++    create,
++    update,
++    remove,
++    getCharacter,
++  }
++})
+diff --git a/apps/stage-web/src/types/character.ts b/apps/stage-web/src/types/character.ts
+new file mode 100644
+index 00000000..9335df74
+--- /dev/null
++++ b/apps/stage-web/src/types/character.ts
+@@ -0,0 +1,168 @@
++import type { InferOutput } from 'valibot'
++
++import { array, date, literal, number, object, optional, pipe, string, transform, union } from 'valibot'
++
++// --- Enums & Configs ---
++
++export const AvatarModelConfigSchema = object({
++  vrm: optional(object({
++    urls: array(string()),
++  })),
++  live2d: optional(object({
++    urls: array(string()),
++  })),
++})
++
++export const CharacterCapabilityConfigSchema = object({
++  apiKey: string(),
++  apiBaseUrl: string(),
++  llm: optional(object({
++    temperature: number(),
++    model: string(),
++  })),
++  tts: optional(object({
++    ssml: string(),
++    voiceId: string(),
++    speed: number(),
++    pitch: number(),
++  })),
++  vlm: optional(object({
++    image: string(),
++  })),
++  asr: optional(object({
++    audio: string(),
++  })),
++})
++
++const CharacterCapabilityTypeSchema = union([
++  literal('llm'),
++  literal('tts'),
++  literal('vlm'),
++  literal('asr'),
++])
++
++const AvatarModelTypeSchema = union([
++  literal('vrm'),
++  literal('live2d'),
++])
++
++const PromptTypeSchema = union([
++  literal('system'),
++  literal('personality'),
++  literal('greetings'),
++])
++
++const DateSchema = pipe(
++  union([string(), date()]),
++  transform(v => new Date(v)),
++)
++
++// --- Base Entities (mimicking database tables) ---
++
++export const CharacterBaseSchema = object({
++  id: string(),
++  version: string(),
++  coverUrl: string(),
++  creatorId: string(),
++  ownerId: string(),
++  characterId: string(),
++  createdAt: DateSchema,
++  updatedAt: DateSchema,
++})
++
++export const CharacterCapabilitySchema = object({
++  id: string(),
++  characterId: string(),
++  type: CharacterCapabilityTypeSchema,
++  config: CharacterCapabilityConfigSchema,
++})
++
++export const AvatarModelSchema = object({
++  id: string(),
++  characterId: string(),
++  name: string(),
++  type: AvatarModelTypeSchema,
++  description: string(),
++  config: AvatarModelConfigSchema,
++  createdAt: DateSchema,
++  updatedAt: DateSchema,
++})
++
++export const CharacterI18nSchema = object({
++  id: string(),
++  characterId: string(),
++  language: string(),
++  name: string(),
++  description: string(),
++  tags: array(string()),
++  createdAt: DateSchema,
++  updatedAt: DateSchema,
++})
++
++export const CharacterPromptSchema = object({
++  id: string(),
++  characterId: string(),
++  language: string(),
++  type: PromptTypeSchema,
++  content: string(),
++})
++
++// --- Aggregated Character (with relations) ---
++
++export const CharacterWithRelationsSchema = object({
++  ...CharacterBaseSchema.entries,
++  capabilities: array(CharacterCapabilitySchema),
++  avatarModels: array(AvatarModelSchema),
++  i18n: array(CharacterI18nSchema),
++  prompts: array(CharacterPromptSchema),
++})
++
++// --- API Request Schemas ---
++
++export const CreateCharacterSchema = object({
++  character: object({
++    version: string(),
++    coverUrl: string(),
++    characterId: string(),
++    // creatorId & ownerId are handled by server
++  }),
++  capabilities: optional(array(object({
++    type: CharacterCapabilityTypeSchema,
++    config: CharacterCapabilityConfigSchema,
++  }))),
++  avatarModels: optional(array(object({
++    name: string(),
++    type: AvatarModelTypeSchema,
++    description: string(),
++    config: AvatarModelConfigSchema,
++  }))),
++  i18n: optional(array(object({
++    language: string(),
++    name: string(),
++    description: string(),
++    tags: array(string()),
++  }))),
++  prompts: optional(array(object({
++    language: string(),
++    type: PromptTypeSchema,
++    content: string(),
++  }))),
++})
++
++export const UpdateCharacterSchema = object({
++  version: optional(string()),
++  coverUrl: optional(string()),
++  characterId: optional(string()),
++})
++
++// --- Type Exports ---
++
++export type Character = InferOutput<typeof CharacterWithRelationsSchema>
++export type CharacterBase = InferOutput<typeof CharacterBaseSchema>
++export type CharacterCapability = InferOutput<typeof CharacterCapabilitySchema>
++export type AvatarModel = InferOutput<typeof AvatarModelSchema>
++export type CharacterI18n = InferOutput<typeof CharacterI18nSchema>
++export type CharacterPrompt = InferOutput<typeof CharacterPromptSchema>
++
++export type CreateCharacterPayload = InferOutput<typeof CreateCharacterSchema>
++export type UpdateCharacterPayload = InferOutput<typeof UpdateCharacterSchema>
+diff --git a/packages/stage-layouts/src/layouts/settings.vue b/packages/stage-layouts/src/layouts/settings.vue
+index c4d693e8..d406f221 100644
+--- a/packages/stage-layouts/src/layouts/settings.vue
++++ b/packages/stage-layouts/src/layouts/settings.vue
+@@ -23,6 +23,10 @@ const routeHeaderMetadataMap = computed(() => {
+       subtitle: t('settings.title'),
+       title: t('settings.pages.card.title'),
+     },
++    '/settings/characters': {
++      subtitle: t('settings.title'),
++      title: 'Characters',
++    },
+     '/settings/system': {
+       subtitle: t('settings.title'),
+       title: t('settings.pages.system.title'),
+diff --git a/packages/ui/src/components/Form/Field/FieldInput.vue b/packages/ui/src/components/Form/Field/FieldInput.vue
+index edf95736..bd03a579 100644
+--- a/packages/ui/src/components/Form/Field/FieldInput.vue
++++ b/packages/ui/src/components/Form/Field/FieldInput.vue
+@@ -24,7 +24,7 @@ const modelValue = defineModel<string>({ required: false })
+           <slot name="label">
+             {{ props.label }}
+           </slot>
+-          <span v-if="props.required !== false" class="text-red-500">*</span>
++          <span v-if="props.required" class="text-red-500">*</span>
+         </div>
+         <div class="text-xs text-neutral-500 dark:text-neutral-400" text-wrap>
+           <slot name="description">
+diff --git a/packages/ui/src/components/Misc/Button.vue b/packages/ui/src/components/Misc/Button.vue
+index b2c0947a..ff4580c7 100644
+--- a/packages/ui/src/components/Misc/Button.vue
++++ b/packages/ui/src/components/Misc/Button.vue
+@@ -3,7 +3,7 @@ import { BidirectionalTransition } from '@proj-airi/ui'
+ import { computed } from 'vue'
+
+ // Define button variants for better type safety and maintainability
+-type ButtonVariant = 'primary' | 'secondary' | 'secondary-muted' | 'danger' | 'caution' | 'ghost'
++type ButtonVariant = 'primary' | 'secondary' | 'secondary-muted' | 'danger' | 'caution' | 'pure' | 'ghost'
+
+ type ButtonTheme = 'default'
+
+@@ -112,6 +112,11 @@ const variantClasses: Record<ButtonVariant, Record<ButtonTheme, {
+       ],
+     },
+   },
++  'ghost': {
++    default: {
++      default: 'bg-transparent hover:bg-neutral-100/50 dark:hover:bg-neutral-800/50 text-neutral-500 dark:text-neutral-400 focus:ring-neutral-300/30 dark:focus:ring-neutral-600/30',
++    },
++  },
+ }
+
+ // Extract size styles for better organization
+@@ -122,18 +127,23 @@ const sizeClasses: Record<ButtonSize, string> = {
+ }
+
+ // Base classes that are always applied
+-const baseClasses = computed(() => [
+-  'font-medium outline-none',
+-  'transition-all duration-200 ease-in-out',
+-  'disabled:cursor-not-allowed disabled:opacity-50',
+-  props.block ? 'w-full' : '',
+-  sizeClasses[props.size],
+-  ...variantClasses[props.variant][props.theme].default,
+-  props.toggled
+-    ? variantClasses[props.variant][props.theme].toggled || ''
+-    : variantClasses[props.variant][props.theme].nonToggled || '',
+-  isDisabled.value ? 'opacity-50 cursor-not-allowed' : '',
+-])
++const baseClasses = computed(() => {
++  const variant = variantClasses[props.variant] || variantClasses.primary
++  const theme = variant[props.theme] || variant.default
++
++  return [
++    'rounded-lg font-medium outline-none',
++    'transition-all duration-200 ease-in-out',
++    'disabled:cursor-not-allowed disabled:opacity-50',
++    'backdrop-blur-md',
++    props.block ? 'w-full' : '',
++    sizeClasses[props.size],
++    theme.default,
++    props.toggled ? theme.toggled || '' : theme.nonToggled || '',
++    { 'opacity-50 cursor-not-allowed': isDisabled.value },
++    'focus:ring-2',
++  ]
++})
+ </script>
+
+ <template>
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index 4176c530..c2b54545 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -90,6 +90,9 @@ catalogs:
+     es-toolkit:
+       specifier: ^1.43.0
+       version: 1.43.0
++    hono:
++      specifier: ^4.10.8
++      version: 4.11.3
+     injeca:
+       specifier: ^0.1.5
+       version: 0.1.5
+@@ -134,7 +137,7 @@ catalogs:
+       version: 4.2.1
+   rolldown-vite:
+     vite:
+-      specifier: npm:rolldown-vite@^7.3.0
++      specifier: npm:rolldown-vite@^7.2.11
+       version: 7.3.0
+   vitest:
+     '@vitest/browser-playwright':
+@@ -1317,6 +1320,9 @@ importers:
+       gpuu:
+         specifier: ^1.0.6
+         version: 1.0.6
++      hono:
++        specifier: 'catalog:'
++        version: 4.11.3
+       html2canvas:
+         specifier: ^1.4.1
+         version: 1.4.1
+diff --git a/pnpm-workspace.yaml b/pnpm-workspace.yaml
+index 9ee6ccc8..c7d91edd 100644
+--- a/pnpm-workspace.yaml
++++ b/pnpm-workspace.yaml
+@@ -41,6 +41,7 @@ catalog:
+   drizzle-valibot: ^0.4.2
+   embla-carousel-vue: ^8.6.0
+   es-toolkit: ^1.43.0
++  hono: ^4.10.8
+   injeca: ^0.1.5
+   is-network-error: ^1.3.0
+   nano-staged: ^0.9.0
+@@ -58,7 +59,7 @@ catalog:
+
+ catalogs:
+   rolldown-vite:
+-    vite: npm:rolldown-vite@^7.3.0
++    vite: npm:rolldown-vite@^7.2.11
+   vitest:
+     '@vitest/browser-playwright': ^4.0.16
+     '@vitest/coverage-v8': ^4.0.16
+@@ -66,10 +67,14 @@ catalogs:
+   xsai:
+     unspeech: ^0.1.11
+
++ignoredBuiltDependencies:
++  - '@prisma/client'
++  - better-sqlite3
++
+ onlyBuiltDependencies:
+   - '@discordjs/opus'
+-  - '@ffmpeg-installer/darwin-arm64'
+   - '@napi-rs/image'
++  - '@ffmpeg-installer/darwin-arm64'
+   - '@parcel/watcher'
+   - bufferutil
+   - core-js
+@@ -79,7 +84,6 @@ onlyBuiltDependencies:
+   - es5-ext
+   - esbuild
+   - ffmpeg-static
+-  - less
+   - msw
+   - onnxruntime-node
+   - protobufjs

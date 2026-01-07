@@ -1,0 +1,59 @@
+commit ca45b0dfb6e6aa5b10e68ebb3d61695e978a2511
+Author: Neko Ayaka <neko@ayaka.moe>
+Date:   Tue Dec 30 01:58:33 2025 +0800
+
+    fix(server): dockerfile & railway fix
+
+diff --git a/apps/server/docker-compose.yml b/apps/server/docker-compose.yml
+index 38b4accf..974a7ca9 100644
+--- a/apps/server/docker-compose.yml
++++ b/apps/server/docker-compose.yml
+@@ -24,7 +24,13 @@ services:
+       db:
+         condition: service_healthy
+     environment:
++      # Database
+       - DATABASE_URL=postgresql://postgres:example-P@ssw0rd-xHjDYR.b7N@db:5432/postgres
++      # Auth
++      - AUTH_GOOGLE_CLIENT_ID
++      - AUTH_GOOGLE_CLIENT_SECRET
++      - AUTH_GITHUB_CLIENT_ID
++      - AUTH_GITHUB_CLIENT_SECRET
+     ports:
+       - '6112:3000'
+     healthcheck:
+diff --git a/apps/server/production/railway/Dockerfile b/apps/server/production/railway/Dockerfile
+new file mode 100644
+index 00000000..9f548a43
+--- /dev/null
++++ b/apps/server/production/railway/Dockerfile
+@@ -0,0 +1,17 @@
++FROM node:24-alpine
++
++WORKDIR /app
++
++RUN corepack enable
++
++COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
++COPY apps/server apps/server
++
++# https://docs.railway.com/guides/dockerfiles#cache-mounts
++# --mount=type=cache,id=s/<service id>-<target path>,target=<target path>
++RUN --mount=type=cache,id=s/cf17b143-327a-4f8e-bb34-27ca77380109-/root/.pnpm-store,target=/root/.pnpm-store \
++    pnpm install --frozen-lockfile --ignore-scripts
++
++EXPOSE 3000
++
++CMD ["pnpm", "-F", "@proj-airi/api-server", "start"]
+diff --git a/apps/server/railway.toml b/apps/server/railway.toml
+index b558616b..26f41a32 100644
+--- a/apps/server/railway.toml
++++ b/apps/server/railway.toml
+@@ -1,6 +1,6 @@
+ [build]
+ builder = "DOCKERFILE"
+-dockerfilePath = "apps/server/Dockerfile"
++dockerfilePath = "/apps/server/production/railway/Dockerfile"
+ watchPatterns = [
+   "apps/server/**",
+   "packages/**",

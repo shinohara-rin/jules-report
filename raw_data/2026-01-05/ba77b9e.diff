@@ -1,0 +1,88 @@
+commit ba77b9e7babe5b615a06fa041c9ed6d111579103
+Author: Neko Ayaka <neko@ayaka.moe>
+Date:   Tue Dec 30 03:36:39 2025 +0800
+
+    fix(server): database with duplicated index
+
+diff --git a/apps/server/docker-compose.yml b/apps/server/docker-compose.yml
+index 974a7ca9..37d238c3 100644
+--- a/apps/server/docker-compose.yml
++++ b/apps/server/docker-compose.yml
+@@ -4,7 +4,9 @@ services:
+   db:
+     image: ghcr.io/tensorchord/vchord-postgres:pg18-v1.0.0
+     environment:
+-      - POSTGRES_PASSWORD=example-P@ssw0rd-xHjDYR.b7N
++      - POSTGRES_DB=postgres
++      - POSTGRES_USER=postgres
++      - POSTGRES_PASSWORD=example-PAssw0rd-xHjDYR.b7N
+     ports:
+       - '5432:5432'
+     volumes:
+@@ -25,7 +27,7 @@ services:
+         condition: service_healthy
+     environment:
+       # Database
+-      - DATABASE_URL=postgresql://postgres:example-P@ssw0rd-xHjDYR.b7N@db:5432/postgres
++      - DATABASE_URL=postgresql://postgres:example-PAssw0rd-xHjDYR.b7N@db:5432/postgres
+       # Auth
+       - AUTH_GOOGLE_CLIENT_ID
+       - AUTH_GOOGLE_CLIENT_SECRET
+diff --git a/apps/server/drizzle.config.ts b/apps/server/drizzle.config.ts
+index 08e87a8c..953e3c1f 100644
+--- a/apps/server/drizzle.config.ts
++++ b/apps/server/drizzle.config.ts
+@@ -1,10 +1,14 @@
+-import process from 'node:process'
++import { env } from 'node:process'
+
+-export default {
++import { defineConfig } from 'drizzle-kit'
++
++export default defineConfig({
+   schema: './src/schemas/**/*.ts',
+   out: './drizzle',
+   dialect: 'postgresql',
+   dbCredentials: {
+-    url: process.env.DATABASE_URL,
++    url: env.DATABASE_URL!,
+   },
+-}
++  // https://github.com/drizzle-team/drizzle-orm/issues/4008
++  tablesFilter: ['!vchordrq_sampled_queries'],
++})
+diff --git a/apps/server/src/schemas/accounts.ts b/apps/server/src/schemas/accounts.ts
+index b638d843..484ed316 100644
+--- a/apps/server/src/schemas/accounts.ts
++++ b/apps/server/src/schemas/accounts.ts
+@@ -1,5 +1,5 @@
+ import { relations } from 'drizzle-orm'
+-import { boolean, index, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
++import { boolean, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+
+ export const user = pgTable('user', {
+   id: text('id').primaryKey(),
+@@ -30,7 +30,6 @@ export const session = pgTable(
+       .notNull()
+       .references(() => user.id, { onDelete: 'cascade' }),
+   },
+-  table => [index('session_userId_idx').on(table.userId)],
+ )
+
+ export const account = pgTable(
+@@ -54,7 +53,6 @@ export const account = pgTable(
+       .$onUpdate(() => /* @__PURE__ */ new Date())
+       .notNull(),
+   },
+-  table => [index('account_userId_idx').on(table.userId)],
+ )
+
+ export const verification = pgTable(
+@@ -70,7 +68,6 @@ export const verification = pgTable(
+       .$onUpdate(() => /* @__PURE__ */ new Date())
+       .notNull(),
+   },
+-  table => [index('verification_identifier_idx').on(table.identifier)],
+ )
+
+ export const userRelations = relations(user, ({ many }) => ({
