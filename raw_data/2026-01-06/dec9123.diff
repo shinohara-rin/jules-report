@@ -1,0 +1,392 @@
+commit dec9123c5a46019a7efa9a49b02867e4c4c4931d
+Author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+Date:   Tue Jan 6 12:03:14 2026 +0800
+
+    chore(i18n): update translations (#883)
+
+    Co-authored-by: Crowdin Bot <support+bot@crowdin.com>
+
+diff --git a/packages/i18n/src/locales/es/settings.yaml b/packages/i18n/src/locales/es/settings.yaml
+index 41a06963..1a31504a 100644
+--- a/packages/i18n/src/locales/es/settings.yaml
++++ b/packages/i18n/src/locales/es/settings.yaml
+@@ -712,6 +712,12 @@ pages:
+           title: Desarrollador
+           sections:
+             section:
++              performance-visualizer:
++                title: Performance Visualizer
++                description: Toggle FPS/long task/memory overlay
++              markdown-stress:
++                title: Markdown Stress
++                description: Stress markdown parsing and rendering with heavy chat payloads
+               use-magic-keys:
+                 title: useMagicKeys
+                 description: Test shortcuts
+diff --git a/packages/i18n/src/locales/es/stage.yaml b/packages/i18n/src/locales/es/stage.yaml
+index c54f3b66..46396f6d 100644
+--- a/packages/i18n/src/locales/es/stage.yaml
++++ b/packages/i18n/src/locales/es/stage.yaml
+@@ -4,7 +4,7 @@ chat:
+       airi: AIRI
+       core-system: Sistema Central
+       you: Tu
+-  reasoning: Razonamiento
++  reasoning: Reasoning
+ message: Dile algo...
+ operations:
+   load-models: Cargar Modelos
+diff --git a/packages/i18n/src/locales/es/tamagotchi/settings.yaml b/packages/i18n/src/locales/es/tamagotchi/settings.yaml
+index 6ee611d5..72da800b 100644
+--- a/packages/i18n/src/locales/es/tamagotchi/settings.yaml
++++ b/packages/i18n/src/locales/es/tamagotchi/settings.yaml
+@@ -32,5 +32,13 @@ devtools:
+   pages:
+     context-flow:
+       title: Context Flow
++    lag-visualizer:
++      title: Lag Visualizer
++    performance-visualizer:
++      title: Performance Visualizer
++      description: Toggle FPS/long task/memory overlay
++    markdown-stress:
++      title: Markdown Stress
++      description: Stress markdown parsing and rendering with heavy chat payloads
+     widgets-calling:
+       title: Widget Calling
+diff --git a/packages/i18n/src/locales/fr/settings.yaml b/packages/i18n/src/locales/fr/settings.yaml
+index 7a3068ab..423f7ada 100644
+--- a/packages/i18n/src/locales/fr/settings.yaml
++++ b/packages/i18n/src/locales/fr/settings.yaml
+@@ -712,6 +712,12 @@ pages:
+           title: Développeur
+           sections:
+             section:
++              performance-visualizer:
++                title: Performance Visualizer
++                description: Toggle FPS/long task/memory overlay
++              markdown-stress:
++                title: Markdown Stress
++                description: Stress markdown parsing and rendering with heavy chat payloads
+               use-magic-keys:
+                 title: useMagicKeys
+                 description: Test shortcuts
+diff --git a/packages/i18n/src/locales/fr/stage.yaml b/packages/i18n/src/locales/fr/stage.yaml
+index b6ff0701..8400a0f1 100644
+--- a/packages/i18n/src/locales/fr/stage.yaml
++++ b/packages/i18n/src/locales/fr/stage.yaml
+@@ -4,7 +4,7 @@ chat:
+       airi: AIRI
+       core-system: Système central
+       you: Vous
+-  reasoning: Raisonnement
++  reasoning: Reasoning
+ message: Dites quelque chose...
+ operations:
+   load-models: Charger les modèles
+diff --git a/packages/i18n/src/locales/fr/tamagotchi/settings.yaml b/packages/i18n/src/locales/fr/tamagotchi/settings.yaml
+index 7fac2161..5d57d378 100644
+--- a/packages/i18n/src/locales/fr/tamagotchi/settings.yaml
++++ b/packages/i18n/src/locales/fr/tamagotchi/settings.yaml
+@@ -32,5 +32,13 @@ devtools:
+   pages:
+     context-flow:
+       title: Context Flow
++    lag-visualizer:
++      title: Lag Visualizer
++    performance-visualizer:
++      title: Performance Visualizer
++      description: Toggle FPS/long task/memory overlay
++    markdown-stress:
++      title: Markdown Stress
++      description: Stress markdown parsing and rendering with heavy chat payloads
+     widgets-calling:
+       title: Widget Calling
+diff --git a/packages/i18n/src/locales/ja/settings.yaml b/packages/i18n/src/locales/ja/settings.yaml
+index 537d4479..f43a76fd 100644
+--- a/packages/i18n/src/locales/ja/settings.yaml
++++ b/packages/i18n/src/locales/ja/settings.yaml
+@@ -712,6 +712,12 @@ pages:
+           title: 開発者
+           sections:
+             section:
++              performance-visualizer:
++                title: Performance Visualizer
++                description: Toggle FPS/long task/memory overlay
++              markdown-stress:
++                title: Markdown Stress
++                description: Stress markdown parsing and rendering with heavy chat payloads
+               use-magic-keys:
+                 title: マジックキーを使用
+                 description: ショートカットをテスト
+diff --git a/packages/i18n/src/locales/ja/stage.yaml b/packages/i18n/src/locales/ja/stage.yaml
+index 5a4b0eb2..dee610e3 100644
+--- a/packages/i18n/src/locales/ja/stage.yaml
++++ b/packages/i18n/src/locales/ja/stage.yaml
+@@ -4,7 +4,7 @@ chat:
+       airi: AIRI
+       core-system: コアシステム
+       you: あなた
+-  reasoning: 推論
++  reasoning: Reasoning
+ message: 何か話しかけてみましょう…
+ operations:
+   load-models: モデルの読み込み
+diff --git a/packages/i18n/src/locales/ja/tamagotchi/settings.yaml b/packages/i18n/src/locales/ja/tamagotchi/settings.yaml
+index dde832b0..09e60c96 100644
+--- a/packages/i18n/src/locales/ja/tamagotchi/settings.yaml
++++ b/packages/i18n/src/locales/ja/tamagotchi/settings.yaml
+@@ -32,5 +32,13 @@ devtools:
+   pages:
+     context-flow:
+       title: Context Flow
++    lag-visualizer:
++      title: Lag Visualizer
++    performance-visualizer:
++      title: Performance Visualizer
++      description: Toggle FPS/long task/memory overlay
++    markdown-stress:
++      title: Markdown Stress
++      description: Stress markdown parsing and rendering with heavy chat payloads
+     widgets-calling:
+       title: ウィジェット呼び出し
+diff --git a/packages/i18n/src/locales/ko/settings.yaml b/packages/i18n/src/locales/ko/settings.yaml
+index f3cf9c64..3100aecf 100644
+--- a/packages/i18n/src/locales/ko/settings.yaml
++++ b/packages/i18n/src/locales/ko/settings.yaml
+@@ -712,6 +712,12 @@ pages:
+           title: Developer
+           sections:
+             section:
++              performance-visualizer:
++                title: Performance Visualizer
++                description: Toggle FPS/long task/memory overlay
++              markdown-stress:
++                title: Markdown Stress
++                description: Stress markdown parsing and rendering with heavy chat payloads
+               use-magic-keys:
+                 title: useMagicKeys
+                 description: Test shortcuts
+diff --git a/packages/i18n/src/locales/ko/stage.yaml b/packages/i18n/src/locales/ko/stage.yaml
+index a0c700b5..39efaba9 100644
+--- a/packages/i18n/src/locales/ko/stage.yaml
++++ b/packages/i18n/src/locales/ko/stage.yaml
+@@ -4,7 +4,7 @@ chat:
+       airi: AIRI
+       core-system: Core System
+       you: 당신
+-  reasoning: 추론
++  reasoning: Reasoning
+ message: 듣고 있어요...
+ operations:
+   load-models: 모델 불러오기
+diff --git a/packages/i18n/src/locales/ko/tamagotchi/settings.yaml b/packages/i18n/src/locales/ko/tamagotchi/settings.yaml
+index 6e5fbe1e..0b74ec54 100644
+--- a/packages/i18n/src/locales/ko/tamagotchi/settings.yaml
++++ b/packages/i18n/src/locales/ko/tamagotchi/settings.yaml
+@@ -32,5 +32,13 @@ devtools:
+   pages:
+     context-flow:
+       title: Context Flow
++    lag-visualizer:
++      title: Lag Visualizer
++    performance-visualizer:
++      title: Performance Visualizer
++      description: Toggle FPS/long task/memory overlay
++    markdown-stress:
++      title: Markdown Stress
++      description: Stress markdown parsing and rendering with heavy chat payloads
+     widgets-calling:
+       title: Widget Calling
+diff --git a/packages/i18n/src/locales/ru/settings.yaml b/packages/i18n/src/locales/ru/settings.yaml
+index 524999da..fd586157 100644
+--- a/packages/i18n/src/locales/ru/settings.yaml
++++ b/packages/i18n/src/locales/ru/settings.yaml
+@@ -712,6 +712,12 @@ pages:
+           title: Разработчик
+           sections:
+             section:
++              performance-visualizer:
++                title: Performance Visualizer
++                description: Toggle FPS/long task/memory overlay
++              markdown-stress:
++                title: Markdown Stress
++                description: Stress markdown parsing and rendering with heavy chat payloads
+               use-magic-keys:
+                 title: useMagicKeys
+                 description: Test shortcuts
+diff --git a/packages/i18n/src/locales/ru/stage.yaml b/packages/i18n/src/locales/ru/stage.yaml
+index 176d3ae0..458449ba 100644
+--- a/packages/i18n/src/locales/ru/stage.yaml
++++ b/packages/i18n/src/locales/ru/stage.yaml
+@@ -4,7 +4,7 @@ chat:
+       airi: AIRI
+       core-system: Core система
+       you: Ты
+-  reasoning: Рассуждение
++  reasoning: Reasoning
+ message: Спроси что-нибудь
+ operations:
+   load-models: Загрузить модели
+diff --git a/packages/i18n/src/locales/ru/tamagotchi/settings.yaml b/packages/i18n/src/locales/ru/tamagotchi/settings.yaml
+index fc992eb0..1a7e1df7 100644
+--- a/packages/i18n/src/locales/ru/tamagotchi/settings.yaml
++++ b/packages/i18n/src/locales/ru/tamagotchi/settings.yaml
+@@ -32,5 +32,13 @@ devtools:
+   pages:
+     context-flow:
+       title: Context Flow
++    lag-visualizer:
++      title: Lag Visualizer
++    performance-visualizer:
++      title: Performance Visualizer
++      description: Toggle FPS/long task/memory overlay
++    markdown-stress:
++      title: Markdown Stress
++      description: Stress markdown parsing and rendering with heavy chat payloads
+     widgets-calling:
+       title: Widget Calling
+diff --git a/packages/i18n/src/locales/vi/settings.yaml b/packages/i18n/src/locales/vi/settings.yaml
+index f0c4d27e..bccf0759 100644
+--- a/packages/i18n/src/locales/vi/settings.yaml
++++ b/packages/i18n/src/locales/vi/settings.yaml
+@@ -712,6 +712,12 @@ pages:
+           title: Nhà phát triển
+           sections:
+             section:
++              performance-visualizer:
++                title: Performance Visualizer
++                description: Toggle FPS/long task/memory overlay
++              markdown-stress:
++                title: Markdown Stress
++                description: Stress markdown parsing and rendering with heavy chat payloads
+               use-magic-keys:
+                 title: useMagicKeys
+                 description: Test shortcuts
+diff --git a/packages/i18n/src/locales/vi/stage.yaml b/packages/i18n/src/locales/vi/stage.yaml
+index 2f8322f0..b62d3939 100644
+--- a/packages/i18n/src/locales/vi/stage.yaml
++++ b/packages/i18n/src/locales/vi/stage.yaml
+@@ -4,7 +4,7 @@ chat:
+       airi: AIRI
+       core-system: Hệ thống lõi
+       you: Bạn
+-  reasoning: Lý luận
++  reasoning: Reasoning
+ message: Nói gì đó...
+ operations:
+   load-models: Tải mô hình
+diff --git a/packages/i18n/src/locales/vi/tamagotchi/settings.yaml b/packages/i18n/src/locales/vi/tamagotchi/settings.yaml
+index 622ea00f..bb25342e 100644
+--- a/packages/i18n/src/locales/vi/tamagotchi/settings.yaml
++++ b/packages/i18n/src/locales/vi/tamagotchi/settings.yaml
+@@ -32,5 +32,13 @@ devtools:
+   pages:
+     context-flow:
+       title: Context Flow
++    lag-visualizer:
++      title: Lag Visualizer
++    performance-visualizer:
++      title: Performance Visualizer
++      description: Toggle FPS/long task/memory overlay
++    markdown-stress:
++      title: Markdown Stress
++      description: Stress markdown parsing and rendering with heavy chat payloads
+     widgets-calling:
+       title: Widget Calling
+diff --git a/packages/i18n/src/locales/zh-Hans/settings.yaml b/packages/i18n/src/locales/zh-Hans/settings.yaml
+index c175ec2d..07abe03e 100644
+--- a/packages/i18n/src/locales/zh-Hans/settings.yaml
++++ b/packages/i18n/src/locales/zh-Hans/settings.yaml
+@@ -712,6 +712,12 @@ pages:
+           title: 开发者
+           sections:
+             section:
++              performance-visualizer:
++                title: Performance Visualizer
++                description: Toggle FPS/long task/memory overlay
++              markdown-stress:
++                title: Markdown Stress
++                description: Stress markdown parsing and rendering with heavy chat payloads
+               use-magic-keys:
+                 title: useMagicKeys
+                 description: 测试快捷键
+diff --git a/packages/i18n/src/locales/zh-Hans/stage.yaml b/packages/i18n/src/locales/zh-Hans/stage.yaml
+index 1eccfbcb..d7ac12a7 100644
+--- a/packages/i18n/src/locales/zh-Hans/stage.yaml
++++ b/packages/i18n/src/locales/zh-Hans/stage.yaml
+@@ -4,7 +4,7 @@ chat:
+       airi: AIRI
+       core-system: 核心系统
+       you: 你
+-  reasoning: 推理
++  reasoning: Reasoning
+ message: 说点什么...
+ operations:
+   load-models: 加载模型
+diff --git a/packages/i18n/src/locales/zh-Hans/tamagotchi/settings.yaml b/packages/i18n/src/locales/zh-Hans/tamagotchi/settings.yaml
+index 0b7da76c..acd5f939 100644
+--- a/packages/i18n/src/locales/zh-Hans/tamagotchi/settings.yaml
++++ b/packages/i18n/src/locales/zh-Hans/tamagotchi/settings.yaml
+@@ -32,5 +32,13 @@ devtools:
+   pages:
+     context-flow:
+       title: Context Flow
++    lag-visualizer:
++      title: Lag Visualizer
++    performance-visualizer:
++      title: Performance Visualizer
++      description: Toggle FPS/long task/memory overlay
++    markdown-stress:
++      title: Markdown Stress
++      description: Stress markdown parsing and rendering with heavy chat payloads
+     widgets-calling:
+       title: 挂件调用
+diff --git a/packages/i18n/src/locales/zh-Hant/settings.yaml b/packages/i18n/src/locales/zh-Hant/settings.yaml
+index 01020d7a..dae0ecd9 100644
+--- a/packages/i18n/src/locales/zh-Hant/settings.yaml
++++ b/packages/i18n/src/locales/zh-Hant/settings.yaml
+@@ -712,6 +712,12 @@ pages:
+           title: 開發者
+           sections:
+             section:
++              performance-visualizer:
++                title: Performance Visualizer
++                description: Toggle FPS/long task/memory overlay
++              markdown-stress:
++                title: Markdown Stress
++                description: Stress markdown parsing and rendering with heavy chat payloads
+               use-magic-keys:
+                 title: useMagicKeys
+                 description: 測試快捷鍵
+diff --git a/packages/i18n/src/locales/zh-Hant/stage.yaml b/packages/i18n/src/locales/zh-Hant/stage.yaml
+index ee0146a4..729c553a 100644
+--- a/packages/i18n/src/locales/zh-Hant/stage.yaml
++++ b/packages/i18n/src/locales/zh-Hant/stage.yaml
+@@ -4,7 +4,7 @@ chat:
+       airi: AIRI
+       core-system: 核心系統
+       you: 你
+-  reasoning: 推理
++  reasoning: Reasoning
+ message: 說點什麼...
+ operations:
+   load-models: 載入模型
+diff --git a/packages/i18n/src/locales/zh-Hant/tamagotchi/settings.yaml b/packages/i18n/src/locales/zh-Hant/tamagotchi/settings.yaml
+index 98d9a00a..3c1ae301 100644
+--- a/packages/i18n/src/locales/zh-Hant/tamagotchi/settings.yaml
++++ b/packages/i18n/src/locales/zh-Hant/tamagotchi/settings.yaml
+@@ -32,5 +32,13 @@ devtools:
+   pages:
+     context-flow:
+       title: Context Flow
++    lag-visualizer:
++      title: Lag Visualizer
++    performance-visualizer:
++      title: Performance Visualizer
++      description: Toggle FPS/long task/memory overlay
++    markdown-stress:
++      title: Markdown Stress
++      description: Stress markdown parsing and rendering with heavy chat payloads
+     widgets-calling:
+       title: Widget Calling

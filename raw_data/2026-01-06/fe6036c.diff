@@ -1,0 +1,18 @@
+commit fe6036c51aa1042f8f339cf0d0c242f908314948
+Author: Neko Ayaka <neko@ayaka.moe>
+Date:   Mon Jan 5 22:34:50 2026 +0800
+
+    chore(ci): add avif to ignore list of HF Space
+
+diff --git a/apps/stage-web/vite.config.ts b/apps/stage-web/vite.config.ts
+index 676a7652..5cbc2e9d 100644
+--- a/apps/stage-web/vite.config.ts
++++ b/apps/stage-web/vite.config.ts
+@@ -187,6 +187,7 @@ export default defineConfig({
+       '*.webp',
+       '*.bmp',
+       '*.ttf',
++      '*.avif',
+       // Tensorflow / MediaPipe task
+       '*.task',
+     ] }),

@@ -1,0 +1,19 @@
+commit a3cf2976421d48dea20041bb29f2520268e6fc5d
+Author: Neko Ayaka <neko@ayaka.moe>
+Date:   Tue Jan 6 03:24:53 2026 +0800
+
+    chore(server): updated Railway cache key
+
+diff --git a/apps/server/production/railway/Dockerfile b/apps/server/production/railway/Dockerfile
+index 9f548a43..88db5e04 100644
+--- a/apps/server/production/railway/Dockerfile
++++ b/apps/server/production/railway/Dockerfile
+@@ -9,7 +9,7 @@ COPY apps/server apps/server
+
+ # https://docs.railway.com/guides/dockerfiles#cache-mounts
+ # --mount=type=cache,id=s/<service id>-<target path>,target=<target path>
+-RUN --mount=type=cache,id=s/cf17b143-327a-4f8e-bb34-27ca77380109-/root/.pnpm-store,target=/root/.pnpm-store \
++RUN --mount=type=cache,id=s/fec8bf0d-37e0-4283-8202-5f1bd7e6cd0e-/root/.pnpm-store,target=/root/.pnpm-store \
+     pnpm install --frozen-lockfile --ignore-scripts
+
+ EXPOSE 3000

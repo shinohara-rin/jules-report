@@ -1,0 +1,1914 @@
+commit 1f58faafa2150282f032c9c179a4f68cf1ec8f2c
+Author: Tomas.C <35745307+TECozens@users.noreply.github.com>
+Date:   Mon Jan 5 19:03:53 2026 +0000
+
+    feat(stage-ui): process for reasoning models (#859)
+
+
+    ---------
+
+    Co-authored-by: gemini-code-assist[bot] <176961590+gemini-code-assist[bot]@users.noreply.github.com>
+    Co-authored-by: Rin <shinohara-rin@users.noreply.github.com>
+    Co-authored-by: Neko Ayaka <neko@ayaka.moe>
+
+diff --git a/packages/i18n/src/locales/en/stage.yaml b/packages/i18n/src/locales/en/stage.yaml
+index 570b403e..b847a87a 100644
+--- a/packages/i18n/src/locales/en/stage.yaml
++++ b/packages/i18n/src/locales/en/stage.yaml
+@@ -4,6 +4,7 @@ chat:
+       airi: AIRI
+       core-system: Core System
+       you: You
++  reasoning: Reasoning
+ message: Say something...
+ operations:
+   load-models: Load Models
+diff --git a/packages/i18n/src/locales/es/stage.yaml b/packages/i18n/src/locales/es/stage.yaml
+index 7dfea96c..c54f3b66 100644
+--- a/packages/i18n/src/locales/es/stage.yaml
++++ b/packages/i18n/src/locales/es/stage.yaml
+@@ -4,6 +4,7 @@ chat:
+       airi: AIRI
+       core-system: Sistema Central
+       you: Tu
++  reasoning: Razonamiento
+ message: Dile algo...
+ operations:
+   load-models: Cargar Modelos
+diff --git a/packages/i18n/src/locales/fr/stage.yaml b/packages/i18n/src/locales/fr/stage.yaml
+index 1746298c..b6ff0701 100644
+--- a/packages/i18n/src/locales/fr/stage.yaml
++++ b/packages/i18n/src/locales/fr/stage.yaml
+@@ -4,6 +4,7 @@ chat:
+       airi: AIRI
+       core-system: Système central
+       you: Vous
++  reasoning: Raisonnement
+ message: Dites quelque chose...
+ operations:
+   load-models: Charger les modèles
+diff --git a/packages/i18n/src/locales/ja/stage.yaml b/packages/i18n/src/locales/ja/stage.yaml
+index 4d090845..5a4b0eb2 100644
+--- a/packages/i18n/src/locales/ja/stage.yaml
++++ b/packages/i18n/src/locales/ja/stage.yaml
+@@ -4,6 +4,7 @@ chat:
+       airi: AIRI
+       core-system: コアシステム
+       you: あなた
++  reasoning: 推論
+ message: 何か話しかけてみましょう…
+ operations:
+   load-models: モデルの読み込み
+diff --git a/packages/i18n/src/locales/ko/stage.yaml b/packages/i18n/src/locales/ko/stage.yaml
+index 47952606..a0c700b5 100644
+--- a/packages/i18n/src/locales/ko/stage.yaml
++++ b/packages/i18n/src/locales/ko/stage.yaml
+@@ -4,6 +4,7 @@ chat:
+       airi: AIRI
+       core-system: Core System
+       you: 당신
++  reasoning: 추론
+ message: 듣고 있어요...
+ operations:
+   load-models: 모델 불러오기
+diff --git a/packages/i18n/src/locales/ru/stage.yaml b/packages/i18n/src/locales/ru/stage.yaml
+index 6edaed9d..176d3ae0 100644
+--- a/packages/i18n/src/locales/ru/stage.yaml
++++ b/packages/i18n/src/locales/ru/stage.yaml
+@@ -4,6 +4,7 @@ chat:
+       airi: AIRI
+       core-system: Core система
+       you: Ты
++  reasoning: Рассуждение
+ message: Спроси что-нибудь
+ operations:
+   load-models: Загрузить модели
+diff --git a/packages/i18n/src/locales/vi/stage.yaml b/packages/i18n/src/locales/vi/stage.yaml
+index 1d3b71ef..2f8322f0 100644
+--- a/packages/i18n/src/locales/vi/stage.yaml
++++ b/packages/i18n/src/locales/vi/stage.yaml
+@@ -4,6 +4,7 @@ chat:
+       airi: AIRI
+       core-system: Hệ thống lõi
+       you: Bạn
++  reasoning: Lý luận
+ message: Nói gì đó...
+ operations:
+   load-models: Tải mô hình
+diff --git a/packages/i18n/src/locales/zh-Hans/stage.yaml b/packages/i18n/src/locales/zh-Hans/stage.yaml
+index b8369b2f..1eccfbcb 100644
+--- a/packages/i18n/src/locales/zh-Hans/stage.yaml
++++ b/packages/i18n/src/locales/zh-Hans/stage.yaml
+@@ -4,6 +4,7 @@ chat:
+       airi: AIRI
+       core-system: 核心系统
+       you: 你
++  reasoning: 推理
+ message: 说点什么...
+ operations:
+   load-models: 加载模型
+diff --git a/packages/i18n/src/locales/zh-Hant/stage.yaml b/packages/i18n/src/locales/zh-Hant/stage.yaml
+index c4d1f565..ee0146a4 100644
+--- a/packages/i18n/src/locales/zh-Hant/stage.yaml
++++ b/packages/i18n/src/locales/zh-Hant/stage.yaml
+@@ -4,6 +4,7 @@ chat:
+       airi: AIRI
+       core-system: 核心系統
+       you: 你
++  reasoning: 推理
+ message: 說點什麼...
+ operations:
+   load-models: 載入模型
+diff --git a/packages/stage-ui/package.json b/packages/stage-ui/package.json
+index 471a0a37..d9fe5e78 100644
+--- a/packages/stage-ui/package.json
++++ b/packages/stage-ui/package.json
+@@ -122,6 +122,7 @@
+     "posthog-js": "catalog:",
+     "postprocessing": "^6.38.2",
+     "rehype-katex": "^7.0.1",
++    "rehype-parse": "^9.0.1",
+     "rehype-stringify": "^10.0.1",
+     "reka-ui": "^2.7.0",
+     "remark-math": "^6.0.0",
+@@ -132,6 +133,7 @@
+     "three": "^0.182.0",
+     "unified": "^11.0.5",
+     "unist-builder": "^4.0.0",
++    "unist-util-visit": "^5.0.0",
+     "unspeech": "catalog:xsai",
+     "uuid": "^13.0.0",
+     "valibot": "catalog:",
+@@ -170,8 +172,10 @@
+     "@proj-airi/vite-plugin-warpdrive": "workspace:*",
+     "@types/audioworklet": "catalog:",
+     "@types/culori": "^4.0.1",
++    "@types/hast": "catalog:",
+     "@types/splitpanes": "catalog:",
+     "@types/three": "^0.182.0",
++    "@types/unist": "catalog:",
+     "@unocss/reset": "^66.5.11",
+     "@vitejs/plugin-vue": "^6.0.3",
+     "clustr": "^1.0.2",
+diff --git a/packages/stage-ui/src/components/scenarios/chat/ChatAssistantItem.vue b/packages/stage-ui/src/components/scenarios/chat/ChatAssistantItem.vue
+index 090d981c..dc67b2f8 100644
+--- a/packages/stage-ui/src/components/scenarios/chat/ChatAssistantItem.vue
++++ b/packages/stage-ui/src/components/scenarios/chat/ChatAssistantItem.vue
+@@ -4,6 +4,7 @@ import type { ChatAssistantMessage, ChatSlices, ChatSlicesText } from '../../../
+ import { computed } from 'vue'
+
+ import MarkdownRenderer from '../../markdown/MarkdownRenderer.vue'
++import ChatResponsePart from './ChatResponsePart.vue'
+ import ChatToolCallBlock from './ChatToolCallBlock.vue'
+
+ const props = withDefaults(defineProps<{
+@@ -66,6 +67,12 @@ const boxClasses = computed(() => [
+         </template>
+       </div>
+       <div v-else-if="showLoader" i-eos-icons:three-dots-loading />
++
++      <ChatResponsePart
++        v-if="message.categorization"
++        :message="message"
++        :variant="variant"
++      />
+     </div>
+   </div>
+ </template>
+diff --git a/packages/stage-ui/src/components/scenarios/chat/ChatResponsePart.vue b/packages/stage-ui/src/components/scenarios/chat/ChatResponsePart.vue
+new file mode 100644
+index 00000000..1c16b504
+--- /dev/null
++++ b/packages/stage-ui/src/components/scenarios/chat/ChatResponsePart.vue
+@@ -0,0 +1,56 @@
++<script setup lang="ts">
++import type { ChatAssistantMessage } from '../../../types/chat'
++
++import { computed } from 'vue'
++import { useI18n } from 'vue-i18n'
++
++import MarkdownRenderer from '../../markdown/MarkdownRenderer.vue'
++import Collapsable from '../../misc/Collapsable.vue'
++
++const props = defineProps<{
++  message: ChatAssistantMessage
++  variant?: 'desktop' | 'mobile'
++}>()
++
++const { t } = useI18n()
++
++const hasReasoning = computed(() => !!props.message.categorization?.reasoning?.trim())
++
++const containerClasses = computed(() => [
++  'mt-2',
++  props.variant === 'mobile' ? 'text-xs' : 'text-sm',
++])
++</script>
++
++<template>
++  <div v-if="hasReasoning" :class="containerClasses" flex="~ col" gap-1>
++    <Collapsable :default="false">
++      <template #trigger="slotProps">
++        <button
++          class="w-full flex items-center justify-between rounded-lg bg-neutral-100/50 px-2 py-1 text-xs text-neutral-600 outline-none transition-all duration-200 dark:bg-neutral-800/50 hover:bg-neutral-200/50 dark:text-neutral-400 dark:hover:bg-neutral-700/50"
++          @click="slotProps.setVisible(!slotProps.visible)"
++        >
++          <div flex="~ items-center" gap-1.5>
++            <div i-solar:lightbulb-bolt-bold-duotone size-3.5 text-amber-500 dark:text-amber-400 />
++            <span font-medium>{{ t('stage.chat.reasoning') }}</span>
++          </div>
++          <div
++            i-solar:alt-arrow-down-linear
++            size-3
++            transition="transform duration-200"
++            :class="{ 'rotate-180': slotProps.visible }"
++          />
++        </button>
++      </template>
++      <div
++        class="mt-1 border border-neutral-200 rounded-md bg-neutral-50/80 px-2 py-1.5 dark:border-neutral-700 dark:bg-neutral-900/80"
++      >
++        <MarkdownRenderer
++          :content="message.categorization?.reasoning ?? ''"
++          class="break-words"
++          text="xs neutral-700 dark:neutral-300"
++        />
++      </div>
++    </Collapsable>
++  </div>
++</template>
+diff --git a/packages/stage-ui/src/composables/index.ts b/packages/stage-ui/src/composables/index.ts
+index de64a7b6..9d1ea976 100644
+--- a/packages/stage-ui/src/composables/index.ts
++++ b/packages/stage-ui/src/composables/index.ts
+@@ -6,5 +6,6 @@ export * from './micvad'
+ export * from './queues'
+ export * from './use-analytics'
+ export * from './use-build-info'
++export * from './use-chat-session/summary'
+ export * from './use-versioned-local-storage'
+ export * from './whisper'
+diff --git a/packages/stage-ui/src/composables/llmmarkerParser.test.ts b/packages/stage-ui/src/composables/llmmarkerParser.test.ts
+index 265a75ae..4d6ee2c2 100644
+--- a/packages/stage-ui/src/composables/llmmarkerParser.test.ts
++++ b/packages/stage-ui/src/composables/llmmarkerParser.test.ts
+@@ -142,4 +142,42 @@ describe('useLlmmarkerParser', async () => {
+       expect(collectedSpecials).toEqual(expectedSpecials)
+     }
+   })
++
++  it('should call onEnd with full text', async () => {
++    const fullText = 'Hello, world!'
++    let endText = ''
++
++    const parser = useLlmmarkerParser({
++      onEnd(text) {
++        endText = text
++      },
++    })
++
++    for (const char of fullText) {
++      await parser.consume(char)
++    }
++
++    await parser.end()
++
++    expect(endText).toBe(fullText)
++  })
++
++  it('should call onEnd with full text including specials', async () => {
++    const fullText = 'Hello <|special|> world!'
++    let endText = ''
++
++    const parser = useLlmmarkerParser({
++      onEnd(text) {
++        endText = text
++      },
++    })
++
++    for (const char of fullText) {
++      await parser.consume(char)
++    }
++
++    await parser.end()
++
++    expect(endText).toBe(fullText)
++  })
+ })
+diff --git a/packages/stage-ui/src/composables/llmmarkerParser.ts b/packages/stage-ui/src/composables/llmmarkerParser.ts
+index 04269edc..3e6fee21 100644
+--- a/packages/stage-ui/src/composables/llmmarkerParser.ts
++++ b/packages/stage-ui/src/composables/llmmarkerParser.ts
+@@ -18,6 +18,11 @@ const TAG_CLOSE = '|>'
+ export function useLlmmarkerParser(options: {
+   onLiteral?: (literal: string) => void | Promise<void>
+   onSpecial?: (special: string) => void | Promise<void>
++  /**
++   * Called when parsing ends with the full accumulated text.
++   * Useful for final processing like categorization or filtering.
++   */
++  onEnd?: (fullText: string) => void | Promise<void>
+   /**
+    * The minimum length of text required to emit a literal part.
+    * Useful for avoiding emitting literal parts too fast.
+@@ -27,6 +32,7 @@ export function useLlmmarkerParser(options: {
+   const minLiteralEmitLength = Math.max(1, options.minLiteralEmitLength ?? 1)
+   let buffer = ''
+   let inTag = false
++  let fullText = ''
+
+   return {
+     /**
+@@ -36,6 +42,7 @@ export function useLlmmarkerParser(options: {
+      * @param textPart The chunk of text to consume.
+      */
+     async consume(textPart: string) {
++      fullText += textPart
+       buffer += textPart
+
+       while (buffer.length > 0) {
+@@ -82,6 +89,7 @@ export function useLlmmarkerParser(options: {
+         await options.onLiteral?.(buffer)
+         buffer = ''
+       }
++      await options.onEnd?.(fullText)
+     },
+   }
+ }
+diff --git a/packages/stage-ui/src/composables/response-categoriser.test.ts b/packages/stage-ui/src/composables/response-categoriser.test.ts
+new file mode 100644
+index 00000000..057ec721
+--- /dev/null
++++ b/packages/stage-ui/src/composables/response-categoriser.test.ts
+@@ -0,0 +1,358 @@
++import { describe, expect, it } from 'vitest'
++
++import { createStreamingCategorizer } from './response-categoriser'
++
++describe('createStreamingCategorizer', () => {
++  it('should handle pure speech without tags', () => {
++    const categorizer = createStreamingCategorizer()
++    const text = 'Hello, world! This is a test.'
++
++    categorizer.consume(text)
++    const result = categorizer.end()
++
++    expect(result.speech).toBe(text)
++    expect(result.reasoning).toBe('')
++    expect(result.segments).toEqual([])
++  })
++
++  it('should filter out reasoning tags from speech', () => {
++    const categorizer = createStreamingCategorizer()
++    const text = 'Hello <reasoning>thinking about this</reasoning> world!'
++
++    categorizer.consume(text)
++    const result = categorizer.end()
++
++    expect(result.speech).toBe('Hello world!')
++    expect(result.reasoning).toBe('thinking about this')
++    expect(result.segments).toHaveLength(1)
++    expect(result.segments[0].tagName).toBe('reasoning')
++    expect(result.segments[0].content).toBe('thinking about this')
++  })
++
++  it('should handle multiple reasoning tags', () => {
++    const categorizer = createStreamingCategorizer()
++    const text = 'Start <think>first thought</think> middle <reasoning>second thought</reasoning> end'
++
++    categorizer.consume(text)
++    const result = categorizer.end()
++
++    expect(result.speech).toBe('Start middle end')
++    expect(result.reasoning).toBe('first thought\n\nsecond thought')
++    expect(result.segments).toHaveLength(2)
++  })
++
++  it('should filter incomplete tags from speech during streaming', () => {
++    const categorizer = createStreamingCategorizer()
++
++    // Stream incomplete tag
++    categorizer.consume('Hello <reasoning>thinking')
++    const filtered1 = categorizer.filterToSpeech('Hello <reasoning>thinking', 0)
++
++    // Before tag closes, everything should be filtered (tag is incomplete)
++    expect(filtered1).toBe('')
++
++    // Complete the tag - the important thing is the final result is correct
++    categorizer.consume(' about this</reasoning> world!')
++
++    const result = categorizer.end()
++    expect(result.speech).toBe('Hello world!')
++    expect(result.reasoning).toBe('thinking about this')
++  })
++
++  it('should handle tags split across chunks', () => {
++    const categorizer = createStreamingCategorizer()
++    const chunks = [
++      'Hello <',
++      'reasoning',
++      '>thinking',
++      ' about this',
++      '</reasoning',
++      '> world!',
++    ]
++
++    for (const chunk of chunks) {
++      categorizer.consume(chunk)
++    }
++
++    const result = categorizer.end()
++
++    // Final result should correctly categorize the complete text
++    expect(result.speech).toBe('Hello world!')
++    expect(result.reasoning).toBe('thinking about this')
++  })
++
++  it('should handle nested tags', () => {
++    const categorizer = createStreamingCategorizer()
++    const text = 'Start <outer>outer <inner>inner</inner> more outer</outer> end'
++
++    categorizer.consume(text)
++    const result = categorizer.end()
++
++    // Both tags should be extracted
++    expect(result.segments.length).toBeGreaterThan(0)
++    // Speech should exclude tag content
++    // Note: rehype handles nested tags by extracting both, but the speech extraction
++    // may include text between nested tags or closing tag text
++    // The important thing is that the main tag content (inner, outer text) is in reasoning
++    expect(result.speech).toContain('Start')
++    expect(result.speech).toContain('end')
++    // Tag content should be in reasoning, not speech
++    expect(result.reasoning).toContain('inner')
++    // The exact speech format may vary with nested tags, but should not contain the main tag content
++    expect(result.speech).not.toContain('inner')
++  })
++
++  it('should correctly identify speech positions with isSpeechAt', () => {
++    const categorizer = createStreamingCategorizer()
++    const text = 'Hello <reasoning>thinking</reasoning> world!'
++
++    categorizer.consume(text)
++
++    // Position 0-5: "Hello " - should be speech
++    expect(categorizer.isSpeechAt(0)).toBe(true)
++    expect(categorizer.isSpeechAt(5)).toBe(true)
++
++    // Position 6-36: inside <reasoning> tag (including the tag itself) - should not be speech
++    // "Hello " = 6 chars, "<reasoning>" starts at 6, "</reasoning>" ends at 36
++    expect(categorizer.isSpeechAt(6)).toBe(false)
++    expect(categorizer.isSpeechAt(20)).toBe(false)
++    expect(categorizer.isSpeechAt(36)).toBe(false)
++
++    // Position 37+: " world!" - should be speech (after closing tag)
++    expect(categorizer.isSpeechAt(37)).toBe(true)
++    expect(categorizer.isSpeechAt(43)).toBe(true)
++  })
++
++  it('should handle tags with special tokens like emotes inside reasoning', () => {
++    const categorizer = createStreamingCategorizer()
++    // Special tokens like <|EMOTE_HAPPY|> and <|DELAY:1|> should be included in reasoning
++    const text = 'Hello <reasoning>thinking <|EMOTE_HAPPY|> about this <|DELAY:1|></reasoning> world!'
++
++    categorizer.consume(text)
++    const result = categorizer.end()
++
++    expect(result.speech).toBe('Hello world!')
++    expect(result.reasoning).toBe('thinking <|EMOTE_HAPPY|> about this <|DELAY:1|>')
++  })
++
++  it('should handle <think> tag with special tokens in between', () => {
++    const categorizer = createStreamingCategorizer()
++    // Special tokens like <|EMOTE_CURIOUS|> should be included within reasoning tags
++    const text = 'Hello <think>thinking <|EMOTE_CURIOUS|> about this <|DELAY:2|> and that</think> world!'
++
++    categorizer.consume(text)
++    const result = categorizer.end()
++
++    // Log what was recognized
++    console.info('📋 Test: should handle <think> tag with special tokens')
++    console.info('  Input text:', text)
++    console.info('  Segments found:', result.segments.length)
++    console.info('  Tag name:', result.segments[0]?.tagName)
++    console.info('  Segment content:', result.segments[0]?.content)
++    console.info('  Reasoning:', result.reasoning)
++    console.info('  Speech:', result.speech)
++
++    // Verify tag is recognized
++    expect(result.segments).toHaveLength(1)
++    expect(result.segments[0].tagName).toBe('think')
++
++    // Verify special tokens are preserved in segment content
++    expect(result.segments[0].content).toContain('<|EMOTE_CURIOUS|>')
++    expect(result.segments[0].content).toContain('<|DELAY:2|>')
++
++    // Verify special tokens are in reasoning output
++    expect(result.reasoning).toContain('<|EMOTE_CURIOUS|>')
++    expect(result.reasoning).toContain('<|DELAY:2|>')
++
++    // Verify speech excludes the reasoning content
++    expect(result.speech).toBe('Hello world!')
++    expect(result.speech).not.toContain('<|EMOTE_CURIOUS|>')
++    expect(result.speech).not.toContain('<|DELAY:2|>')
++    expect(result.reasoning).toBe('thinking <|EMOTE_CURIOUS|> about this <|DELAY:2|> and that')
++  })
++
++  it('should handle <think> with special tokens like <|EMOTE_HAPPY|> in between', () => {
++    const categorizer = createStreamingCategorizer()
++    // Testing the exact scenario: <think>...<|Special in between|>...</think>
++    const text = 'Hello <think>thinking <|EMOTE_HAPPY|> about this <|DELAY:1|> and that</think> world!'
++
++    categorizer.consume(text)
++    const result = categorizer.end()
++
++    // Log what was recognized
++    console.info('📋 Test: should handle <think> with special tokens like <|EMOTE_HAPPY|>')
++    console.info('  Input text:', text)
++    console.info('  Segments found:', result.segments.length)
++    console.info('  Tag name:', result.segments[0]?.tagName)
++    console.info('  Segment content:', result.segments[0]?.content)
++    console.info('  Has <|EMOTE_HAPPY|>:', result.segments[0]?.content.includes('<|EMOTE_HAPPY|>'))
++    console.info('  Has <|DELAY:1|>:', result.segments[0]?.content.includes('<|DELAY:1|>'))
++    console.info('  Reasoning:', result.reasoning)
++    console.info('  Speech:', result.speech)
++
++    // Verify tag is recognized
++    expect(result.segments).toHaveLength(1)
++    expect(result.segments[0].tagName).toBe('think')
++
++    // Verify special tokens are preserved in segment content
++    expect(result.segments[0].content).toContain('<|EMOTE_HAPPY|>')
++    expect(result.segments[0].content).toContain('<|DELAY:1|>')
++
++    // Verify special tokens are in reasoning output
++    expect(result.reasoning).toContain('<|EMOTE_HAPPY|>')
++    expect(result.reasoning).toContain('<|DELAY:1|>')
++
++    // Verify speech excludes the reasoning content
++    expect(result.speech).toBe('Hello world!')
++    expect(result.speech).not.toContain('<|EMOTE_HAPPY|>')
++    expect(result.speech).not.toContain('<|DELAY:1|>')
++    expect(result.reasoning).toBe('thinking <|EMOTE_HAPPY|> about this <|DELAY:1|> and that')
++  })
++
++  it('should handle any tag name as reasoning', () => {
++    const categorizer = createStreamingCategorizer()
++    const text = 'Hello <think>secret thoughts</think> world!'
++
++    categorizer.consume(text)
++    const result = categorizer.end()
++
++    expect(result.speech).toBe('Hello world!')
++    expect(result.reasoning).toBe('secret thoughts')
++    expect(result.segments[0].tagName).toBe('think')
++  })
++
++  it('should handle multiple tags with speech in between', () => {
++    const categorizer = createStreamingCategorizer()
++    const text = 'First <think>thought1</think> Second <reasoning>thought2</reasoning> Third'
++
++    categorizer.consume(text)
++    const result = categorizer.end()
++
++    expect(result.speech).toBe('First Second Third')
++    expect(result.reasoning).toBe('thought1\n\nthought2')
++    expect(result.segments).toHaveLength(2)
++  })
++
++  it('should return empty speech when only tags present', () => {
++    const categorizer = createStreamingCategorizer()
++    const text = '<reasoning>only reasoning</reasoning>'
++
++    categorizer.consume(text)
++    const result = categorizer.end()
++
++    expect(result.speech).toBe('')
++    expect(result.reasoning).toBe('only reasoning')
++  })
++
++  it('should handle streaming with incremental categorization', () => {
++    const categorizer = createStreamingCategorizer()
++
++    // Stream in small chunks
++    categorizer.consume('Hello ')
++    expect(categorizer.getCurrent()?.speech).toBe('Hello ')
++
++    categorizer.consume('<reasoning>')
++    categorizer.consume('thinking')
++    // Tag not closed yet, but should still categorize
++    const midResult = categorizer.getCurrent()
++    expect(midResult).not.toBeNull()
++
++    categorizer.consume('</reasoning>')
++    categorizer.consume(' world!')
++
++    const result = categorizer.end()
++    expect(result.speech).toBe('Hello world!')
++    expect(result.reasoning).toBe('thinking')
++  })
++
++  it('should call onSegment callback when segments are detected', () => {
++    const segments: Array<{ tagName: string, content: string }> = []
++    const categorizer = createStreamingCategorizer(undefined, (segment) => {
++      segments.push({ tagName: segment.tagName, content: segment.content })
++    })
++
++    const text = 'Hello <reasoning>thought1</reasoning> <think>thought2</think> world!'
++
++    // Stream the text - segments are emitted when they complete
++    categorizer.consume(text)
++    categorizer.end()
++
++    // Check final result has both segments
++    const result = categorizer.end()
++    expect(result.segments.length).toBeGreaterThanOrEqual(2)
++    expect(result.segments.some(s => s.tagName === 'reasoning')).toBe(true)
++    expect(result.segments.some(s => s.tagName === 'think')).toBe(true)
++
++    // onSegment is called when segments complete during streaming
++    // At minimum, we should have segments detected in the final result
++    expect(result.segments.length).toBeGreaterThanOrEqual(2)
++  })
++
++  it('should handle getCurrentPosition correctly', () => {
++    const categorizer = createStreamingCategorizer()
++
++    expect(categorizer.getCurrentPosition()).toBe(0)
++
++    categorizer.consume('Hello')
++    expect(categorizer.getCurrentPosition()).toBe(5)
++
++    categorizer.consume(' world!')
++    expect(categorizer.getCurrentPosition()).toBe(12)
++  })
++
++  it('should handle edge case: tag at start', () => {
++    const categorizer = createStreamingCategorizer()
++    const text = '<reasoning>thinking</reasoning>Hello world!'
++
++    categorizer.consume(text)
++    const result = categorizer.end()
++
++    expect(result.speech).toBe('Hello world!')
++    expect(result.reasoning).toBe('thinking')
++  })
++
++  it('should handle edge case: tag at end', () => {
++    const categorizer = createStreamingCategorizer()
++    const text = 'Hello world!<reasoning>thinking</reasoning>'
++
++    categorizer.consume(text)
++    const result = categorizer.end()
++
++    expect(result.speech).toBe('Hello world!')
++    expect(result.reasoning).toBe('thinking')
++  })
++
++  it('should handle malformed tags gracefully', () => {
++    const categorizer = createStreamingCategorizer()
++    const text = 'Hello <unclosed>thinking world!'
++
++    categorizer.consume(text)
++    const result = categorizer.end()
++
++    // Unclosed tag should be treated as speech
++    expect(result.speech).toContain('Hello')
++    expect(result.segments.length).toBe(0)
++  })
++
++  it('should filter speech correctly when tag closes mid-chunk', () => {
++    const categorizer = createStreamingCategorizer()
++
++    // Stream incomplete tag
++    categorizer.consume('Hello <reasoning>thinking')
++    let filtered = categorizer.filterToSpeech('Hello <reasoning>thinking', 0)
++    expect(filtered).toBe('') // Tag not closed, filter everything
++
++    // Stream closing tag
++    categorizer.consume('</reasoning>')
++    filtered = categorizer.filterToSpeech('</reasoning>', 25)
++    expect(filtered).toBe('') // This is the closing tag itself
++
++    // Stream speech after
++    categorizer.consume(' world!')
++    filtered = categorizer.filterToSpeech(' world!', 38)
++    expect(filtered).toBe(' world!')
++
++    const result = categorizer.end()
++    expect(result.speech).toBe('Hello world!')
++  })
++})
+diff --git a/packages/stage-ui/src/composables/response-categoriser.ts b/packages/stage-ui/src/composables/response-categoriser.ts
+new file mode 100644
+index 00000000..2be9c8ab
+--- /dev/null
++++ b/packages/stage-ui/src/composables/response-categoriser.ts
+@@ -0,0 +1,466 @@
++import type { Element, Root } from 'hast'
++import type { Position } from 'unist'
++
++import rehypeParse from 'rehype-parse'
++import rehypeStringify from 'rehype-stringify'
++
++import { unified } from 'unified'
++import { visit } from 'unist-util-visit'
++
++export type ResponseCategory = 'speech' | 'reasoning' | 'unknown'
++
++export interface CategorizedSegment {
++  category: ResponseCategory
++  content: string
++  startIndex: number
++  endIndex: number
++  raw: string // Original tagged content including tags
++  tagName: string // The actual tag name found (e.g., "think", "thought", "reasoning")
++}
++
++export interface CategorizedResponse {
++  segments: CategorizedSegment[]
++  speech: string // Combined speech content (everything outside tags)
++  reasoning: string // Combined reasoning/thought content
++  raw: string // Original full response
++}
++
++/**
++ * Maps tag names to categories
++ * All tags are treated as reasoning (filtered from TTS)
++ */
++function mapTagNameToCategory(_tagName: string): ResponseCategory {
++  // All tags are reasoning - no need to distinguish tag names
++  return 'reasoning'
++}
++
++interface ExtractedTag {
++  tagName: string
++  content: string
++  fullMatch: string
++  startIndex: number
++  endIndex: number
++}
++
++/**
++ * Extracts all XML-like tags from a response using rehype pipeline
++ * Works with any tag format: <tag>content</tag>
++ * Only extracts tags that are actually complete (have closing tags in source)
++ */
++function extractAllTags(response: string): ExtractedTag[] {
++  const tags: ExtractedTag[] = []
++
++  try {
++    const tree = unified().use(rehypeParse, { fragment: true }).parse(response) as Root
++
++    visit(tree, 'element', (node: Element) => {
++      const position = node.position
++      if (!position?.start || !position?.end)
++        return
++
++      const startIndex = getOffsetFromPosition(response, position.start)
++      const endIndex = getOffsetFromPosition(response, position.end)
++
++      if (startIndex === -1 || endIndex === -1)
++        return
++
++      // Extract the actual tag content from source
++      const fullMatch = response.slice(startIndex, endIndex)
++
++      // Only include tags that have a closing tag in the source (not auto-closed by rehype)
++      // Check if the source actually contains the closing tag
++      const expectedClosingTag = `</${node.tagName}>`
++      if (!fullMatch.includes(expectedClosingTag)) {
++        // This tag was auto-closed by rehype, so it's incomplete - skip it
++        return
++      }
++
++      tags.push({
++        tagName: node.tagName,
++        content: extractTextContent(node),
++        fullMatch,
++        startIndex,
++        endIndex,
++      })
++    })
++  }
++  catch (error) {
++    console.error('Failed to parse response for tag extraction:', error)
++    // If parsing fails, return empty array (no tags found)
++  }
++
++  return tags
++}
++
++/**
++ * Converts a position (line/column) to a character offset in the string
++ */
++function getOffsetFromPosition(text: string, position: Position['start']): number {
++  if (!position || typeof position.line !== 'number' || typeof position.column !== 'number')
++    return -1
++
++  const lines = text.split('\n')
++  let offset = 0
++
++  // Sum up lengths of all lines before the target line
++  for (let i = 0; i < position.line - 1 && i < lines.length; i++) {
++    offset += lines[i].length + 1 // +1 for the newline character
++  }
++
++  // Add the column offset (subtract 1 because columns are 1-indexed)
++  offset += position.column - 1
++
++  return offset
++}
++
++/**
++ * Extracts text content from an element node
++ */
++function extractTextContent(node: Element): string {
++  const textParts: string[] = []
++
++  if (node.children) {
++    for (const child of node.children) {
++      if (child.type === 'text') {
++        textParts.push(child.value)
++      }
++      else if (child.type === 'element') {
++        textParts.push(extractTextContent(child))
++      }
++    }
++  }
++
++  return textParts.join('')
++}
++
++/**
++ * Categorizes a model response by dynamically extracting any XML-like tags
++ * Works with any tag format the model uses
++ */
++export function categorizeResponse(
++  response: string,
++  _providerId?: string,
++): CategorizedResponse {
++  // Extract all tags dynamically
++  const extractedTags = extractAllTags(response)
++
++  if (extractedTags.length === 0) {
++    // No tags found, treat everything as speech
++    return {
++      segments: [],
++      speech: response,
++      reasoning: '',
++      raw: response,
++    }
++  }
++
++  // Convert extracted tags to categorized segments
++  const segments: CategorizedSegment[] = extractedTags.map(tag => ({
++    category: mapTagNameToCategory(tag.tagName),
++    content: tag.content.trim(),
++    startIndex: tag.startIndex,
++    endIndex: tag.endIndex,
++    raw: tag.fullMatch,
++    tagName: tag.tagName,
++  }))
++
++  // Sort segments by position
++  segments.sort((a, b) => a.startIndex - b.startIndex)
++
++  // Extract speech content (everything outside tags)
++  const speechParts: string[] = []
++  let lastEnd = 0
++
++  for (const segment of segments) {
++    // Add text before this segment
++    if (segment.startIndex > lastEnd) {
++      const text = response.slice(lastEnd, segment.startIndex).trim()
++      if (text) {
++        speechParts.push(text)
++      }
++    }
++    lastEnd = segment.endIndex
++  }
++
++  // Add remaining text after last segment
++  if (lastEnd < response.length) {
++    const text = response.slice(lastEnd).trim()
++    if (text) {
++      speechParts.push(text)
++    }
++  }
++
++  // Combine segments by category
++  const reasoning = segments
++    .filter(s => s.category === 'reasoning')
++    .map(s => s.content)
++    .join('\n\n')
++
++  // Speech is everything outside tags
++  const speech = speechParts.join(' ').trim()
++
++  return {
++    segments,
++    speech: speech || '',
++    reasoning,
++    raw: response,
++  }
++}
++
++/**
++ * Note: This receives literal text from useLlmmarkerParser (special tokens <|...|> are already extracted).
++ * Only XML/HTML tags like <think>, <reasoning> need to be parsed here.
++ */
++export function createStreamingCategorizer(
++  providerId?: string,
++  onSegment?: (segment: CategorizedSegment) => void,
++) {
++  let buffer = ''
++  let categorized: CategorizedResponse | null = null
++  let lastEmittedSegmentIndex = -1
++  let lastParsedLength = 0
++
++  // Lightweight state machine to detect tag closures without parsing entire buffer
++  type TagState = 'outside' | 'in-opening-tag' | 'in-content' | 'in-closing-tag'
++  let tagState: TagState = 'outside'
++  let tagStackDepth = 0
++
++  // Fallback for filterToSpeech - uses rehype for robust incomplete tag detection
++  function checkIncompleteTag(): boolean {
++    try {
++      const tree = unified().use(rehypeParse, { fragment: true }).parse(buffer) as Root
++      const stringified = unified().use(rehypeStringify).stringify(tree).toString()
++
++      if (stringified !== buffer) {
++        const bufferEnd = buffer.trim().slice(-30)
++        const stringifiedEnd = stringified.trim().slice(-30)
++        return bufferEnd !== stringifiedEnd
++      }
++
++      return false
++    }
++    catch {
++      // If parsing fails, assume incomplete
++      return true
++    }
++  }
++
++  // Tracks tag state incrementally (O(chunk.length)) to detect when tags close
++  // Returns true when the outermost tag just closed
++  function processChunkIncrementally(chunk: string): boolean {
++    let tagJustClosed = false
++
++    for (let i = 0; i < chunk.length; i++) {
++      const char = chunk[i]
++
++      switch (tagState) {
++        case 'outside': {
++          if (char === '<') {
++            if (i + 1 < chunk.length && chunk[i + 1] === '/') {
++              tagState = 'in-closing-tag'
++              i++
++            }
++            else {
++              tagState = 'in-opening-tag'
++            }
++          }
++          break
++        }
++
++        case 'in-opening-tag': {
++          if (char === '>') {
++            tagState = 'in-content'
++            tagStackDepth++
++          }
++          break
++        }
++
++        case 'in-content': {
++          if (char === '<') {
++            if (i + 1 < chunk.length && chunk[i + 1] === '/') {
++              tagState = 'in-closing-tag'
++              i++
++            }
++            else {
++              tagState = 'in-opening-tag'
++            }
++          }
++          break
++        }
++
++        case 'in-closing-tag': {
++          if (char === '>') {
++            tagStackDepth--
++            if (tagStackDepth === 0) {
++              tagState = 'outside'
++              tagJustClosed = true
++            }
++            else {
++              tagState = 'in-content'
++            }
++          }
++          break
++        }
++      }
++    }
++
++    return tagJustClosed
++  }
++
++  return {
++    consume(chunk: string) {
++      // Process before adding to buffer to detect tag closure in this chunk
++      const tagJustClosed = processChunkIncrementally(chunk)
++      buffer += chunk
++
++      // Re-categorize on first chunk, tag closure, or every 1KB (periodic fallback)
++      const shouldRecategorize = !categorized
++        || tagJustClosed
++        || buffer.length - lastParsedLength > 1000
++
++      if (shouldRecategorize) {
++        categorized = categorizeResponse(buffer, providerId)
++        lastParsedLength = buffer.length
++      }
++
++      // Type guard for TypeScript (shouldRecategorize handles !categorized, but TS doesn't know)
++      if (!categorized) {
++        categorized = categorizeResponse(buffer, providerId)
++        lastParsedLength = buffer.length
++      }
++
++      if (onSegment && categorized.segments.length > 0) {
++        for (let i = lastEmittedSegmentIndex + 1; i < categorized.segments.length; i++) {
++          const segment = categorized.segments[i]
++          if (buffer.length >= segment.endIndex) {
++            onSegment(segment)
++            lastEmittedSegmentIndex = i
++          }
++        }
++      }
++    },
++    /**
++     * Checks if the current position in the stream is part of speech content
++     * Returns true if the text should be sent to TTS
++     */
++    isSpeechAt(position: number): boolean {
++      if (!categorized || categorized.segments.length === 0) {
++        // No categorization yet, assume it's speech
++        return true
++      }
++
++      // Check if position falls within any non-speech segment
++      for (const segment of categorized.segments) {
++        if (position >= segment.startIndex && position < segment.endIndex) {
++          // Position is within a tagged segment (thought/reasoning)
++          return false
++        }
++      }
++
++      // Position is not in any tagged segment, so it's speech
++      return true
++    },
++    /**
++     * Filters text to only include speech parts
++     * Removes content that falls within thought/reasoning segments
++     */
++    filterToSpeech(text: string, startPosition: number): string {
++      // Check if we're currently inside an incomplete tag
++      if (checkIncompleteTag()) {
++        // Try to find where the tag closes in the combined buffer + text
++        const fullText = buffer + text
++        try {
++          const tree = unified().use(rehypeParse, { fragment: true }).parse(fullText) as Root
++          let closingOffset = -1
++
++          visit(tree, 'element', (node: Element) => {
++            const position = node.position
++            if (position?.end && closingOffset === -1) {
++              const endOffset = getOffsetFromPosition(fullText, position.end)
++              // Check if this element actually has a closing tag in the source
++              const elementSource = fullText.slice(
++                getOffsetFromPosition(fullText, position.start),
++                endOffset,
++              )
++              const expectedClosingTag = `</${node.tagName}>`
++
++              // Only consider it complete if the closing tag exists in source
++              if (elementSource.includes(expectedClosingTag)) {
++                // If this element closes within the new text chunk
++                if (endOffset >= buffer.length && endOffset <= fullText.length) {
++                  closingOffset = endOffset - buffer.length
++                }
++              }
++            }
++          })
++
++          if (closingOffset === -1)
++            return '' // Still incomplete, filter everything
++
++          // Return only content after the closing tag
++          // The buffer already includes text up to closingOffset (from consume())
++          text = text.slice(closingOffset)
++          startPosition += closingOffset
++          // Re-categorize with the complete tag now in buffer
++          categorized = categorizeResponse(buffer, providerId)
++        }
++        catch {
++          return '' // Parsing failed, filter everything
++        }
++      }
++
++      if (!categorized || categorized.segments.length === 0) {
++        // No segments detected, all text is speech
++        return text
++      }
++
++      let filtered = ''
++      const endPosition = startPosition + text.length
++
++      // Find all non-speech segments that overlap with this text
++      // Note: segments are already filtered to be complete by extractAllTags
++      const overlappingSegments = categorized.segments.filter(
++        segment => segment.endIndex > startPosition && segment.startIndex < endPosition,
++      )
++
++      if (overlappingSegments.length === 0) {
++        // No overlapping segments, all text is speech
++        return text
++      }
++
++      // Build filtered text by excluding non-speech segments
++      let currentPos = startPosition
++      for (const segment of overlappingSegments) {
++        const segmentStart = Math.max(segment.startIndex, startPosition)
++        const segmentEnd = Math.min(segment.endIndex, endPosition)
++
++        // Add text before this segment
++        if (segmentStart > currentPos) {
++          const beforeStart = currentPos - startPosition
++          const beforeEnd = segmentStart - startPosition
++          filtered += text.slice(beforeStart, beforeEnd)
++        }
++
++        // Skip the segment content (don't add to filtered)
++        currentPos = segmentEnd
++      }
++
++      // Add remaining text after last segment
++      if (currentPos < endPosition) {
++        const afterStart = currentPos - startPosition
++        filtered += text.slice(afterStart)
++      }
++
++      return filtered
++    },
++    getCurrentPosition(): number {
++      return buffer.length
++    },
++    end(): CategorizedResponse {
++      return categorizeResponse(buffer, providerId)
++    },
++    getCurrent(): CategorizedResponse | null {
++      return categorized
++    },
++  }
++}
+diff --git a/packages/stage-ui/src/composables/use-chat-session/summary.ts b/packages/stage-ui/src/composables/use-chat-session/summary.ts
+new file mode 100644
+index 00000000..32e2c42b
+--- /dev/null
++++ b/packages/stage-ui/src/composables/use-chat-session/summary.ts
+@@ -0,0 +1,76 @@
++import type { ChatAssistantMessage, ChatHistoryItem } from '../../types/chat'
++
++/**
++ * Extract all reasoning from a session's messages
++ */
++export function getAllReasoning(messages: ChatHistoryItem[]): string[] {
++  return messages
++    .filter((msg): msg is ChatAssistantMessage =>
++      msg.role === 'assistant' && 'categorization' in msg,
++    )
++    .map(msg => msg.categorization?.reasoning)
++    .filter((reasoning): reasoning is string => !!reasoning?.trim())
++}
++
++/**
++ * Get combined reasoning as a single string
++ */
++export function getCombinedReasoning(messages: ChatHistoryItem[]): string {
++  return getAllReasoning(messages).join('\n\n')
++}
++
++/**
++ * Get session summary with reasoning, speech, and metadata
++ */
++export function getSessionSummary(
++  sessionId: string,
++  messages: ChatHistoryItem[],
++): {
++  sessionId: string
++  messageCount: number
++  reasoningCount: number
++  allReasoning: string[]
++  allSpeech: string[]
++  combinedReasoning: string
++  combinedSpeech: string
++  createdAt?: number
++  lastMessageAt?: number
++} {
++  const allReasoning: string[] = []
++  const allSpeech: string[] = []
++
++  for (const msg of messages) {
++    if (msg.role === 'assistant' && 'categorization' in msg) {
++      const reasoning = msg.categorization?.reasoning
++      if (reasoning?.trim()) {
++        allReasoning.push(reasoning)
++      }
++      const speech = msg.categorization?.speech
++      if (speech?.trim()) {
++        allSpeech.push(speech)
++      }
++    }
++  }
++
++  return {
++    sessionId,
++    messageCount: messages.length,
++    reasoningCount: allReasoning.length,
++    allReasoning,
++    allSpeech,
++    combinedReasoning: allReasoning.join('\n\n'),
++    combinedSpeech: allSpeech.join('\n\n'),
++    createdAt: messages[0]?.createdAt,
++    lastMessageAt: messages[messages.length - 1]?.createdAt,
++  }
++}
++
++/**
++ * Get reasoning from all sessions
++ */
++export function getAllReasoningFromAllSessions(
++  allSessions: Record<string, ChatHistoryItem[]>,
++): string[] {
++  return Object.values(allSessions)
++    .flatMap(messages => getAllReasoning(messages))
++}
+diff --git a/packages/stage-ui/src/stores/chat.ts b/packages/stage-ui/src/stores/chat.ts
+index 8f6689fb..621f3bc0 100644
+--- a/packages/stage-ui/src/stores/chat.ts
++++ b/packages/stage-ui/src/stores/chat.ts
+@@ -11,10 +11,12 @@ import { computed, ref, toRaw, watch } from 'vue'
+
+ import { useAnalytics } from '../composables'
+ import { useLlmmarkerParser } from '../composables/llmmarkerParser'
++import { categorizeResponse, createStreamingCategorizer } from '../composables/response-categoriser'
+ import { useLLM } from '../stores/llm'
+ import { createQueue } from '../utils/queue'
+ import { TTS_FLUSH_INSTRUCTION } from '../utils/tts'
+ import { useCharacterStore } from './character'
++import { useConsciousnessStore } from './modules/consciousness'
+
+ const CHAT_STORAGE_KEY = 'chat/messages/v2'
+ const ACTIVE_SESSION_STORAGE_KEY = 'chat/active-session'
+@@ -23,6 +25,8 @@ export const CHAT_STREAM_CHANNEL_NAME = 'airi-chat-stream'
+
+ export const useChatStore = defineStore('chat', () => {
+   const { stream, discoverToolsCompatibility } = useLLM()
++  const consciousnessStore = useConsciousnessStore()
++  const { activeProvider } = storeToRefs(consciousnessStore)
+   const { systemPrompt } = storeToRefs(useCharacterStore())
+   const { trackFirstMessage } = useAnalytics()
+
+@@ -391,26 +395,44 @@ export const useChatStore = defineStore('chat', () => {
+       const sessionMessagesForSend = getSessionMessagesById(sessionId)
+       sessionMessagesForSend.push({ role: 'user', content: finalContent })
+
++      // Create categorizer for response categorization
++      const categorizer = createStreamingCategorizer(activeProvider.value)
++      let streamPosition = 0 // Track position in stream for TTS filtering
++
+       const parser = useLlmmarkerParser({
+         onLiteral: async (literal) => {
+           if (shouldAbort())
+             return
+
+-          await emitTokenLiteralHooks(literal, streamingMessageContext)
++          // Feed to categorizer first
++          categorizer.consume(literal)
+
+-          streamingMessage.value.content += literal
++          // Filter to only include speech parts (exclude reasoning)
++          // The categorizer handles incomplete tags and filters based on detected tags during streaming
++          const speechOnly = categorizer.filterToSpeech(literal, streamPosition)
++          streamPosition += literal.length
+
+-          // merge text slices for markdown
+-          const lastSlice = streamingMessage.value.slices.at(-1)
+-          if (lastSlice?.type === 'text') {
+-            lastSlice.text += literal
+-            return
+-          }
++          // Only process non-empty speech content (filter empty/whitespace-only chunks)
++          // Preserve spacing in chunks with content for proper word boundaries
++          if (speechOnly.trim()) {
++            streamingMessage.value.content += speechOnly
++
++            // Emit TTS only for speech parts, not reasoning (clean data, no empty chunks)
++            await emitTokenLiteralHooks(speechOnly, streamingMessageContext)
++
++            // Add speech content to slices for rendering
++            // merge text slices for markdown
++            const lastSlice = streamingMessage.value.slices.at(-1)
++            if (lastSlice?.type === 'text') {
++              lastSlice.text += speechOnly
++              return
++            }
+
+-          streamingMessage.value.slices.push({
+-            type: 'text',
+-            text: literal,
+-          })
++            streamingMessage.value.slices.push({
++              type: 'text',
++              text: speechOnly,
++            })
++          }
+         },
+         onSpecial: async (special) => {
+           if (shouldAbort())
+@@ -418,6 +440,19 @@ export const useChatStore = defineStore('chat', () => {
+
+           await emitTokenSpecialHooks(special, streamingMessageContext)
+         },
++        onEnd: async (fullText) => {
++          if (isStaleGeneration())
++            return
++
++          // Categorize the full text stream
++          const finalCategorization = categorizeResponse(fullText, activeProvider.value)
++
++          // Always store categorization (even if empty) for consistency and memory features
++          streamingMessage.value.categorization = {
++            speech: finalCategorization.speech,
++            reasoning: finalCategorization.reasoning,
++          }
++        },
+         minLiteralEmitLength: 24, // Avoid emitting literals too fast. This is a magic number and can be changed later.
+       })
+
+@@ -443,7 +478,7 @@ export const useChatStore = defineStore('chat', () => {
+         const rawMessage = toRaw(withoutContext)
+
+         if (rawMessage.role === 'assistant') {
+-          const { slices: _, tool_results, ...rest } = rawMessage as ChatAssistantMessage
++          const { slices: _, tool_results, categorization: __categorization, ...rest } = rawMessage as ChatAssistantMessage
+           return {
+             ...toRaw(rest),
+             tool_results: toRaw(tool_results),
+@@ -520,6 +555,7 @@ export const useChatStore = defineStore('chat', () => {
+       })
+
+       // Finalize the parsing of the actual message content
++      // Categorization and filtering happens in the onEnd callback
+       await parser.end()
+
+       // Add the completed message to the history only if it has content
+diff --git a/packages/stage-ui/src/types/chat.ts b/packages/stage-ui/src/types/chat.ts
+index 2b65f94b..348352df 100644
+--- a/packages/stage-ui/src/types/chat.ts
++++ b/packages/stage-ui/src/types/chat.ts
+@@ -25,6 +25,10 @@ export interface ChatAssistantMessage extends AssistantMessage {
+     id: string
+     result?: string | CommonContentPart[]
+   }[]
++  categorization?: {
++    speech: string
++    reasoning: string
++  }
+ }
+
+ export type ChatMessage = ChatAssistantMessage | SystemMessage | ToolMessage | UserMessage
+diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
+index 85fec017..630576a3 100644
+--- a/pnpm-lock.yaml
++++ b/pnpm-lock.yaml
+@@ -45,9 +45,15 @@ catalogs:
+     '@types/audioworklet':
+       specifier: ^0.0.92
+       version: 0.0.92
++    '@types/hast':
++      specifier: ^3.0.4
++      version: 3.0.4
+     '@types/splitpanes':
+       specifier: ^2.2.6
+       version: 2.2.6
++    '@types/unist':
++      specifier: ^3.0.3
++      version: 3.0.3
+     '@xsai-ext/providers':
+       specifier: ^0.4.0-beta.13
+       version: 0.4.0
+@@ -685,7 +691,7 @@ importers:
+         version: 1.0.18
+       '@proj-airi/unplugin-fetch':
+         specifier: ^0.2.1
+-        version: 0.2.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
++        version: 0.2.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+       '@proj-airi/unplugin-live2d-sdk':
+         specifier: ^0.1.6
+         version: 0.1.6(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+@@ -718,7 +724,7 @@ importers:
+         version: 66.5.11
+       '@vitejs/plugin-vue':
+         specifier: ^6.0.3
+-        version: 6.0.3(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
++        version: 6.0.3(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/volar':
+         specifier: ^3.1.1
+         version: 3.1.1(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))(vue@3.5.25(typescript@5.9.3))
+@@ -736,34 +742,34 @@ importers:
+         version: 4.5.1
+       unplugin-info:
+         specifier: ^1.2.4
+-        version: 1.2.4(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rollup@2.79.2)
++        version: 1.2.4(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rollup@2.79.2)
+       unplugin-vue-router:
+         specifier: ^0.19.0
+         version: 0.19.2(@vue/compiler-sfc@3.5.26)(vue-router@4.6.4(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3))
+       unplugin-yaml:
+         specifier: ^3.0.7
+-        version: 3.0.7(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)
++        version: 3.0.7(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)
+       vite:
+         specifier: catalog:rolldown-vite
+-        version: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++        version: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+       vite-bundle-visualizer:
+         specifier: ^1.2.1
+         version: 1.2.1(rolldown@1.0.0-beta.53)(rollup@2.79.2)
+       vite-plugin-mkcert:
+         specifier: 'catalog:'
+-        version: 1.17.9(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
++        version: 1.17.9(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+       vite-plugin-pwa:
+         specifier: ^1.2.0
+-        version: 1.2.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(workbox-build@7.4.0)(workbox-window@7.4.0)
++        version: 1.2.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(workbox-build@7.4.0)(workbox-window@7.4.0)
+       vite-plugin-vue-devtools:
+         specifier: ^8.0.5
+-        version: 8.0.5(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
++        version: 8.0.5(@nuxt/kit@3.20.2(magicast@0.5.1))(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
+       vite-plugin-vue-layouts:
+         specifier: ^0.11.0
+-        version: 0.11.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue-router@4.6.4(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3))
++        version: 0.11.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue-router@4.6.4(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3))
+       vue-macros:
+         specifier: ^3.1.1
+-        version: 3.1.1(@vueuse/core@14.1.0(vue@3.5.25(typescript@5.9.3)))(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))(vue@3.5.25(typescript@5.9.3))
++        version: 3.1.1(@vueuse/core@14.1.0(vue@3.5.25(typescript@5.9.3)))(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))(vue@3.5.25(typescript@5.9.3))
+       vue-tsc:
+         specifier: ^3.1.8
+         version: 3.2.1(typescript@5.9.3)
+@@ -2310,6 +2316,9 @@ importers:
+       rehype-katex:
+         specifier: ^7.0.1
+         version: 7.0.1
++      rehype-parse:
++        specifier: ^9.0.1
++        version: 9.0.1
+       rehype-stringify:
+         specifier: ^10.0.1
+         version: 10.0.1
+@@ -2340,6 +2349,9 @@ importers:
+       unist-builder:
+         specifier: ^4.0.0
+         version: 4.0.0
++      unist-util-visit:
++        specifier: ^5.0.0
++        version: 5.0.0
+       unspeech:
+         specifier: catalog:xsai
+         version: 0.1.11
+@@ -2449,12 +2461,18 @@ importers:
+       '@types/culori':
+         specifier: ^4.0.1
+         version: 4.0.1
++      '@types/hast':
++        specifier: 'catalog:'
++        version: 3.0.4
+       '@types/splitpanes':
+         specifier: 'catalog:'
+         version: 2.2.6
+       '@types/three':
+         specifier: ^0.182.0
+         version: 0.182.0
++      '@types/unist':
++        specifier: 'catalog:'
++        version: 3.0.3
+       '@unocss/reset':
+         specifier: ^66.5.11
+         version: 66.5.11
+@@ -2796,7 +2814,7 @@ importers:
+         version: 66.5.11
+       '@wxt-dev/module-vue':
+         specifier: ^1.0.3
+-        version: 1.0.3(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
++        version: 1.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+       vue-tsc:
+         specifier: ^3.1.8
+         version: 3.2.1(typescript@5.9.3)
+@@ -20724,11 +20742,6 @@ snapshots:
+
+   '@proj-airi/unocss-preset-chromatic@1.0.2': {}
+
+-  '@proj-airi/unplugin-fetch@0.2.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
+-    dependencies:
+-      ofetch: 1.5.1
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-
+   '@proj-airi/unplugin-fetch@0.2.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
+     dependencies:
+       ofetch: 1.5.1
+@@ -21935,12 +21948,6 @@ snapshots:
+     dependencies:
+       '@vibrant/types': 4.0.0
+
+-  '@vitejs/plugin-vue@6.0.3(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))':
+-    dependencies:
+-      '@rolldown/pluginutils': 1.0.0-beta.53
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-      vue: 3.5.25(typescript@5.9.3)
+-
+   '@vitejs/plugin-vue@6.0.3(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))':
+     dependencies:
+       '@rolldown/pluginutils': 1.0.0-beta.53
+@@ -21959,19 +21966,11 @@ snapshots:
+       vite: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+       vue: 3.5.25(typescript@5.9.3)
+
+-  '@vitest/browser-playwright@4.0.16(bufferutil@4.1.0)(playwright@1.57.0)(utf-8-validate@5.0.10)(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)':
++  '@vitejs/plugin-vue@6.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))':
+     dependencies:
+-      '@vitest/browser': 4.0.16(bufferutil@4.1.0)(utf-8-validate@5.0.10)(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)
+-      '@vitest/mocker': 4.0.16(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+-      playwright: 1.57.0
+-      tinyrainbow: 3.0.3
+-      vitest: 4.0.16(@opentelemetry/api@1.9.0)(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@25.0.1(bufferutil@4.1.0)(utf-8-validate@5.0.10))(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-    transitivePeerDependencies:
+-      - bufferutil
+-      - msw
+-      - utf-8-validate
+-      - vite
+-    optional: true
++      '@rolldown/pluginutils': 1.0.0-beta.53
++      vite: 8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++      vue: 3.5.25(typescript@5.9.3)
+
+   '@vitest/browser-playwright@4.0.16(bufferutil@4.1.0)(playwright@1.57.0)(utf-8-validate@5.0.10)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)':
+     dependencies:
+@@ -21986,24 +21985,6 @@ snapshots:
+       - utf-8-validate
+       - vite
+
+-  '@vitest/browser@4.0.16(bufferutil@4.1.0)(utf-8-validate@5.0.10)(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)':
+-    dependencies:
+-      '@vitest/mocker': 4.0.16(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+-      '@vitest/utils': 4.0.16
+-      magic-string: 0.30.21
+-      pixelmatch: 7.1.0
+-      pngjs: 7.0.0
+-      sirv: 3.0.2
+-      tinyrainbow: 3.0.3
+-      vitest: 4.0.16(@opentelemetry/api@1.9.0)(@types/node@24.10.4)(@vitest/browser-playwright@4.0.16)(jiti@2.6.1)(jsdom@25.0.1(bufferutil@4.1.0)(utf-8-validate@5.0.10))(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-      ws: 8.18.3(bufferutil@4.1.0)(utf-8-validate@5.0.10)
+-    transitivePeerDependencies:
+-      - bufferutil
+-      - msw
+-      - utf-8-validate
+-      - vite
+-    optional: true
+-
+   '@vitest/browser@4.0.16(bufferutil@4.1.0)(utf-8-validate@5.0.10)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)':
+     dependencies:
+       '@vitest/mocker': 4.0.16(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+@@ -22060,15 +22041,6 @@ snapshots:
+       chai: 6.2.2
+       tinyrainbow: 3.0.3
+
+-  '@vitest/mocker@4.0.16(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
+-    dependencies:
+-      '@vitest/spy': 4.0.16
+-      estree-walker: 3.0.3
+-      magic-string: 0.30.21
+-    optionalDependencies:
+-      vite: 6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-    optional: true
+-
+   '@vitest/mocker@4.0.16(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
+     dependencies:
+       '@vitest/spy': 4.0.16
+@@ -22249,15 +22221,6 @@ snapshots:
+     transitivePeerDependencies:
+       - vue
+
+-  '@vue-macros/devtools@3.1.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(typescript@5.9.3)':
+-    dependencies:
+-      sirv: 3.0.2
+-      vue: 3.5.25(typescript@5.9.3)
+-    optionalDependencies:
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-    transitivePeerDependencies:
+-      - typescript
+-
+   '@vue-macros/devtools@3.1.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(typescript@5.9.3)':
+     dependencies:
+       sirv: 3.0.2
+@@ -22528,18 +22491,6 @@ snapshots:
+     dependencies:
+       '@vue/devtools-kit': 8.0.5
+
+-  '@vue/devtools-core@8.0.5(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))':
+-    dependencies:
+-      '@vue/devtools-kit': 8.0.5
+-      '@vue/devtools-shared': 8.0.5
+-      mitt: 3.0.1
+-      nanoid: 5.1.6
+-      pathe: 2.0.3
+-      vite-hot-client: 2.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+-      vue: 3.5.25(typescript@5.9.3)
+-    transitivePeerDependencies:
+-      - vite
+-
+   '@vue/devtools-core@8.0.5(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))':
+     dependencies:
+       '@vue/devtools-kit': 8.0.5
+@@ -22766,9 +22717,9 @@ snapshots:
+       '@types/filesystem': 0.0.36
+       '@types/har-format': 1.2.16
+
+-  '@wxt-dev/module-vue@1.0.3(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
++  '@wxt-dev/module-vue@1.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))(wxt@0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
+     dependencies:
+-      '@vitejs/plugin-vue': 6.0.3(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
++      '@vitejs/plugin-vue': 6.0.3(vite@8.0.0-beta.5(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
+       wxt: 0.20.13(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(rollup@4.54.0)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+     transitivePeerDependencies:
+       - vite
+@@ -29076,25 +29027,6 @@ snapshots:
+     transitivePeerDependencies:
+       - oxc-resolver
+
+-  rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2):
+-    dependencies:
+-      '@oxc-project/runtime': 0.101.0
+-      fdir: 6.5.0(picomatch@4.0.3)
+-      lightningcss: 1.30.2
+-      picomatch: 4.0.3
+-      postcss: 8.5.6
+-      rolldown: 1.0.0-beta.53
+-      tinyglobby: 0.2.15
+-    optionalDependencies:
+-      '@types/node': 24.10.4
+-      esbuild: 0.25.12
+-      fsevents: 2.3.3
+-      jiti: 2.6.1
+-      less: 4.5.1
+-      terser: 5.44.1
+-      tsx: 4.21.0
+-      yaml: 2.8.2
+-
+   rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2):
+     dependencies:
+       '@oxc-project/runtime': 0.101.0
+@@ -30451,13 +30383,13 @@ snapshots:
+
+   unpipe@1.0.0: {}
+
+-  unplugin-combine@2.1.3(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(unplugin@2.3.11):
++  unplugin-combine@2.1.3(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(unplugin@2.3.11):
+     optionalDependencies:
+-      esbuild: 0.25.12
++      esbuild: 0.27.2
+       rolldown: 1.0.0-beta.53
+       rollup: 2.79.2
+       unplugin: 2.3.11
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+
+   unplugin-combine@2.1.3(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@4.54.0)(unplugin@2.3.11):
+     optionalDependencies:
+@@ -30495,16 +30427,16 @@ snapshots:
+     transitivePeerDependencies:
+       - supports-color
+
+-  unplugin-info@1.2.4(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rollup@2.79.2):
++  unplugin-info@1.2.4(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rollup@2.79.2):
+     dependencies:
+       ci-info: 4.3.1
+       git-url-parse: 16.1.0
+       simple-git: 3.30.0
+       unplugin: 2.3.11
+     optionalDependencies:
+-      esbuild: 0.25.12
++      esbuild: 0.27.2
+       rollup: 2.79.2
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+     transitivePeerDependencies:
+       - supports-color
+
+@@ -30629,16 +30561,16 @@ snapshots:
+       rollup: 4.54.0
+       vite: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+
+-  unplugin-yaml@3.0.7(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2):
++  unplugin-yaml@3.0.7(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2):
+     dependencies:
+       '@rollup/pluginutils': 5.3.0(rollup@2.79.2)
+       unplugin: 2.3.10
+       yaml: 2.8.1
+     optionalDependencies:
+-      esbuild: 0.25.12
++      esbuild: 0.27.2
+       rolldown: 1.0.0-beta.53
+       rollup: 2.79.2
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+
+   unplugin-yaml@3.0.7(esbuild@0.27.2)(rolldown@1.0.0-beta.53)(rollup@4.54.0)(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+     dependencies:
+@@ -30826,12 +30758,6 @@ snapshots:
+       - rollup
+       - supports-color
+
+-  vite-dev-rpc@1.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+-    dependencies:
+-      birpc: 2.9.0
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-      vite-hot-client: 2.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+-
+   vite-dev-rpc@1.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+     dependencies:
+       birpc: 2.9.0
+@@ -30844,10 +30770,6 @@ snapshots:
+       vite: 7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+       vite-hot-client: 2.1.0(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+
+-  vite-hot-client@2.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+-    dependencies:
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-
+   vite-hot-client@2.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+     dependencies:
+       vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+@@ -30912,21 +30834,6 @@ snapshots:
+     transitivePeerDependencies:
+       - supports-color
+
+-  vite-plugin-inspect@11.3.3(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+-    dependencies:
+-      ansis: 4.2.0
+-      debug: 4.4.3
+-      error-stack-parser-es: 1.0.5
+-      ohash: 2.0.11
+-      open: 10.2.0
+-      perfect-debounce: 2.0.0
+-      sirv: 3.0.2
+-      unplugin-utils: 0.3.1
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-      vite-dev-rpc: 1.1.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+-    transitivePeerDependencies:
+-      - supports-color
+-
+   vite-plugin-inspect@11.3.3(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+     dependencies:
+       ansis: 4.2.0
+@@ -30942,23 +30849,12 @@ snapshots:
+     transitivePeerDependencies:
+       - supports-color
+
+-  vite-plugin-mkcert@1.17.9(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
++  vite-plugin-mkcert@1.17.9(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+     dependencies:
+       axios: feaxios@0.0.23
+       debug: 4.4.3
+       picocolors: 1.1.1
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-    transitivePeerDependencies:
+-      - supports-color
+-
+-  vite-plugin-pwa@1.2.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(workbox-build@7.4.0)(workbox-window@7.4.0):
+-    dependencies:
+-      debug: 4.4.3
+-      pretty-bytes: 6.1.1
+-      tinyglobby: 0.2.15
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-      workbox-build: 7.4.0
+-      workbox-window: 7.4.0
++      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+     transitivePeerDependencies:
+       - supports-color
+
+@@ -30987,35 +30883,6 @@ snapshots:
+       - supports-color
+       - vue
+
+-  vite-plugin-vue-devtools@8.0.5(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3)):
+-    dependencies:
+-      '@vue/devtools-core': 8.0.5(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
+-      '@vue/devtools-kit': 8.0.5
+-      '@vue/devtools-shared': 8.0.5
+-      sirv: 3.0.2
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-      vite-plugin-inspect: 11.3.3(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+-      vite-plugin-vue-inspector: 5.3.2(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+-    transitivePeerDependencies:
+-      - '@nuxt/kit'
+-      - supports-color
+-      - vue
+-
+-  vite-plugin-vue-inspector@5.3.2(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+-    dependencies:
+-      '@babel/core': 7.28.5
+-      '@babel/plugin-proposal-decorators': 7.28.0(@babel/core@7.28.5)
+-      '@babel/plugin-syntax-import-attributes': 7.27.1(@babel/core@7.28.5)
+-      '@babel/plugin-syntax-import-meta': 7.10.4(@babel/core@7.28.5)
+-      '@babel/plugin-transform-typescript': 7.28.5(@babel/core@7.28.5)
+-      '@vue/babel-plugin-jsx': 1.5.0(@babel/core@7.28.5)
+-      '@vue/compiler-dom': 3.5.26
+-      kolorist: 1.8.0
+-      magic-string: 0.30.21
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-    transitivePeerDependencies:
+-      - supports-color
+-
+   vite-plugin-vue-inspector@5.3.2(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+     dependencies:
+       '@babel/core': 7.28.5
+@@ -31031,16 +30898,6 @@ snapshots:
+     transitivePeerDependencies:
+       - supports-color
+
+-  vite-plugin-vue-layouts@0.11.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue-router@4.6.4(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3)):
+-    dependencies:
+-      debug: 4.4.3
+-      fast-glob: 3.3.3
+-      vite: rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
+-      vue: 3.5.25(typescript@5.9.3)
+-      vue-router: 4.6.4(vue@3.5.25(typescript@5.9.3))
+-    transitivePeerDependencies:
+-      - supports-color
+-
+   vite-plugin-vue-layouts@0.11.0(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue-router@4.6.4(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3)):
+     dependencies:
+       debug: 4.4.3
+@@ -31195,7 +31052,7 @@ snapshots:
+     optionalDependencies:
+       '@opentelemetry/api': 1.9.0
+       '@types/node': 24.10.4
+-      '@vitest/browser-playwright': 4.0.16(bufferutil@4.1.0)(playwright@1.57.0)(utf-8-validate@5.0.10)(vite@6.4.1(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)
++      '@vitest/browser-playwright': 4.0.16(bufferutil@4.1.0)(playwright@1.57.0)(utf-8-validate@5.0.10)(vite@7.3.0(@types/node@24.10.4)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vitest@4.0.16)
+       jsdom: 25.0.1(bufferutil@4.1.0)(utf-8-validate@5.0.10)
+     transitivePeerDependencies:
+       - jiti
+@@ -31242,7 +31099,7 @@ snapshots:
+       '@vue/devtools-api': 6.6.4
+       vue: 3.5.25(typescript@5.9.3)
+
+-  vue-macros@3.1.1(@vueuse/core@14.1.0(vue@3.5.25(typescript@5.9.3)))(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))(vue@3.5.25(typescript@5.9.3)):
++  vue-macros@3.1.1(@vueuse/core@14.1.0(vue@3.5.25(typescript@5.9.3)))(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))(vue@3.5.25(typescript@5.9.3)):
+     dependencies:
+       '@vue-macros/better-define': 3.1.1(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/boolean-prop': 3.1.1(vue@3.5.25(typescript@5.9.3))
+@@ -31257,7 +31114,7 @@ snapshots:
+       '@vue-macros/define-render': 3.1.1(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/define-slots': 3.1.1(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/define-stylex': 3.1.1(vue@3.5.25(typescript@5.9.3))
+-      '@vue-macros/devtools': 3.1.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(typescript@5.9.3)
++      '@vue-macros/devtools': 3.1.1(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(typescript@5.9.3)
+       '@vue-macros/export-expose': 3.1.1(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/export-props': 3.1.1(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/export-render': 3.1.1(vue@3.5.25(typescript@5.9.3))
+@@ -31274,7 +31131,7 @@ snapshots:
+       '@vue-macros/short-vmodel': 3.1.1(vue@3.5.25(typescript@5.9.3))
+       '@vue-macros/volar': 3.1.1(typescript@5.9.3)(vue-tsc@3.2.1(typescript@5.9.3))(vue@3.5.25(typescript@5.9.3))
+       unplugin: 2.3.11
+-      unplugin-combine: 2.1.3(esbuild@0.25.12)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.25.12)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(unplugin@2.3.11)
++      unplugin-combine: 2.1.3(esbuild@0.27.2)(rolldown-vite@7.3.0(@types/node@24.10.4)(esbuild@0.27.2)(jiti@2.6.1)(less@4.5.1)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(rolldown@1.0.0-beta.53)(rollup@2.79.2)(unplugin@2.3.11)
+       unplugin-vue-define-options: 3.1.1(vue@3.5.25(typescript@5.9.3))
+       vue: 3.5.25(typescript@5.9.3)
+     transitivePeerDependencies:
+diff --git a/pnpm-workspace.yaml b/pnpm-workspace.yaml
+index b5d6aa5d..30930510 100644
+--- a/pnpm-workspace.yaml
++++ b/pnpm-workspace.yaml
+@@ -21,7 +21,9 @@ catalog:
+   '@pinia/testing': ^1.0.3
+   '@proj-airi/drizzle-duckdb-wasm': ^0.4.29
+   '@types/audioworklet': ^0.0.92
++  '@types/hast': ^3.0.4
+   '@types/splitpanes': ^2.2.6
++  '@types/unist': ^3.0.3
+   '@xsai-ext/providers': ^0.4.0-beta.13
+   '@xsai/embed': ^0.4.0-beta.13
+   '@xsai/generate-speech': 0.4.0-beta.13

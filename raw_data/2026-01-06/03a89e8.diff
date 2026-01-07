@@ -1,0 +1,312 @@
+commit 03a89e81a19f47ab6d6a5c3bb9792998daf52136
+Author: RainbowBird <git@luoling.moe>
+Date:   Mon Jan 5 18:14:18 2026 +0800
+
+    refactor(server): character hono app type
+
+diff --git a/apps/server/src/app.ts b/apps/server/src/app.ts
+index b76f72cd..da2b2e88 100644
+--- a/apps/server/src/app.ts
++++ b/apps/server/src/app.ts
+@@ -9,7 +9,7 @@ import { cors } from 'hono/cors'
+ import { logger as honoLogger } from 'hono/logger'
+ import { createLoggLogger, injeca } from 'injeca'
+
+-import { authGuard, sessionMiddleware } from './middlewares/auth'
++import { sessionMiddleware } from './middlewares/auth'
+ import { createCharacterRoutes } from './routes/characters'
+ import { createAuth } from './services/auth'
+ import { createCharacterService } from './services/characters'
+@@ -20,20 +20,70 @@ import { getTrustedOrigin } from './utils/origin'
+
+ import * as schema from './schemas'
+
++type AuthService = ReturnType<typeof createAuth>
++type CharacterService = ReturnType<typeof createCharacterService>
++
++interface AppDeps {
++  auth: AuthService
++  characterService: CharacterService
++}
++
++function buildApp({ auth, characterService }: AppDeps) {
++  const logger = useLogger('app').useGlobalConfig()
++
++  return new Hono<HonoEnv>()
++    .use(
++      '/api/*',
++      cors({
++        origin: origin => getTrustedOrigin(origin),
++        credentials: true,
++      }),
++    )
++    .use(honoLogger())
++    .use('*', sessionMiddleware(auth))
++    .onError((err, c) => {
++      if (err instanceof ApiError) {
++        return c.json({
++          error: err.errorCode,
++          message: err.message,
++          details: err.details,
++        }, err.statusCode)
++      }
++
++      logger.withError(err).error('Unhandled error')
++      const internalError = createInternalError()
++      return c.json({
++        error: internalError.errorCode,
++        message: internalError.message,
++      }, internalError.statusCode)
++    })
++
++    /**
++     * Auth routes are handled by the auth instance directly,
++     * Powered by better-auth.
++     */
++    .on(['POST', 'GET'], '/api/auth/*', c => auth.handler(c.req.raw))
++
++    /**
++     * Character routes are handled by the character service.
++     */
++    .route('/api/characters', createCharacterRoutes(characterService))
++}
++
++export type AppType = ReturnType<typeof buildApp>
++
+ async function createApp() {
+   initLogger(LoggerLevel.Debug, LoggerFormat.Pretty)
+   injeca.setLogger(createLoggLogger(useLogger('injeca').useGlobalConfig()))
+
+-  const logger = useLogger('app').useGlobalConfig()
+-
+   const db = injeca.provide('services:db', {
+     dependsOn: { env: parsedEnv },
+     build: ({ dependsOn }) => {
+       const dbInstance = createDrizzle(dependsOn.env.DATABASE_URL, schema)
+       dbInstance.execute('SELECT 1')
+-        .then(() => logger.log('Connected to database'))
++        .then(() => useLogger('app').useGlobalConfig().log('Connected to database'))
+         .catch((err) => {
+-          logger.withError(err).error('Failed to connect to database')
++          useLogger('app').useGlobalConfig().withError(err).error('Failed to connect to database')
+           exit(1)
+         })
+       return dbInstance
+@@ -52,50 +102,16 @@ async function createApp() {
+
+   await injeca.start()
+   const resolved = await injeca.resolve({ auth, characterService })
+-  const authInstance = resolved.auth
+-
+-  const app = new Hono<HonoEnv>()
+-    .use(
+-      '/api/*',
+-      cors({
+-        origin: origin => getTrustedOrigin(origin),
+-        credentials: true,
+-      }),
+-    )
+-    .use(honoLogger())
+-    .use('*', sessionMiddleware(authInstance))
+-    .get('/session', authGuard, (c) => {
+-      return c.json({
+-        session: c.get('session'),
+-        user: c.get('user')!,
+-      })
+-    })
+-    .on(['POST', 'GET'], '/api/auth/*', c => authInstance.handler(c.req.raw))
+-    .route('/api/characters', createCharacterRoutes(resolved.characterService))
+-    .onError((err, c) => {
+-      if (err instanceof ApiError) {
+-        return c.json({
+-          error: err.errorCode,
+-          message: err.message,
+-          details: err.details,
+-        }, err.statusCode)
+-      }
+-
+-      logger.withError(err).error('Unhandled error')
+-      const internalError = createInternalError()
+-      return c.json({
+-        error: internalError.errorCode,
+-        message: internalError.message,
+-      }, internalError.statusCode)
+-    })
++  const app = buildApp({
++    auth: resolved.auth,
++    characterService: resolved.characterService,
++  })
+
+-  logger.withFields({ port: 3000 }).log('Server started')
++  useLogger('app').useGlobalConfig().withFields({ port: 3000 }).log('Server started')
+
+   return app
+ }
+
+-export type AppType = Awaited<ReturnType<typeof createApp>>
+-
+ // eslint-disable-next-line antfu/no-top-level-await
+ serve(await createApp())
+
+diff --git a/apps/server/src/routes/characters.ts b/apps/server/src/routes/characters.ts
+index e5485176..5bbf272f 100644
+--- a/apps/server/src/routes/characters.ts
++++ b/apps/server/src/routes/characters.ts
+@@ -9,82 +9,79 @@ import { authGuard } from '../middlewares/auth'
+ import { createBadRequestError, createForbiddenError, createNotFoundError } from '../utils/error'
+
+ export function createCharacterRoutes(characterService: CharacterService) {
+-  const app = new Hono<HonoEnv>()
+-
+-  app.use('*', authGuard)
+-
+-  app.get('/', async (c) => {
+-    const user = c.get('user')!
+-
+-    const characters = await characterService.findByOwnerId(user.id)
+-    return c.json(characters)
+-  })
+-
+-  app.get('/:id', async (c) => {
+-    const id = c.req.param('id')
+-    const character = await characterService.findById(id)
+-    if (!character)
+-      throw createNotFoundError()
+-
+-    return c.json(character)
+-  })
+-
+-  app.post('/', async (c) => {
+-    const user = c.get('user')!
+-
+-    const body = await c.req.json()
+-    const result = safeParse(CreateCharacterSchema, body)
+-
+-    if (!result.success) {
+-      throw createBadRequestError('Invalid Request', 'INVALID_REQUEST', result.issues)
+-    }
+-
+-    const character = await characterService.create({
+-      ...result.output,
+-      character: {
+-        ...result.output.character,
+-        ownerId: user.id,
+-        creatorId: user.id,
+-      },
+-    } as any)
+-
+-    return c.json(character, 201)
+-  })
+-
+-  app.patch('/:id', async (c) => {
+-    const user = c.get('user')!
+-
+-    const id = c.req.param('id')
+-    const body = await c.req.json()
+-    const result = safeParse(UpdateCharacterSchema, body)
+-
+-    if (!result.success) {
+-      throw createBadRequestError('Invalid Request', 'INVALID_REQUEST', result.issues)
+-    }
+-
+-    const existing = await characterService.findById(id, { withRelations: false })
+-    if (!existing)
+-      throw createNotFoundError()
+-    if (existing.ownerId !== user.id)
+-      throw createForbiddenError()
+-
+-    const updated = await characterService.update(id, result.output)
+-    return c.json(updated)
+-  })
+-
+-  app.delete('/:id', async (c) => {
+-    const user = c.get('user')!
+-
+-    const id = c.req.param('id')
+-    const existing = await characterService.findById(id, { withRelations: false })
+-    if (!existing)
+-      throw createNotFoundError()
+-    if (existing.ownerId !== user.id)
+-      throw createForbiddenError()
+-
+-    await characterService.delete(id)
+-    return c.body(null, 204)
+-  })
+-
+-  return app
++  return new Hono<HonoEnv>()
++    .use('*', authGuard)
++
++    .get('/', async (c) => {
++      const user = c.get('user')!
++
++      const characters = await characterService.findByOwnerId(user.id)
++      return c.json(characters)
++    })
++
++    .get('/:id', async (c) => {
++      const id = c.req.param('id')
++      const character = await characterService.findById(id)
++      if (!character)
++        throw createNotFoundError()
++
++      return c.json(character)
++    })
++
++    .post('/', async (c) => {
++      const user = c.get('user')!
++
++      const body = await c.req.json()
++      const result = safeParse(CreateCharacterSchema, body)
++
++      if (!result.success) {
++        throw createBadRequestError('Invalid Request', 'INVALID_REQUEST', result.issues)
++      }
++
++      const character = await characterService.create({
++        ...result.output,
++        character: {
++          ...result.output.character,
++          ownerId: user.id,
++          creatorId: user.id,
++        },
++      } as any)
++
++      return c.json(character, 201)
++    })
++
++    .patch('/:id', async (c) => {
++      const user = c.get('user')!
++
++      const id = c.req.param('id')
++      const body = await c.req.json()
++      const result = safeParse(UpdateCharacterSchema, body)
++
++      if (!result.success) {
++        throw createBadRequestError('Invalid Request', 'INVALID_REQUEST', result.issues)
++      }
++
++      const existing = await characterService.findById(id, { withRelations: false })
++      if (!existing)
++        throw createNotFoundError()
++      if (existing.ownerId !== user.id)
++        throw createForbiddenError()
++
++      const updated = await characterService.update(id, result.output)
++      return c.json(updated)
++    })
++
++    .delete('/:id', async (c) => {
++      const user = c.get('user')!
++
++      const id = c.req.param('id')
++      const existing = await characterService.findById(id, { withRelations: false })
++      if (!existing)
++        throw createNotFoundError()
++      if (existing.ownerId !== user.id)
++        throw createForbiddenError()
++
++      await characterService.delete(id)
++      return c.body(null, 204)
++    })
+ }

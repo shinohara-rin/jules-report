@@ -1,0 +1,311 @@
+commit d5604d5af76bba33bc57a67145fa368da37d4f7b
+Author: Rin <shinohara-rin@users.noreply.github.com>
+Date:   Mon Jan 5 22:07:48 2026 +0800
+
+    Revert "feat(stage-ui): shuffle idle motions for Live2D model (#820)", closes #881
+
+    This reverts commit 4e553b7a763b28a7a6303680506a22ddf1990fb2.
+
+diff --git a/packages/stage-ui/src/components/scenarios/settings/model-settings/Live2D.vue b/packages/stage-ui/src/components/scenarios/settings/model-settings/Live2D.vue
+index aa4f37d7..98a38590 100644
+--- a/packages/stage-ui/src/components/scenarios/settings/model-settings/Live2D.vue
++++ b/packages/stage-ui/src/components/scenarios/settings/model-settings/Live2D.vue
+@@ -27,7 +27,6 @@ const {
+   position,
+   modelParameters,
+   currentMotion,
+-  selectedRuntimeIdleMotion,
+ } = storeToRefs(live2d)
+
+ const selectedRuntimeMotion = ref<string>('')
+@@ -51,33 +50,20 @@ onMounted(() => {
+     console.info('Available motions:', runtimeMotions.value)
+   }, { immediate: true })
+
+-  watch(selectedRuntimeIdleMotion, (motion) => {
+-    selectedRuntimeMotion.value = motion?.path || ''
+-    selectedRuntimeMotionName.value = motion?.name || ''
+-  }, { immediate: true })
++  // Restore selected motion
++  const savedPath = localStorage.getItem('selected-runtime-motion')
++  const savedName = localStorage.getItem('selected-runtime-motion-name')
++  if (savedPath) {
++    selectedRuntimeMotion.value = savedPath
++  }
++  if (savedName) {
++    selectedRuntimeMotionName.value = savedName
++  }
+
+   // Add click outside handler
+   document.addEventListener('click', handleClickOutside)
+ })
+
+-function handleMotionShuffle() {
+-  selectedRuntimeMotion.value = 'Shuffle All'
+-  selectedRuntimeMotionName.value = 'Shuffle All'
+-  selectedRuntimeIdleMotion.value = {
+-    path: 'Shuffle All',
+-    name: 'Shuffle All',
+-    group: 'Idle',
+-  }
+-
+-  // Enable idle animation
+-  live2dIdleAnimationEnabled.value = true
+-
+-  // Set the current motion to shuffle (no index)
+-  currentMotion.value = { group: 'Idle' }
+-
+-  showMotionSelector.value = false
+-}
+-
+ // Function to reset all parameters to default values
+ function resetToDefaultParameters() {
+   modelParameters.value = { ...defaultModelParameters }
+@@ -87,12 +73,10 @@ function resetToDefaultParameters() {
+ function handleMotionSelect(motion: any) {
+   selectedRuntimeMotion.value = motion.displayPath // Store full path
+   selectedRuntimeMotionName.value = motion.name // Store just the filename for display
+-  selectedRuntimeIdleMotion.value = {
+-    path: motion.displayPath,
+-    name: motion.name,
+-    group: motion.group,
+-    index: motion.index,
+-  }
++  localStorage.setItem('selected-runtime-motion', motion.displayPath)
++  localStorage.setItem('selected-runtime-motion-name', motion.name)
++  localStorage.setItem('selected-runtime-motion-group', motion.group)
++  localStorage.setItem('selected-runtime-motion-index', motion.index.toString())
+
+   // Enable idle animation
+   live2dIdleAnimationEnabled.value = true
+@@ -322,22 +306,6 @@ onUnmounted(() => {
+           <div v-if="runtimeMotions.length === 0" p-4 text-sm text-neutral-500 dark:text-neutral-400>
+             No motions available
+           </div>
+-          <button
+-            w-full px-4 py-2.5 text-left
+-            hover:bg="neutral-100 dark:neutral-700"
+-            transition-colors
+-            :class="{
+-              'bg-neutral-100 dark:bg-neutral-700': selectedRuntimeMotion === 'Shuffle All',
+-            }"
+-            @click="handleMotionShuffle"
+-          >
+-            <div text-sm text-neutral-900 font-medium dark:text-neutral-100>
+-              Shuffle All (Idle)
+-            </div>
+-            <div truncate text-xs text-neutral-500 dark:text-neutral-400>
+-              Randomly play motions from the Idle group
+-            </div>
+-          </button>
+           <button
+             v-for="motion in runtimeMotions"
+             :key="motion.fullPath"
+diff --git a/packages/stage-ui/src/components/scenes/live2d/Model.vue b/packages/stage-ui/src/components/scenes/live2d/Model.vue
+index 1f002672..86965775 100644
+--- a/packages/stage-ui/src/components/scenes/live2d/Model.vue
++++ b/packages/stage-ui/src/components/scenes/live2d/Model.vue
+@@ -1,6 +1,5 @@
+ <script setup lang="ts">
+ import type { Application } from '@pixi/app'
+-import type { MotionManager } from 'pixi-live2d-display/cubism4'
+
+ import type { PixiLive2DInternalModel } from '../../../composables/live2d'
+
+@@ -27,17 +26,6 @@ import { Emotion, EmotionNeutralMotionName } from '../../../constants/emotions'
+ import { useLive2d } from '../../../stores/live2d'
+ import { useSettings } from '../../../stores/settings'
+
+-type ExtendedMotionManager = MotionManager<any, any> & {
+-  idleMotionGroup?: string
+-  definitions: Record<string, any[]>
+-  groups: {
+-    idle?: string
+-    Idle?: string
+-    [key: string]: any
+-  }
+-  motionGroups: Record<string, any[]>
+-}
+-
+ const props = withDefaults(defineProps<{
+   modelSrc?: string
+   modelId?: string
+@@ -146,7 +134,6 @@ const {
+   availableMotions,
+   motionMap,
+   modelParameters,
+-  selectedRuntimeIdleMotion,
+ } = storeToRefs(live2dStore)
+
+ const {
+@@ -251,8 +238,7 @@ async function loadModel() {
+
+     const internalModel = model.value.internalModel
+     const coreModel = internalModel.coreModel
+-
+-    const motionManager = internalModel.motionManager as ExtendedMotionManager
++    const motionManager = internalModel.motionManager
+     coreModel.setParameterValueById('ParamMouthOpenY', mouthOpenSize.value)
+
+     availableMotions.value = Object
+@@ -264,28 +250,30 @@ async function loadModel() {
+       })) || []))
+       .filter(Boolean)
+
+-    const selectedMotionGroup = selectedRuntimeIdleMotion.value?.group
+-    const selectedMotionIndex = selectedRuntimeIdleMotion.value?.index
++    // Check if user has selected a runtime motion to play as idle
++    const selectedMotionGroup = localStorage.getItem('selected-runtime-motion-group')
++    const selectedMotionIndex = localStorage.getItem('selected-runtime-motion-index')
+
+     // Configure the selected motion to loop
+-    if (selectedMotionGroup != null && selectedMotionIndex != null) {
++    if (selectedMotionGroup !== null && selectedMotionIndex) {
+       const groupIndex = (motionManager.groups as Record<string, any>)[selectedMotionGroup]
+       if (groupIndex !== undefined && motionManager.motionGroups[groupIndex]) {
+-        const motion = motionManager.motionGroups[groupIndex][selectedMotionIndex]
++        const motionIndex = Number.parseInt(selectedMotionIndex)
++        const motion = motionManager.motionGroups[groupIndex][motionIndex]
+         if (motion && motion._looper) {
+           // Force the motion to loop
+           motion._looper.loopDuration = 0 // 0 means infinite loop
+-          console.info('Configured motion to loop infinitely:', selectedMotionGroup, selectedMotionIndex)
++          console.info('Configured motion to loop infinitely:', selectedMotionGroup, motionIndex)
+         }
+       }
+     }
+
+-    if (selectedMotionGroup != null && selectedMotionIndex != null && live2dIdleAnimationEnabled.value) {
++    if (selectedMotionGroup !== null && selectedMotionIndex && live2dIdleAnimationEnabled.value) {
+       setTimeout(() => {
+         console.info('Playing selected runtime motion:', selectedMotionGroup, selectedMotionIndex)
+         currentMotion.value = {
+           group: selectedMotionGroup,
+-          index: selectedMotionIndex,
++          index: Number.parseInt(selectedMotionIndex),
+         }
+       }, 300)
+     }
+@@ -293,20 +281,15 @@ async function loadModel() {
+     // Remove eye ball movements from idle motion group to prevent conflicts
+     // This is too hacky
+     // FIXME: it cannot blink if loading a model only have idle motion
+-    const idleGroupName = motionManager.groups.idle ? 'idle' : (motionManager.groups.Idle ? 'Idle' : undefined)
+-    if (idleGroupName) {
+-      const groupTarget = motionManager.groups[idleGroupName]
+-      if (groupTarget !== undefined) {
+-        motionManager.idleMotionGroup = idleGroupName
+-        motionManager.motionGroups[groupTarget]?.forEach((motion: any) => {
+-          motion._motionData.curves.forEach((curve: any) => {
+-            // TODO: After emotion mapper, stage editor, eye related parameters should be take cared to be dynamical instead of hardcoding
+-            if (curve.id === 'ParamEyeBallX' || curve.id === 'ParamEyeBallY') {
+-              curve.id = `_${curve.id}`
+-            }
+-          })
++    if (motionManager.groups.idle) {
++      motionManager.motionGroups[motionManager.groups.idle]?.forEach((motion) => {
++        motion._motionData.curves.forEach((curve: any) => {
++        // TODO: After emotion mapper, stage editor, eye related parameters should be take cared to be dynamical instead of hardcoding
++          if (curve.id === 'ParamEyeBallX' || curve.id === 'ParamEyeBallY') {
++            curve.id = `_${curve.id}`
++          }
+         })
+-      }
++      })
+     }
+
+     // This is hacky too
+@@ -330,25 +313,23 @@ async function loadModel() {
+       return motionManagerUpdate.hookUpdate(model, now, hookedUpdate)
+     }
+
+-    motionManager.on('motionStart', (group: string, index: number) => {
++    motionManager.on('motionStart', (group, index) => {
+       localCurrentMotion.value = { group, index }
+     })
+
+     // Listen for motion finish to restart runtime motion for looping
+     motionManager.on('motionFinish', () => {
+-      const selectedMotionGroup = selectedRuntimeIdleMotion.value?.group
+-      const selectedMotionIndex = selectedRuntimeIdleMotion.value?.index
++      const selectedMotionGroup = localStorage.getItem('selected-runtime-motion-group')
++      const selectedMotionIndex = localStorage.getItem('selected-runtime-motion-index')
+
+-      if (selectedMotionGroup != null && selectedMotionIndex != null && live2dIdleAnimationEnabled.value) {
++      if (selectedMotionGroup !== null && selectedMotionIndex && live2dIdleAnimationEnabled.value) {
+         // Restart the selected runtime motion immediately for seamless looping
+         console.info('Motion finished, restarting runtime motion:', selectedMotionGroup, selectedMotionIndex)
+         // Use requestAnimationFrame to restart on the next frame for smooth transition
+         requestAnimationFrame(() => {
+-          if (selectedMotionGroup != null && selectedMotionIndex != null && live2dIdleAnimationEnabled.value) {
+-            currentMotion.value = {
+-              group: selectedMotionGroup,
+-              index: selectedMotionIndex,
+-            }
++          currentMotion.value = {
++            group: selectedMotionGroup,
++            index: Number.parseInt(selectedMotionIndex),
+           }
+         })
+       }
+diff --git a/packages/stage-ui/src/composables/live2d/motion-manager.ts b/packages/stage-ui/src/composables/live2d/motion-manager.ts
+index be803269..01bb276f 100644
+--- a/packages/stage-ui/src/composables/live2d/motion-manager.ts
++++ b/packages/stage-ui/src/composables/live2d/motion-manager.ts
+@@ -3,7 +3,6 @@ import type { Ref } from 'vue'
+
+ import type { BeatSyncController } from './beat-sync'
+
+-import { useLive2d } from '../../stores/live2d'
+ import { useLive2DIdleEyeFocus } from './animation'
+
+ type CubismModel = Cubism4InternalModel['coreModel']
+@@ -56,8 +55,6 @@ export function useLive2DMotionManagerUpdate(options: UseLive2DMotionManagerUpda
+     lastUpdateTime,
+   } = options
+
+-  const live2dStore = useLive2d()
+-
+   const prePlugins: MotionManagerPlugin[] = []
+   const postPlugins: MotionManagerPlugin[] = []
+
+@@ -78,7 +75,7 @@ export function useLive2DMotionManagerUpdate(options: UseLive2DMotionManagerUpda
+
+   function hookUpdate(model: CubismModel, now: number, hookedUpdate?: (model: CubismModel, now: number) => boolean) {
+     const timeDelta = lastUpdateTime.value ? now - lastUpdateTime.value : 0
+-    const selectedMotionGroup = live2dStore.selectedRuntimeIdleMotion?.group
++    const selectedMotionGroup = localStorage.getItem('selected-runtime-motion-group')
+     const isIdleMotion = !motionManager.state.currentGroup
+       || motionManager.state.currentGroup === motionManager.groups.idle
+       || (!!selectedMotionGroup && motionManager.state.currentGroup === selectedMotionGroup)
+diff --git a/packages/stage-ui/src/stores/live2d.ts b/packages/stage-ui/src/stores/live2d.ts
+index ef622c51..9bfb1d14 100644
+--- a/packages/stage-ui/src/stores/live2d.ts
++++ b/packages/stage-ui/src/stores/live2d.ts
+@@ -60,9 +60,8 @@ export const useLive2d = defineStore('live2d', () => {
+     x: `${position.value.x}%`,
+     y: `${position.value.y}%`,
+   }))
+-  const [currentMotion, resetCurrentMotion] = createResettableRef<{ group: string, index?: number }>({ group: 'Idle' })
++  const [currentMotion, resetCurrentMotion] = createResettableRef<{ group: string, index?: number }>({ group: 'Idle', index: 0 })
+   const [availableMotions, resetAvailableMotions] = createResettableRef<{ motionName: string, motionIndex: number, fileName: string }[]>([])
+-  const [selectedRuntimeIdleMotion, resetSelectedRuntimeIdleMotion] = createResettableRef<{ path: string, name: string, group: string, index?: number } | null>(null)
+   const [motionMap, resetMotionMap] = createResettableLocalStorage<Record<string, string>>('settings/live2d/motion-map', {})
+   const [scale, resetScale] = createResettableLocalStorage('settings/live2d/scale', 1)
+
+@@ -73,7 +72,6 @@ export const useLive2d = defineStore('live2d', () => {
+     resetPosition()
+     resetCurrentMotion()
+     resetAvailableMotions()
+-    resetSelectedRuntimeIdleMotion()
+     resetMotionMap()
+     resetScale()
+     resetModelParameters()
+@@ -85,7 +83,6 @@ export const useLive2d = defineStore('live2d', () => {
+     positionInPercentageString,
+     currentMotion,
+     availableMotions,
+-    selectedRuntimeIdleMotion,
+     motionMap,
+     scale,
+     modelParameters,
